@@ -1,19 +1,27 @@
 # Dockerfile for Vinsuite Backend
 
-# Use official OpenJDK image
+# Use official lightweight OpenJDK image
 FROM openjdk:17-jdk-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy project files
-COPY . .
+# Copy Maven wrapper and Maven related files first
+COPY vinsuite-backend/mvnw .
+COPY vinsuite-backend/mvnw.cmd .
+COPY vinsuite-backend/.mvn .mvn
 
-# Package the application
-RUN ./mvnw clean install
+# Copy the full project files
+COPY vinsuite-backend .
 
-# Expose port (same as your Spring Boot app)
+# Give execute permissions to mvnw
+RUN chmod +x mvnw
+
+# Build the application (creates JAR file in /target/)
+RUN ./mvnw clean install -DskipTests
+
+# Expose port used by Spring Boot
 EXPOSE 8081
 
-# Run the application
-CMD ["./mvnw", "spring-boot:run"]
+# Run the built JAR directly
+CMD ["java", "-jar", "target/demo-0.0.1-SNAPSHOT.jar"]
