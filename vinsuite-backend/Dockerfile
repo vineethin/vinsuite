@@ -23,5 +23,5 @@ RUN ./mvnw clean install -DskipTests
 # Expose port used by Spring Boot
 EXPOSE 8081
 
-# Run the built JAR directly
-CMD ["java", "-jar", "target/demo-0.0.1-SNAPSHOT.jar"]
+# Run the built JAR directly (CORRECTED HERE)
+CMD ["java", "-jar", "target/vinsuite-0.0.1-SNAPSHOT.jar"]
