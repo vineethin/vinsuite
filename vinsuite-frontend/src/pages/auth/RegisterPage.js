@@ -13,7 +13,7 @@ const RegisterPage = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:8081/api/auth/register', {
+      const res = await axios.post('https://vinsuite.onrender.com/api/auth/register', {
         email,
         password,
         name,

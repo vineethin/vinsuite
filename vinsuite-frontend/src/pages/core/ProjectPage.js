@@ -12,7 +12,7 @@ function ProjectPage() {
   const userId = localStorage.getItem("userId");
 
   useEffect(() => {
-    fetch("http://localhost:8081/api/projects")
+    fetch("https://vinsuite.onrender.com/api/projects")
       .then(res => res.json())
       .then(data => setProjects(data))
       .catch(err => console.error("Error fetching projects:", err));
@@ -20,7 +20,7 @@ function ProjectPage() {
 
   const handleCreateProject = async (e) => {
     e.preventDefault();
-    const res = await fetch("http://localhost:8081/api/projects", {
+    const res = await fetch("https://vinsuite.onrender.com/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

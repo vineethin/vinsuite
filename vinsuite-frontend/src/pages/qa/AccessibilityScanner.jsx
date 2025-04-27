@@ -16,7 +16,7 @@ const AccessibilityScanner = () => {
     setLoading(true);
     setViolations([]);
     try {
-      const response = await axios.post('http://localhost:8081/api/accessibility/scan', { url });
+      const response = await axios.post('https://vinsuite.onrender.com/api/accessibility/scan', { url });
       setViolations(response.data.violations || []);
     } catch (error) {
       console.error('Accessibility scan failed:', error);

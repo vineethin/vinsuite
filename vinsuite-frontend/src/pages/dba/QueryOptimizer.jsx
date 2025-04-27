@@ -7,7 +7,7 @@ const QueryOptimizer = () => {
 
   const handleAnalyze = async () => {
     try {
-      const res = await axios.post('http://localhost:8081/api/dba/optimize-query', { query });
+      const res = await axios.post('https://vinsuite.onrender.com/api/dba/optimize-query', { query });
       const content = res.data.choices?.[0]?.message?.content;
       setResponse(content || 'No response received.');
     } catch (error) {

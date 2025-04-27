@@ -19,7 +19,7 @@ function GenerateTestCases() {
     setMessage('');
 
     try {
-      const res = await fetch('http://localhost:8081/api/ai/generate-testcases', {
+      const res = await fetch('https://vinsuite.onrender.com/api/ai/generate-testcases', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requirement, projectId })

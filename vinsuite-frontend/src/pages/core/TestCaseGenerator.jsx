@@ -33,7 +33,7 @@ const TestCaseGenerator = () => {
   const handleTextTestCaseGeneration = async () => {
     if (!inputText.trim()) return;
     try {
-      const res = await axios.post('http://localhost:8081/api/ai/generate-test-cases', { feature: inputText });
+      const res = await axios.post('https://vinsuite.onrender.com/api/ai/generate-test-cases', { feature: inputText });
       const result = res.data.testCases || [];
       setTestCases(result);
       setOriginalTestCases(result);
@@ -50,7 +50,7 @@ const TestCaseGenerator = () => {
     }
 
     try {
-      const res = await axios.post('http://localhost:8081/api/ai/generate-smart-test-cases', {
+      const res = await axios.post('https://vinsuite.onrender.com/api/ai/generate-smart-test-cases', {
         featureText: inputText || "",
         imageBase64: imageBase64 || ""
       });

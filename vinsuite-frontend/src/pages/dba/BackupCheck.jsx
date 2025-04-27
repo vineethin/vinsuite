@@ -5,7 +5,7 @@ const BackupCheck = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:8081/api/dba/backup-status')
+    axios.get('https://vinsuite.onrender.com/api/dba/backup-status')
       .then(res => setData(res.data))
       .catch(err => console.error(err));
   }, []);

@@ -17,7 +17,7 @@ const PageObjectTab = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8081/api/ai/generate-pageobject', {
+      const response = await axios.post('https://vinsuite.onrender.com/api/ai/generate-pageobject', {
         html,
         language: selectedLang
       });

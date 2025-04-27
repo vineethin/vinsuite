@@ -20,7 +20,7 @@ function App() {
     setLoading(true); // Start loading
 
     try {
-      const response = await fetch(`http://localhost:8081/api/projects?userId=${userId}`, {
+      const response = await fetch(`https://vinsuite.onrender.com/api/projects?userId=${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
