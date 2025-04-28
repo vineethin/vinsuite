@@ -18,6 +18,7 @@ const TestCaseGenerator = () => {
   const [originalTestCases, setOriginalTestCases] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isOCRTableEditable, setIsOCRTableEditable] = useState(false);
+  const [loading, setLoading] = useState(false); // <-- Added
 
   const handleTabSwitch = (newTab) => {
     setTab(newTab);
@@ -32,6 +33,7 @@ const TestCaseGenerator = () => {
 
   const handleTextTestCaseGeneration = async () => {
     if (!inputText.trim()) return;
+    setLoading(true);
     try {
       const res = await axios.post('https://vinsuite.onrender.com/api/ai/generate-test-cases', { feature: inputText });
       const result = res.data.testCases || [];
@@ -40,6 +42,8 @@ const TestCaseGenerator = () => {
     } catch (error) {
       console.error('Error generating test cases from text:', error);
       alert('❌ Failed to generate test cases.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,7 +52,7 @@ const TestCaseGenerator = () => {
       alert("❗ Please provide at least an image or a user story");
       return;
     }
-
+    setLoading(true);
     try {
       const res = await axios.post('https://vinsuite.onrender.com/api/ai/generate-smart-test-cases', {
         featureText: inputText || "",
@@ -61,6 +65,8 @@ const TestCaseGenerator = () => {
     } catch (error) {
       console.error('❌ Failed OCR Gen:', error);
       alert('❌ Failed to generate test cases from input.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,9 +94,20 @@ const TestCaseGenerator = () => {
           <div className="mt-4">
             <button
               onClick={handleTextTestCaseGeneration}
-              className="px-6 py-2 font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded shadow"
+              disabled={loading}
+              className={`px-6 py-2 font-semibold ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded shadow flex items-center justify-center`}
             >
-              Generate Test Cases
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                  </svg>
+                  <span>Generating...</span>
+                </div>
+              ) : (
+                'Generate Test Cases'
+              )}
             </button>
           </div>
         </>
@@ -111,9 +128,20 @@ const TestCaseGenerator = () => {
           <div className="mt-4">
             <button
               onClick={handleOCRTestCaseGeneration}
-              className="px-6 py-2 font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded shadow"
+              disabled={loading}
+              className={`px-6 py-2 font-semibold ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded shadow flex items-center justify-center`}
             >
-              Generate Test Cases
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                  </svg>
+                  <span>Generating...</span>
+                </div>
+              ) : (
+                'Generate Test Cases'
+              )}
             </button>
           </div>
         </>

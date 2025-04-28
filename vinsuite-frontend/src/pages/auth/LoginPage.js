@@ -1,4 +1,4 @@
-// ✅ Updated LoginPage.jsx
+// ✅ Updated LoginPage.jsx with loading spinner + timeout + friendly note
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -12,11 +12,19 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
+      const source = axios.CancelToken.source();
+      const timeout = setTimeout(() => {
+        source.cancel('Server took too long to respond.');
+      }, 15000); // 15 seconds timeout
+
       const res = await axios.post('https://vinsuite.onrender.com/api/auth/login', {
         email,
         password
-      });
+      }, { cancelToken: source.token });
+
+      clearTimeout(timeout);
 
       const user = res.data;
       localStorage.setItem("userId", user.id);
@@ -33,18 +41,17 @@ const LoginPage = () => {
     } catch (err) {
       console.error('Login failed:', err);
 
-      if (err.response) {
-        // Server responded with a status outside 2xx
+      if (axios.isCancel(err)) {
+        alert('❌ Server is taking too long to respond. Please try again in a moment.');
+      } else if (err.response) {
         if (err.response.status === 401) {
           alert('❌ Incorrect email or password. Please try again.');
         } else {
           alert(`❌ Login failed: ${err.response.data.message || 'Server error'}`);
         }
       } else if (err.request) {
-        // Request made but no response
         alert('❌ Unable to reach server. Please check your internet connection.');
       } else {
-        // Something else happened
         alert('❌ An unexpected error occurred. Please try again.');
       }
     } finally {
@@ -75,11 +82,24 @@ const LoginPage = () => {
           />
           <button
             type="submit"
-            className={`w-full ${loading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white py-2 rounded`}
+            className={`w-full ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white py-2 rounded flex items-center justify-center`}
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? (
+              <div className="flex items-center space-x-2">
+                <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <span>Logging in...</span>
+              </div>
+            ) : (
+              "Login"
+            )}
           </button>
+          <p className="text-xs text-center text-gray-500 mt-2">
+            🚀 Server may take a few seconds to wake up if idle.
+          </p>
         </form>
         <p className="text-center text-sm mt-4">
           Don't have an account?{' '}
