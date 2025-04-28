@@ -12,35 +12,30 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
       const source = axios.CancelToken.source();
       const timeout = setTimeout(() => {
         source.cancel('Server took too long to respond.');
-      }, 15000); // 15 seconds timeout
-
+      }, 15000);
+  
       const res = await axios.post('https://vinsuite.onrender.com/api/auth/login', {
         email,
         password
       }, { cancelToken: source.token });
-
+  
       clearTimeout(timeout);
-
+  
       const user = res.data;
       localStorage.setItem("userId", user.id);
       localStorage.setItem("userName", user.name);
       localStorage.setItem("userRole", user.role);
-
-      if (user.role === 'tester') navigate('/qa');
-      else if (user.role === 'developer') navigate('/dev');
-      else if (user.role === 'manager') navigate('/manager');
-      else if (user.role === 'ba') navigate('/ba');
-      else if (user.role === 'dba') navigate('/dba');
-      else navigate('/project');
-
+  
+      navigate('/project'); // ✅ Always go to ProjectPage first after login
+  
     } catch (err) {
       console.error('Login failed:', err);
-
+  
       if (axios.isCancel(err)) {
         alert('❌ Server is taking too long to respond. Please try again in a moment.');
       } else if (err.response) {
@@ -58,6 +53,7 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
