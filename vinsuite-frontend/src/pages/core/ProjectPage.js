@@ -62,8 +62,9 @@ function ProjectPage() {
     else if (role === "manager") dashboardRoute = "/manager";
     else if (role === "ba") dashboardRoute = "/ba";
     else if (role === "dba") dashboardRoute = "/dba";
-
+    
     navigate(dashboardRoute);
+    
   };
 
   return (
