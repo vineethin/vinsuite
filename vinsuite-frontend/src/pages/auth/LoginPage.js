@@ -1,4 +1,4 @@
-// ✅ LoginPage.jsx
+// ✅ Updated LoginPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -6,10 +6,12 @@ import axios from 'axios';
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const res = await axios.post('https://vinsuite.onrender.com/api/auth/login', {
         email,
@@ -29,8 +31,24 @@ const LoginPage = () => {
       else navigate('/project');
 
     } catch (err) {
-      alert('❌ Login Failed');
-      console.error(err);
+      console.error('Login failed:', err);
+
+      if (err.response) {
+        // Server responded with a status outside 2xx
+        if (err.response.status === 401) {
+          alert('❌ Incorrect email or password. Please try again.');
+        } else {
+          alert(`❌ Login failed: ${err.response.data.message || 'Server error'}`);
+        }
+      } else if (err.request) {
+        // Request made but no response
+        alert('❌ Unable to reach server. Please check your internet connection.');
+      } else {
+        // Something else happened
+        alert('❌ An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,9 +75,10 @@ const LoginPage = () => {
           />
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+            className={`w-full ${loading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white py-2 rounded`}
+            disabled={loading}
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
         <p className="text-center text-sm mt-4">
