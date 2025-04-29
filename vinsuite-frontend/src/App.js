@@ -6,6 +6,8 @@ import {
   Navigate,
 } from "react-router-dom";
 
+import HomePage from './pages/core/HomePage';
+
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ProjectPage from "./pages/core/ProjectPage";
@@ -32,11 +34,11 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* 🔁 Root redirect */}
+        {/* 🏠 Home - redirect to dashboard if logged in */}
         <Route
           path="/"
           element={
-            isLoggedIn ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
+            isLoggedIn ? <Navigate to="/dashboard" /> : <HomePage />
           }
         />
 
@@ -65,9 +67,11 @@ function App() {
         {/* 🧪 QA Tools */}
         <Route path="/accessibility" element={<AccessibilityScanner />} />
         <Route path="/page-object" element={<PageObjectGenerator />} />
-        
-        {/* 🧪 Dev Tools */}  
+
+        {/* 🧰 Dev Tools */}
         <Route path="/developer/json-formatter" element={<JsonFormatter />} />
+
+        {/* 🚀 Role-Based Redirect */}
         <Route
           path="/dashboard"
           element={
@@ -94,6 +98,9 @@ function App() {
             )
           }
         />
+
+        {/* 🔄 Catch-all (Optional 404 redirect) */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
