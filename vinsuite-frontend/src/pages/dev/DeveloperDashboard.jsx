@@ -25,7 +25,7 @@ const DeveloperDashboard = () => {
     {
       title: "JSON Formatter & Validator",
       description: "Format, validate, and beautify JSON instantly.",
-      path: "/developer/json-formatter"
+      path: "/dev/json-formatter"
     }
   ];
 
