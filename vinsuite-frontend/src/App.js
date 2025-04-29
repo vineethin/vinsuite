@@ -24,7 +24,7 @@ import QueryOptimizer from "./pages/dba/QueryOptimizer";
 import BackupCheck from "./pages/dba/BackupCheck";
 import SchemaTracker from "./pages/dba/SchemaTracker";
 
-import JsonFormatter from './pages/developer/JsonFormatter';
+import JsonFormatter from './pages/dev/JsonFormatter';
 
 function App() {
   const isLoggedIn = !!localStorage.getItem("userId");
