@@ -52,7 +52,7 @@ public class ElementUtils {
             String locator = getBestLocator(el);
             if (locator != null) {
                 code.append("    ").append(locator).append("\n");
-                code.append("    private WebElement ").append(generateVariableName(el)).append(";\n\n");
+                code.append("    public WebElement ").append(generateVariableName(el)).append(";\n\n");
             }
         }
 

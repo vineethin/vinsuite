@@ -1,7 +1,7 @@
-// ✅ RegisterPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API from '../../apiConfig';
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
@@ -13,7 +13,7 @@ const RegisterPage = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('https://vinsuite.onrender.com/api/auth/register', {
+      const res = await axios.post(`${API.AUTH}/register`, {
         email,
         password,
         name,
@@ -88,4 +88,4 @@ const RegisterPage = () => {
   );
 };
 
-export default RegisterPage
+export default RegisterPage;

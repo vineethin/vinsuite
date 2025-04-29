@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LogoutButton from '../../components/LogoutButton';
+import API from '../../apiConfig';
 
 function ProjectPage() {
   const [projects, setProjects] = useState([]);
@@ -12,7 +13,7 @@ function ProjectPage() {
   const userId = localStorage.getItem("userId");
 
   useEffect(() => {
-    fetch("https://vinsuite.onrender.com/api/projects")
+    fetch(`${API.PROJECTS}`)
       .then(res => res.json())
       .then(data => setProjects(data))
       .catch(err => console.error("Error fetching projects:", err));
@@ -20,7 +21,7 @@ function ProjectPage() {
 
   const handleCreateProject = async (e) => {
     e.preventDefault();
-    const res = await fetch("https://vinsuite.onrender.com/api/projects", {
+    const res = await fetch(`${API.PROJECTS}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -64,7 +65,6 @@ function ProjectPage() {
     else if (role === "dba") dashboardRoute = "/dba";
     
     navigate(dashboardRoute);
-    
   };
 
   return (

@@ -1,7 +1,7 @@
-// ✅ Updated LoginPage.jsx with loading spinner + timeout + friendly note
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API from '../../apiConfig';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -12,30 +12,30 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
+
     try {
       const source = axios.CancelToken.source();
       const timeout = setTimeout(() => {
         source.cancel('Server took too long to respond.');
       }, 15000);
-  
-      const res = await axios.post('https://vinsuite.onrender.com/api/auth/login', {
+
+      const res = await axios.post(`${API.AUTH}/login`, {
         email,
         password
       }, { cancelToken: source.token });
-  
+
       clearTimeout(timeout);
-  
+
       const user = res.data;
       localStorage.setItem("userId", user.id);
       localStorage.setItem("userName", user.name);
       localStorage.setItem("userRole", user.role);
-  
-      navigate('/project'); // ✅ Always go to ProjectPage first after login
-  
+
+      navigate('/project');
+
     } catch (err) {
       console.error('Login failed:', err);
-  
+
       if (axios.isCancel(err)) {
         alert('❌ Server is taking too long to respond. Please try again in a moment.');
       } else if (err.response) {
@@ -53,7 +53,6 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

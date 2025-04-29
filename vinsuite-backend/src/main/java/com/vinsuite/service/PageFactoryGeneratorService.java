@@ -1,3 +1,4 @@
+// ✅ Updated PageFactoryGeneratorService.java
 package com.vinsuite.service;
 
 import org.jsoup.Jsoup;
@@ -33,7 +34,7 @@ public class PageFactoryGeneratorService {
                 String locator = ElementUtils.getBestLocator(el);
                 if (locator != null) {
                     code.append("    ").append(locator).append("\n");
-                    code.append("    private WebElement ").append(ElementUtils.generateVariableName(el)).append(";\n\n");
+                    code.append("    public WebElement ").append(ElementUtils.generateVariableName(el)).append(";\n\n");
                 }
             }
 

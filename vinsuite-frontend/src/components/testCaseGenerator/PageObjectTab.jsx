@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import API from '../../apiConfig';
 
 const PageObjectTab = () => {
   const [html, setHtml] = useState('');
@@ -17,7 +18,7 @@ const PageObjectTab = () => {
     }
 
     try {
-      const response = await axios.post('https://vinsuite.onrender.com/api/ai/generate-pageobject', {
+      const response = await axios.post(`${API.TEST_CASES}/generate-pageobject`, {
         html,
         language: selectedLang
       });
