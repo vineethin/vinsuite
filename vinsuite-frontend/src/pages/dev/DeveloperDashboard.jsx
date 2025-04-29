@@ -21,6 +21,11 @@ const DeveloperDashboard = () => {
       title: "Code Snippet Vault",
       description: "Store and share reusable dev snippets.",
       path: "/snippet-vault"
+    },
+    {
+      title: "JSON Formatter & Validator",
+      description: "Format, validate, and beautify JSON instantly.",
+      path: "/developer/json-formatter"
     }
   ];
 

@@ -24,6 +24,8 @@ import QueryOptimizer from "./pages/dba/QueryOptimizer";
 import BackupCheck from "./pages/dba/BackupCheck";
 import SchemaTracker from "./pages/dba/SchemaTracker";
 
+import JsonFormatter from './pages/developer/JsonFormatter';
+
 function App() {
   const isLoggedIn = !!localStorage.getItem("userId");
 
@@ -63,6 +65,9 @@ function App() {
         {/* 🧪 QA Tools */}
         <Route path="/accessibility" element={<AccessibilityScanner />} />
         <Route path="/page-object" element={<PageObjectGenerator />} />
+        
+        {/* 🧪 Dev Tools */}  
+        <Route path="/developer/json-formatter" element={<JsonFormatter />} />
         <Route
           path="/dashboard"
           element={
