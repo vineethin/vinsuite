@@ -17,9 +17,11 @@ public class WebConfig {
                 registry.addMapping("/**")
                         .allowedOrigins(
                                 "http://localhost:3000",
-                                "https://vinsuite-frontend.onrender.com")
+                                "https://vinsuite-frontend.onrender.com",
+                                "https://vinsuite360.com")
                         .allowedMethods("*")
-                        .allowedHeaders("*");
+                        .allowedHeaders("*")
+                        .allowCredentials(true); // ✅ This is crucial
             }
         };
     }
