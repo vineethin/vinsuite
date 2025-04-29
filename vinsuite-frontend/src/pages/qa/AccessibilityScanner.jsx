@@ -1,6 +1,6 @@
-// src/pages/qa/AccessibilityScanner.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
+import API from '../../apiConfig';
 import LogoutButton from '../../components/LogoutButton';
 
 const AccessibilityScanner = () => {
@@ -16,7 +16,7 @@ const AccessibilityScanner = () => {
     setLoading(true);
     setViolations([]);
     try {
-      const response = await axios.post('https://vinsuite.onrender.com/api/accessibility/scan', { url });
+      const response = await axios.post(`${API.ACCESSIBILITY}/scan`, { url });
       setViolations(response.data.violations || []);
     } catch (error) {
       console.error('Accessibility scan failed:', error);
@@ -81,4 +81,3 @@ const AccessibilityScanner = () => {
 };
 
 export default AccessibilityScanner;
-

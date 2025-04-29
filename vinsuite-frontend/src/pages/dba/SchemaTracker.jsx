@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import API from '../../apiConfig';
 
 const SchemaTracker = () => {
   const [file, setFile] = useState(null);
@@ -10,7 +11,7 @@ const SchemaTracker = () => {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await axios.post('https://vinsuite.onrender.com/api/dba/upload-schema-log', formData);
+      const res = await axios.post(`${API.QUERY}/upload-schema-log`, formData);
       setLogs(res.data);
     } catch (err) {
       console.error(err);

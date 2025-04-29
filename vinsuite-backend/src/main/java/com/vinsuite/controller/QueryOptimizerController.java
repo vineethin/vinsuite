@@ -11,8 +11,8 @@ import java.util.*;
 @RequestMapping("/api/dba")
 public class QueryOptimizerController {
 
-    @Value("${openai.api.key}")
-    private String openaiApiKey;
+    @Value("${groq.api.key}")
+    private String groqApiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -24,19 +24,19 @@ public class QueryOptimizerController {
 
         try {
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "gpt-4");
+            requestBody.put("model", "llama3-70b-8192");
             requestBody.put("messages", List.of(
                 Map.of("role", "user", "content", prompt)
             ));
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(openaiApiKey);
+            headers.setBearerAuth(groqApiKey);
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
             ResponseEntity<Map> response = restTemplate.postForEntity(
-                "https://api.openai.com/v1/chat/completions", entity, Map.class
+                "https://api.groq.com/openai/v1/chat/completions", entity, Map.class
             );
 
             return ResponseEntity.ok(response.getBody());

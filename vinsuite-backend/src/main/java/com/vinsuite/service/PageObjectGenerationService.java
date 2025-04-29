@@ -1,5 +1,5 @@
+// ✅ Updated PageObjectGenerationService.java
 package com.vinsuite.service;
-
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,9 +23,12 @@ public class PageObjectGenerationService {
 
             String code;
             switch (language.toLowerCase()) {
+                case "java" -> code = ElementUtils.generateJava(elements);
                 case "csharp" -> code = ElementUtils.generateCSharp(elements);
                 case "python" -> code = ElementUtils.generatePython(elements);
-                default -> code = ElementUtils.generateJava(elements);
+                default -> {
+                    return ResponseEntity.badRequest().body(Map.of("code", "", "error", "Unsupported language: " + language));
+                }
             }
 
             return ResponseEntity.ok(Map.of("code", code));

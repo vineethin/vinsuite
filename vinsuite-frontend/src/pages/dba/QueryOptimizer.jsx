@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import API from '../../apiConfig';
 
 const QueryOptimizer = () => {
   const [query, setQuery] = useState('');
@@ -7,7 +8,7 @@ const QueryOptimizer = () => {
 
   const handleAnalyze = async () => {
     try {
-      const res = await axios.post('https://vinsuite.onrender.com/api/dba/optimize-query', { query });
+      const res = await axios.post(`${API.QUERY}/optimize-query`, { query });
       const content = res.data.choices?.[0]?.message?.content;
       setResponse(content || 'No response received.');
     } catch (error) {
