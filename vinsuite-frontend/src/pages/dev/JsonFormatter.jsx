@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 const JsonFormatter = () => {
   const [inputJson, setInputJson] = useState('');
@@ -15,7 +13,7 @@ const JsonFormatter = () => {
       setErrorMessage('');
     } catch (error) {
       setFormattedJson('');
-      setErrorMessage('Invalid JSON. Please fix syntax errors.');
+      setErrorMessage('❌ Invalid JSON. Please fix syntax errors.');
     }
   };
 
@@ -40,20 +38,28 @@ const JsonFormatter = () => {
       />
 
       <div className="flex space-x-2">
-        <Button onClick={handleFormat}>Format</Button>
-        <Button onClick={handleValidate} variant="outline">Validate</Button>
+        <button
+          onClick={handleFormat}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+        >
+          Format
+        </button>
+        <button
+          onClick={handleValidate}
+          className="border border-blue-600 text-blue-600 px-4 py-2 rounded hover:bg-blue-50 transition"
+        >
+          Validate
+        </button>
       </div>
 
       {errorMessage && (
-        <div className="text-red-600 font-medium mt-2">{errorMessage}</div>
+        <div className="mt-2 text-red-600 font-medium">{errorMessage}</div>
       )}
 
       {formattedJson && (
-        <Card className="mt-4">
-          <CardContent>
-            <pre className="text-sm overflow-x-auto whitespace-pre-wrap">{formattedJson}</pre>
-          </CardContent>
-        </Card>
+        <div className="mt-4 border rounded-md bg-white shadow-sm p-4">
+          <pre className="text-sm overflow-x-auto whitespace-pre-wrap">{formattedJson}</pre>
+        </div>
       )}
     </div>
   );

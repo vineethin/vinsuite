@@ -16,7 +16,6 @@ const TestCaseGenerator = () => {
   const [image, setImage] = useState(null);
   const [imageBase64, setImageBase64] = useState("");
   const [testCases, setTestCases] = useState([]);
-  const [originalTestCases, setOriginalTestCases] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isOCRTableEditable, setIsOCRTableEditable] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,7 +23,6 @@ const TestCaseGenerator = () => {
   const handleTabSwitch = (newTab) => {
     setTab(newTab);
     setTestCases([]);
-    setOriginalTestCases([]);
     setIsEditing(false);
     setIsOCRTableEditable(false);
     setInputText("");
@@ -42,7 +40,6 @@ const TestCaseGenerator = () => {
       const raw = res.data.testCases;
       const result = typeof raw === "string" ? JSON.parse(raw) : raw;
       setTestCases(result);
-      setOriginalTestCases(result);
     } catch (error) {
       console.error("Error generating test cases from text:", error);
       alert("❌ Failed to generate test cases.");
@@ -64,7 +61,6 @@ const TestCaseGenerator = () => {
       const raw = res.data.testCases;
       const result = typeof raw === "string" ? JSON.parse(raw) : raw;
       setTestCases(result);
-      setOriginalTestCases(result);
       setIsOCRTableEditable(false);
     } catch (error) {
       console.error("❌ Failed OCR Gen:", error);
@@ -159,7 +155,6 @@ const TestCaseGenerator = () => {
             isEditing={tab === "text" ? isEditing : isOCRTableEditable}
             setIsEditing={tab === "text" ? setIsEditing : setIsOCRTableEditable}
             handleSave={() => {
-              setOriginalTestCases(testCases);
               tab === "text" ? setIsEditing(false) : setIsOCRTableEditable(false);
             }}
           />
