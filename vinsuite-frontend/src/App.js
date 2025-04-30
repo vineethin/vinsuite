@@ -6,27 +6,33 @@ import {
   Navigate,
 } from "react-router-dom";
 
+// Core
 import HomePage from './pages/core/HomePage';
-
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ProjectPage from "./pages/core/ProjectPage";
 import TestCaseGenerator from "./pages/core/TestCaseGenerator";
 import ResultsPage from "./pages/core/ResultsPage";
 
+// QA
 import QADashboard from "./pages/qa/QADashboard";
 import AccessibilityScanner from "./pages/qa/AccessibilityScanner";
+import FrameworkGenerator from "./pages/qa/FrameworkGenerator";
+
+// Dev
 import DeveloperDashboard from "./pages/dev/DeveloperDashboard";
 import PageObjectGenerator from "./pages/dev/PageObjectGenerator";
+import JsonFormatter from './pages/dev/JsonFormatter';
+
+// Manager, BA, DBA
 import ManagerDashboard from "./pages/manager/ManagerDashboard";
 import BADashboard from "./pages/ba/BADashboard";
 import DBADashboard from "./pages/dba/DBADashboard";
 
+// DBA Tools
 import QueryOptimizer from "./pages/dba/QueryOptimizer";
 import BackupCheck from "./pages/dba/BackupCheck";
 import SchemaTracker from "./pages/dba/SchemaTracker";
-
-import JsonFormatter from './pages/dev/JsonFormatter';
 
 function App() {
   const isLoggedIn = !!localStorage.getItem("userId");
@@ -34,19 +40,14 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* 🏠 Home - redirect to dashboard if logged in */}
-        <Route
-          path="/"
-          element={
-            isLoggedIn ? <Navigate to="/dashboard" /> : <HomePage />
-          }
-        />
+        {/* 🏠 Home */}
+        <Route path="/" element={isLoggedIn ? <Navigate to="/dashboard" /> : <HomePage />} />
 
         {/* 🔐 Auth */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* 📁 Core pages */}
+        {/* 📁 Core */}
         <Route path="/project" element={<ProjectPage />} />
         <Route path="/test-generator" element={<TestCaseGenerator />} />
         <Route path="/results" element={<ResultsPage />} />
@@ -59,14 +60,10 @@ function App() {
         <Route path="/ba" element={<BADashboard />} />
         <Route path="/dba" element={<DBADashboard />} />
 
-        {/* 🛠️ DBA Tools */}
-        <Route path="/query-optimizer" element={<QueryOptimizer />} />
-        <Route path="/backup-check" element={<BackupCheck />} />
-        <Route path="/schema-tracker" element={<SchemaTracker />} />
-
-        {/* 🧪 QA Tools */}
+        {/* 🛠️ QA Tools */}
         <Route path="/accessibility" element={<AccessibilityScanner />} />
         <Route path="/page-object" element={<PageObjectGenerator />} />
+        <Route path="/qa/framework-generator" element={<FrameworkGenerator />} />
 
         {/* 🧰 Dev Tools */}
         <Route path="/developer/json-formatter" element={<JsonFormatter />} />
@@ -79,18 +76,12 @@ function App() {
               (() => {
                 const role = localStorage.getItem("userRole");
                 switch (role) {
-                  case "tester":
-                    return <Navigate to="/qa" />;
-                  case "developer":
-                    return <Navigate to="/dev" />;
-                  case "manager":
-                    return <Navigate to="/manager" />;
-                  case "ba":
-                    return <Navigate to="/ba" />;
-                  case "dba":
-                    return <Navigate to="/dba" />;
-                  default:
-                    return <Navigate to="/project" />;
+                  case "tester": return <Navigate to="/qa" />;
+                  case "developer": return <Navigate to="/dev" />;
+                  case "manager": return <Navigate to="/manager" />;
+                  case "ba": return <Navigate to="/ba" />;
+                  case "dba": return <Navigate to="/dba" />;
+                  default: return <Navigate to="/project" />;
                 }
               })()
             ) : (
@@ -99,7 +90,7 @@ function App() {
           }
         />
 
-        {/* 🔄 Catch-all (Optional 404 redirect) */}
+        {/* 🔄 Catch-all */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

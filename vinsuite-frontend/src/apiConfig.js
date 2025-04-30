@@ -9,7 +9,9 @@ const API = {
   BACKUP: `${BASE_URL}/backup`,
   QUERY: `${BASE_URL}/dba`,
   SCHEMA: `${BASE_URL}/schema`,
-  ACCESSIBILITY: `${BASE_URL}/accessibility`
+  ACCESSIBILITY: `${BASE_URL}/accessibility`,
+  FRAMEWORK: `${BASE_URL}/qa/framework` // ✅ New
 };
+
 
 export default API;
