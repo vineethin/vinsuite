@@ -10,7 +10,7 @@ const QADashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6">
-        
+
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-blue-700 mb-1">
@@ -56,8 +56,18 @@ const QADashboard = () => {
               Run WCAG 2.0 accessibility tests using Axe & Lighthouse.
             </p>
           </div>
-        </div>
 
+          {/* 🔹 Framework Generator */}
+          <div
+            onClick={() => navigate('/qa/framework-generator')}
+            className="cursor-pointer p-4 bg-blue-50 hover:shadow-md border border-blue-100 rounded-lg transition"
+          >
+            <h3 className="text-lg font-semibold text-blue-700">Framework Generator</h3>
+            <p className="text-sm text-gray-700">
+              Download a sample automation framework with your preferred language and testing tools.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
