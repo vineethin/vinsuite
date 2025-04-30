@@ -5,9 +5,12 @@ import com.vinsuite.repository.UserRepository;
 import com.vinsuite.request.LoginRequest;
 import com.vinsuite.request.RegisterRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
 import java.sql.Timestamp;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -20,34 +23,31 @@ public class AuthController {
     private BCryptPasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public User register(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
         if (userRepository.findByEmail(registerRequest.getEmail()) != null) {
-            throw new RuntimeException("User already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "User already exists"));
         }
 
         User user = new User();
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setRole(registerRequest.getRole());
-        user.setName(registerRequest.getName()); // ✅ name
-        user.setCreatedAt(new Timestamp(System.currentTimeMillis())); // ✅ created_at
+        user.setName(registerRequest.getName());
+        user.setCreatedAt(new Timestamp(System.currentTimeMillis()));
 
-        return userRepository.save(user);
+        return ResponseEntity.ok(userRepository.save(user));
     }
 
     @PostMapping("/login")
-    public User login(@RequestBody LoginRequest loginRequest) {
-        System.out.println("Attempting login for email: " + loginRequest.getEmail());
-
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         User user = userRepository.findByEmail(loginRequest.getEmail());
-        if (user == null) {
-            throw new RuntimeException("User not found");
+
+        if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Invalid email or password"));
         }
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
-        }
-
-        return user;
+        return ResponseEntity.ok(user);
     }
 }
