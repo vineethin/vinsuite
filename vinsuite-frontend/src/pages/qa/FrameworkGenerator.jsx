@@ -3,76 +3,130 @@ import axios from "axios";
 import API from "../../apiConfig";
 
 const FrameworkGenerator = () => {
-    const [language, setLanguage] = useState("java");
-    const [testFramework, setTestFramework] = useState("testng");
-    const [loading, setLoading] = useState(false);
+  const [language, setLanguage] = useState("java");
+  const [testFramework, setTestFramework] = useState("testng");
+  const [reportTool, setReportTool] = useState("logback");
+  const [packagingTool, setPackagingTool] = useState("maven");
+  const [loading, setLoading] = useState(false);
 
-    const handleGenerate = async () => {
-        setLoading(true);
-        try {
-            const res = await axios.post(`${API.QA}/framework/generate`, {
-                language,
-                testFramework,
-            }, { responseType: 'blob' });
+  const handleGenerate = async () => {
+    setLoading(true);
+  
+    try {
+      const res = await axios.post(
+        `${API.FRAMEWORK}/generate`,
+        {
+          language,
+          testFramework,
+          reportTool,
+          packagingTool,
+        },
+        { responseType: "blob" }
+      );
+  
+      console.log("📦 Response:", res);
+      console.log("📦 Headers:", res.headers);
+      console.log("📦 Blob size (bytes):", res.data.size);
+  
+      if (res.data && res.data.size > 0) {
+        const blob = new Blob([res.data], { type: "application/zip" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "sample-framework.zip");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } else {
+        alert("⚠️ Received empty or invalid ZIP file.");
+      }
+    } catch (err) {
+      console.error("❌ Error generating framework:", err);
+      alert("❌ Failed to generate framework");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
 
-            const url = window.URL.createObjectURL(new Blob([res.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'sample-framework.zip');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (err) {
-            alert("❌ Failed to generate framework");
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-xl mx-auto bg-white p-6 rounded shadow">
+        <h2 className="text-2xl font-bold text-center mb-6 text-blue-700">
+          🛠️ VinSuite Framework Generator
+        </h2>
 
-    return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-xl mx-auto bg-white p-6 rounded shadow">
-                <h2 className="text-xl font-bold text-center mb-4">🛠️ Framework Generator</h2>
+        <div className="space-y-5">
+          <div>
+            <label className="block font-medium mb-1">Language</label>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="java">Java</option>
+              <option value="python">Python</option>
+              <option value="csharp">C#</option>
+            </select>
+          </div>
 
-                <div className="space-y-4">
-                    <div>
-                        <label className="block font-medium">Language</label>
-                        <select
-                            value={language}
-                            onChange={(e) => setLanguage(e.target.value)}
-                            className="w-full border rounded px-3 py-2"
-                        >
-                            <option value="java">Java</option>
-                            <option value="python">Python</option>
-                            <option value="csharp">C#</option>
-                        </select>
-                    </div>
+          <div>
+            <label className="block font-medium mb-1">Test Framework</label>
+            <select
+              value={testFramework}
+              onChange={(e) => setTestFramework(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+            >
+              {language === "java" && (
+                <>
+                  <option value="testng">TestNG</option>
+                  <option value="junit">JUnit</option>
+                </>
+              )}
+              {language === "python" && <option value="pytest">PyTest</option>}
+              {language === "csharp" && <option value="nunit">NUnit</option>}
+            </select>
+          </div>
 
-                    <div>
-                        <label className="block font-medium">Test Framework</label>
-                        <select
-                            value={testFramework}
-                            onChange={(e) => setTestFramework(e.target.value)}
-                            className="w-full border rounded px-3 py-2"
-                        >
-                            <option value="testng">TestNG</option>
-                            <option value="junit">JUnit</option>
-                            <option value="pytest">PyTest</option>
-                        </select>
-                    </div>
+          <div>
+            <label className="block font-medium mb-1">Report Tool</label>
+            <select
+              value={reportTool}
+              onChange={(e) => setReportTool(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="logback">Logback</option>
+              <option value="allure">Allure</option>
+              <option value="extent">ExtentReports</option>
+            </select>
+          </div>
 
-                    <button
-                        onClick={handleGenerate}
-                        disabled={loading}
-                        className={`w-full py-2 text-white rounded ${loading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
-                    >
-                        {loading ? "Generating..." : "Download Framework"}
-                    </button>
-                </div>
-            </div>
+          <div>
+            <label className="block font-medium mb-1">Packaging Tool</label>
+            <select
+              value={packagingTool}
+              onChange={(e) => setPackagingTool(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="maven">Maven</option>
+              <option value="gradle">Gradle</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+
+          <button
+            onClick={handleGenerate}
+            disabled={loading}
+            className={`w-full py-2 text-white font-semibold rounded ${
+              loading ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"
+            }`}
+          >
+            {loading ? "Generating..." : "Download Framework"}
+          </button>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default FrameworkGenerator;
