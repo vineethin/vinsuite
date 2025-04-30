@@ -34,6 +34,9 @@ import QueryOptimizer from "./pages/dba/QueryOptimizer";
 import BackupCheck from "./pages/dba/BackupCheck";
 import SchemaTracker from "./pages/dba/SchemaTracker";
 
+//other tools
+import DefectPredictor from './components/tools/DefectPredictor';
+
 function App() {
   const isLoggedIn = !!localStorage.getItem("userId");
 
@@ -67,6 +70,9 @@ function App() {
 
         {/* 🧰 Dev Tools */}
         <Route path="/developer/json-formatter" element={<JsonFormatter />} />
+        
+        {/* 🧰 Other Tools */}
+        <Route path="/predict-defect" element={<DefectPredictor />} />
 
         {/* 🚀 Role-Based Redirect */}
         <Route

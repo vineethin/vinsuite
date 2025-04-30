@@ -1,6 +1,8 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import LogoutButton from '../../components/LogoutButton';
+
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import LogoutButton from "../../components/LogoutButton";
+import { Brain } from 'lucide-react';
 
 const QADashboard = () => {
   const navigate = useNavigate();
@@ -10,7 +12,6 @@ const QADashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6">
-
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold text-blue-700 mb-1">
@@ -26,10 +27,12 @@ const QADashboard = () => {
         <div className="space-y-4">
           {/* 🔹 Test Case Generator */}
           <div
-            onClick={() => navigate('/test-generator')}
+            onClick={() => navigate("/test-generator")}
             className="cursor-pointer p-4 bg-blue-50 hover:shadow-md border border-blue-100 rounded-lg transition"
           >
-            <h3 className="text-lg font-semibold text-blue-700">Test Case Generator</h3>
+            <h3 className="text-lg font-semibold text-blue-700">
+              Test Case Generator
+            </h3>
             <p className="text-sm text-gray-700">
               Generate manual and automated test cases from feature text or UI image.
             </p>
@@ -37,10 +40,12 @@ const QADashboard = () => {
 
           {/* 🔹 Page Object Generator */}
           <div
-            onClick={() => navigate('/page-object')}
+            onClick={() => navigate("/page-object")}
             className="cursor-pointer p-4 bg-blue-50 hover:shadow-md border border-blue-100 rounded-lg transition"
           >
-            <h3 className="text-lg font-semibold text-blue-700">Page Object Generator</h3>
+            <h3 className="text-lg font-semibold text-blue-700">
+              Page Object Generator
+            </h3>
             <p className="text-sm text-gray-700">
               Create Page Object Models for Selenium from UI screens.
             </p>
@@ -48,10 +53,12 @@ const QADashboard = () => {
 
           {/* 🔹 Accessibility Scanner */}
           <div
-            onClick={() => navigate('/accessibility')}
+            onClick={() => navigate("/accessibility")}
             className="cursor-pointer p-4 bg-blue-50 hover:shadow-md border border-blue-100 rounded-lg transition"
           >
-            <h3 className="text-lg font-semibold text-blue-700">Accessibility Scanner</h3>
+            <h3 className="text-lg font-semibold text-blue-700">
+              Accessibility Scanner
+            </h3>
             <p className="text-sm text-gray-700">
               Run WCAG 2.0 accessibility tests using Axe & Lighthouse.
             </p>
@@ -59,13 +66,33 @@ const QADashboard = () => {
 
           {/* 🔹 Framework Generator */}
           <div
-            onClick={() => navigate('/qa/framework-generator')}
+            onClick={() => navigate("/qa/framework-generator")}
             className="cursor-pointer p-4 bg-blue-50 hover:shadow-md border border-blue-100 rounded-lg transition"
           >
-            <h3 className="text-lg font-semibold text-blue-700">Framework Generator</h3>
+            <h3 className="text-lg font-semibold text-blue-700">
+              Framework Generator
+            </h3>
             <p className="text-sm text-gray-700">
               Download a sample automation framework with your preferred language and testing tools.
             </p>
+          </div>
+
+          {/* 🔹 AI Defect Predictor */}
+          <div
+            onClick={() => navigate("/predict-defect")}
+            className="cursor-pointer p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 hover:scale-[1.02] hover:shadow-xl border border-yellow-200 rounded-xl transition-all duration-200 ease-in-out flex items-center space-x-4 group"
+          >
+            <div className="flex-shrink-0">
+              <Brain className="text-yellow-600 w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-yellow-800 group-hover:text-yellow-900 transition">
+                AI Defect Predictor
+              </h3>
+              <p className="text-sm text-gray-700">
+                Estimate defect risk from change details using trained AI model.
+              </p>
+            </div>
           </div>
         </div>
       </div>
