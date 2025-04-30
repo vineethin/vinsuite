@@ -8,10 +8,13 @@ const RegisterPage = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState('tester');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
       const res = await axios.post(`${API.AUTH}/register`, {
         email,
@@ -25,8 +28,16 @@ const RegisterPage = () => {
         navigate('/login');
       }
     } catch (err) {
-      alert('❌ Registration Failed');
-      console.error(err);
+      if (err.response?.status === 409) {
+        alert('❌ Email already registered.');
+      } else if (err.response?.data?.message) {
+        alert(`❌ ${err.response.data.message}`);
+      } else {
+        alert('❌ Registration failed. Please try again.');
+      }
+      console.error('Registration error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,9 +83,20 @@ const RegisterPage = () => {
           </select>
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+            disabled={loading}
+            className={`w-full ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white py-2 rounded flex justify-center items-center`}
           >
-            Register
+            {loading ? (
+              <div className="flex items-center space-x-2">
+                <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+                <span>Registering...</span>
+              </div>
+            ) : (
+              "Register"
+            )}
           </button>
         </form>
         <p className="text-center text-sm mt-4">
