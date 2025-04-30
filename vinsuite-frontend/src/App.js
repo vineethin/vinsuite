@@ -34,7 +34,10 @@ import QueryOptimizer from "./pages/dba/QueryOptimizer";
 import BackupCheck from "./pages/dba/BackupCheck";
 import SchemaTracker from "./pages/dba/SchemaTracker";
 
-//other tools
+// Admin
+import AdminHome from "./pages/admin/AdminHome";
+
+// Other Tools
 import DefectPredictor from './components/tools/DefectPredictor';
 
 function App() {
@@ -62,6 +65,7 @@ function App() {
         <Route path="/manager" element={<ManagerDashboard />} />
         <Route path="/ba" element={<BADashboard />} />
         <Route path="/dba" element={<DBADashboard />} />
+        <Route path="/admin" element={<AdminHome />} />
 
         {/* 🛠️ QA Tools */}
         <Route path="/accessibility" element={<AccessibilityScanner />} />
@@ -87,6 +91,7 @@ function App() {
                   case "manager": return <Navigate to="/manager" />;
                   case "ba": return <Navigate to="/ba" />;
                   case "dba": return <Navigate to="/dba" />;
+                  case "admin": return <Navigate to="/admin" />;
                   default: return <Navigate to="/project" />;
                 }
               })()

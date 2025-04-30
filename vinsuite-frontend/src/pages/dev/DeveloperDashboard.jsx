@@ -7,6 +7,7 @@ const DeveloperDashboard = () => {
   const navigate = useNavigate();
   const userName = localStorage.getItem("userName") || "Developer";
   const userRole = localStorage.getItem("userRole") || "developer";
+  const isAdminView = !localStorage.getItem("userId");
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -20,7 +21,17 @@ const DeveloperDashboard = () => {
               You are logged in as a <strong>{userRole}</strong>.
             </p>
           </div>
-          <LogoutButton />
+          <div className="flex gap-4">
+            {isAdminView && (
+              <button
+                onClick={() => navigate("/admin")}
+                className="bg-gray-200 text-sm text-gray-700 px-3 py-1 rounded hover:bg-gray-300"
+              >
+                🔙 Back to Admin
+              </button>
+            )}
+            <LogoutButton />
+          </div>
         </div>
 
         <div className="space-y-4">

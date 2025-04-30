@@ -1,12 +1,23 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import LogoutButton from "../../components/LogoutButton";
-import { DatabaseZap, History, FileDiff, MessageSquare, ScanSearch, FlaskConical, BarChartBig, FileText, Sparkles } from 'lucide-react';
+import {
+  DatabaseZap,
+  History,
+  FileDiff,
+  MessageSquare,
+  ScanSearch,
+  FlaskConical,
+  BarChartBig,
+  FileText,
+  Sparkles,
+} from "lucide-react";
 
 const DBADashboard = () => {
   const navigate = useNavigate();
   const userName = localStorage.getItem("userName") || "DBA";
   const userRole = localStorage.getItem("userRole") || "dba";
+  const isAdminView = !localStorage.getItem("userId");
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -20,30 +31,46 @@ const DBADashboard = () => {
               You are logged in as a <strong>{userRole}</strong>.
             </p>
           </div>
-          <LogoutButton />
+          <div className="flex gap-4">
+            {isAdminView && (
+              <button
+                onClick={() => navigate("/admin")}
+                className="bg-gray-200 text-sm text-gray-700 px-3 py-1 rounded hover:bg-gray-300"
+              >
+                🔙 Back to Admin
+              </button>
+            )}
+            <LogoutButton />
+          </div>
         </div>
 
         <div className="space-y-4">
           {/* 🔹 Query Optimizer */}
           <div
             onClick={() => navigate("/dba/query-optimizer")}
-            className="cursor-pointer p-4 bg-rose-50 hover:shadow-md border border-rose-100 rounded-lg transition"
+            className="cursor-pointer p-4 bg-rose-50 hover:shadow-md border border-rose-100 rounded-lg transition flex items-center space-x-4 group"
           >
-            <h3 className="text-lg font-semibold text-rose-700">Query Optimizer</h3>
-            <p className="text-sm text-gray-700">
-              Paste slow SQL queries to get optimized versions with AI insights.
-            </p>
+            <DatabaseZap className="text-rose-600 w-8 h-8" />
+            <div>
+              <h3 className="text-lg font-semibold text-rose-700">Query Optimizer</h3>
+              <p className="text-sm text-gray-700">
+                Paste slow SQL queries to get optimized versions with AI insights.
+              </p>
+            </div>
           </div>
 
           {/* 🔹 Backup Status Checker */}
           <div
             onClick={() => navigate("/dba/backup-check")}
-            className="cursor-pointer p-4 bg-rose-50 hover:shadow-md border border-rose-100 rounded-lg transition"
+            className="cursor-pointer p-4 bg-rose-50 hover:shadow-md border border-rose-100 rounded-lg transition flex items-center space-x-4 group"
           >
-            <h3 className="text-lg font-semibold text-rose-700">Backup Status Checker</h3>
-            <p className="text-sm text-gray-700">
-              View recent database backups and their status across environments.
-            </p>
+            <History className="text-rose-600 w-8 h-8" />
+            <div>
+              <h3 className="text-lg font-semibold text-rose-700">Backup Status Checker</h3>
+              <p className="text-sm text-gray-700">
+                View recent database backups and their status across environments.
+              </p>
+            </div>
           </div>
 
           {/* 🔹 AI-Powered Schema Change Tracker */}
@@ -66,6 +93,7 @@ const DBADashboard = () => {
 
           {/* 🔹 AI SQL Explainer */}
           <div
+            onClick={() => navigate("/dba/sql-explainer")}
             className="cursor-pointer p-4 bg-gradient-to-r from-rose-100 to-rose-200 hover:scale-[1.02] hover:shadow-xl border border-rose-300 rounded-xl transition-all duration-200 ease-in-out flex items-center space-x-4 group"
           >
             <div className="flex-shrink-0">
@@ -83,6 +111,7 @@ const DBADashboard = () => {
 
           {/* 🔹 Query Anomaly Detector */}
           <div
+            onClick={() => navigate("/dba/query-anomaly")}
             className="cursor-pointer p-4 bg-rose-50 hover:shadow-md border border-rose-100 rounded-lg transition flex items-center space-x-4 group"
           >
             <div className="flex-shrink-0">
@@ -100,6 +129,7 @@ const DBADashboard = () => {
 
           {/* 🔹 Test Data Generator */}
           <div
+            onClick={() => navigate("/dba/test-data-generator")}
             className="cursor-pointer p-4 bg-rose-50 hover:shadow-md border border-rose-100 rounded-lg transition flex items-center space-x-4 group"
           >
             <div className="flex-shrink-0">
@@ -117,6 +147,7 @@ const DBADashboard = () => {
 
           {/* 🔹 Query Cost Visualizer */}
           <div
+            onClick={() => navigate("/dba/query-cost")}
             className="cursor-pointer p-4 bg-rose-50 hover:shadow-md border border-rose-100 rounded-lg transition flex items-center space-x-4 group"
           >
             <div className="flex-shrink-0">
@@ -134,6 +165,7 @@ const DBADashboard = () => {
 
           {/* 🔹 Schema Documentation Generator */}
           <div
+            onClick={() => navigate("/dba/schema-docs")}
             className="cursor-pointer p-4 bg-rose-50 hover:shadow-md border border-rose-100 rounded-lg transition flex items-center space-x-4 group"
           >
             <div className="flex-shrink-0">
@@ -151,6 +183,7 @@ const DBADashboard = () => {
 
           {/* 🔹 Index Advisor */}
           <div
+            onClick={() => navigate("/dba/index-advisor")}
             className="cursor-pointer p-4 bg-rose-50 hover:shadow-md border border-rose-100 rounded-lg transition flex items-center space-x-4 group"
           >
             <div className="flex-shrink-0">
@@ -165,7 +198,6 @@ const DBADashboard = () => {
               </p>
             </div>
           </div>
-
         </div>
       </div>
     </div>
