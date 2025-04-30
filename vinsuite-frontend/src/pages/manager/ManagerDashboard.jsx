@@ -1,22 +1,13 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import LogoutButton from "../../components/LogoutButton";
-import {
-  BarChart3,
-  ClipboardCheck,
-  GaugeCircle,
-  Users2,
-  BarChart4,
-  ClipboardList,
-  BadgeCheck,
-  Gauge
-} from 'lucide-react';
+import { BarChart3, ClipboardCheck, GaugeCircle, Users2, BarChart4, ClipboardList, BadgeCheck, Gauge } from 'lucide-react';
 
 const ManagerDashboard = () => {
   const navigate = useNavigate();
   const userName = localStorage.getItem("userName") || "Manager";
   const userRole = localStorage.getItem("userRole") || "manager";
+  const isAdminView = !localStorage.getItem("userId");
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -30,7 +21,17 @@ const ManagerDashboard = () => {
               You are logged in as a <strong>{userRole}</strong>.
             </p>
           </div>
-          <LogoutButton />
+          <div className="flex gap-4">
+            {isAdminView && (
+              <button
+                onClick={() => navigate("/admin")}
+                className="bg-gray-200 text-sm text-gray-700 px-3 py-1 rounded hover:bg-gray-300"
+              >
+                🔙 Back to Admin
+              </button>
+            )}
+            <LogoutButton />
+          </div>
         </div>
 
         <div className="space-y-4">
