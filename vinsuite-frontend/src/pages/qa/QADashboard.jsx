@@ -10,7 +10,8 @@ const tools = [
   { name: "API Contract Verifier", route: "#" },
   { name: "Visual Regression Tool", route: "#" },
   { name: "CI/CD Test Advisor", route: "#" },
-  { name: "AI Response Validator", route: "/qa/ai-response-validator" }
+  { name: "AI Response Validator", route: "/qa/ai-response-validator" },
+  { name: "Test Coverage Estimator", route: "/qa/test-coverage-estimator" }
 ];
 
 const QADashboard = () => {
@@ -48,11 +49,11 @@ const QADashboard = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
           {tools.map((tool, idx) => (
             <div
               key={idx}
-              className="bg-white shadow rounded p-5 hover:shadow-lg transition-all"
+              className="bg-white shadow rounded p-5 hover:shadow-lg transition-all border border-gray-100"
             >
               <h3 className="text-lg font-semibold mb-2">{tool.name}</h3>
               {tool.route === "#" && (

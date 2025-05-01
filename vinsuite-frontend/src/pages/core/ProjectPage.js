@@ -55,17 +55,21 @@ function ProjectPage() {
       alert("Please select or create a project first.");
       return;
     }
-
+  
     const role = localStorage.getItem("userRole");
-
-    let dashboardRoute = "/qa"; // default
+  
+    let dashboardRoute = "/qa"; // default for QA
     if (role === "developer") dashboardRoute = "/dev";
     else if (role === "manager") dashboardRoute = "/manager";
     else if (role === "ba") dashboardRoute = "/ba";
     else if (role === "dba") dashboardRoute = "/dba";
-    
+    else if (role === "saleslead") dashboardRoute = "/sales";
+    else if (role === "support") dashboardRoute = "/support";
+    else if (role === "finance") dashboardRoute = "/finance";
+  
     navigate(dashboardRoute);
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">

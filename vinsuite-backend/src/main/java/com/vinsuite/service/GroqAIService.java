@@ -22,7 +22,6 @@ public class GroqAIService {
 
     public Map<String, Object> generateTestCases(String featureText) {
         try {
-            // Dynamic prompt: no limit on number of test cases
             String prompt = """
                 You are a QA expert. Based on the feature below, generate as many valid test cases as necessary.
 
@@ -77,5 +76,124 @@ public class GroqAIService {
         }
 
         return Map.of("testCases", Collections.emptyList());
+    }
+
+    public Map<String, Object> estimateCoverage(List<String> userStories, List<String> testCases, boolean deep) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Evaluate test coverage:\n\nUser Stories:\n");
+            for (int i = 0; i < userStories.size(); i++) {
+                sb.append((i + 1)).append(". ").append(userStories.get(i)).append("\n");
+            }
+
+            sb.append("\nTest Cases:\n");
+            for (String tc : testCases) {
+                sb.append("- ").append(tc).append("\n");
+            }
+
+            sb.append("\nOnly return a valid JSON array like:\n");
+            sb.append("[{\"story\":\"...\",\"status\":\"covered|partial|missing\",\"matchedTestCases\":[\"...\"]}]\n");
+            sb.append("Do not include any explanation or intro.");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(groqApiKey);
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", "llama3-70b-8192");
+            requestBody.put("messages", List.of(
+                    Map.of("role", "system", "content", "You are an assistant that maps user stories to test cases."),
+                    Map.of("role", "user", "content", sb.toString())
+            ));
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<Map> response = restTemplate.exchange(GROQ_API_URL, HttpMethod.POST, entity, Map.class);
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
+                if (choices != null && !choices.isEmpty()) {
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    String content = (String) message.get("content");
+                    if (content != null && content.trim().startsWith("[")) {
+                        List<Map<String, Object>> parsed = objectMapper.readValue(content, List.class);
+                        return Map.of("coverage", parsed);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Map.of("error", "Failed to get coverage estimation from Groq");
+    }
+
+    public Map<String, Object> estimateDeepCoverage(
+            List<String> userStories,
+            List<List<String>> acceptanceCriteria,
+            List<String> testCases,
+            List<List<String>> testCaseSteps) {
+
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Perform deep test coverage analysis.\n\n");
+            sb.append("User Stories:\n");
+            for (int i = 0; i < userStories.size(); i++) {
+                sb.append(i + 1).append(". ").append(userStories.get(i)).append("\n");
+            }
+
+            sb.append("\nAcceptance Criteria:\n");
+            for (List<String> acGroup : acceptanceCriteria) {
+                for (String ac : acGroup) {
+                    sb.append("- ").append(ac).append("\n");
+                }
+            }
+
+            sb.append("\nTest Case Titles:\n");
+            for (String tc : testCases) {
+                sb.append("- ").append(tc).append("\n");
+            }
+
+            sb.append("\nTest Case Steps (grouped):\n");
+            for (List<String> group : testCaseSteps) {
+                sb.append("Steps:\n");
+                for (String step : group) {
+                    sb.append(step).append("\n");
+                }
+                sb.append("\n");
+            }
+
+            sb.append("Return only a valid JSON array like:\n");
+            sb.append("[{\"story\":\"...\",\"status\":\"covered|partial|missing\",\"matchedTestCases\":[\"...\"]}]\n");
+            sb.append("Do not include any explanation or formatting.");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(groqApiKey);
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", "llama3-70b-8192");
+            requestBody.put("messages", List.of(
+                    Map.of("role", "system", "content", "You are an expert QA analyst."),
+                    Map.of("role", "user", "content", sb.toString())
+            ));
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<Map> response = restTemplate.exchange(GROQ_API_URL, HttpMethod.POST, entity, Map.class);
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
+                if (choices != null && !choices.isEmpty()) {
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    String content = (String) message.get("content");
+                    if (content != null && content.trim().startsWith("[")) {
+                        List<Map<String, Object>> parsed = objectMapper.readValue(content, List.class);
+                        return Map.of("coverage", parsed);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return Map.of("error", "Failed to get deep coverage estimation from Groq");
     }
 }
