@@ -103,6 +103,7 @@ function App() {
                   case "dba": return <Navigate to="/dba" />;
                   case "admin": return <Navigate to="/admin" />;
                   case "saleslead": return <Navigate to="/sales" />;
+                  case "support": return <Navigate to="/support" />; {/* ✅ Added this line */ }
                   default: return <Navigate to="/project" />;
                 }
               })()
