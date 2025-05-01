@@ -7,7 +7,7 @@ const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [role, setRole] = useState('tester');
+  const [role, setRole] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -74,12 +74,16 @@ const RegisterPage = () => {
             value={role}
             onChange={(e) => setRole(e.target.value)}
             className="w-full px-4 py-2 border rounded"
+            required
           >
+            <option value="">Select Role</option>
             <option value="tester">Tester</option>
             <option value="developer">Developer</option>
             <option value="manager">Manager</option>
             <option value="ba">Business Analyst</option>
             <option value="dba">DBA</option>
+            <option value="saleslead">Sales Lead</option>
+            <option value="admin">Admin</option>
           </select>
           <button
             type="submit"

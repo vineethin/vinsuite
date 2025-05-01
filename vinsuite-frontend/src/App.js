@@ -37,6 +37,9 @@ import SchemaTracker from "./pages/dba/SchemaTracker";
 // Admin
 import AdminHome from "./pages/admin/AdminHome";
 
+// Sales
+import SalesDashboard from "./pages/sales/SalesDashboard";
+
 // Other Tools
 import DefectPredictor from './components/tools/DefectPredictor';
 
@@ -46,39 +49,40 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* 🏠 Home */}
+        {/* Home */}
         <Route path="/" element={isLoggedIn ? <Navigate to="/dashboard" /> : <HomePage />} />
 
-        {/* 🔐 Auth */}
+        {/* Auth */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* 📁 Core */}
+        {/* Core */}
         <Route path="/project" element={<ProjectPage />} />
         <Route path="/test-generator" element={<TestCaseGenerator />} />
         <Route path="/results" element={<ResultsPage />} />
         <Route path="/generate" element={<TestCaseGenerator />} />
 
-        {/* 🎯 Dashboards */}
+        {/* Dashboards */}
         <Route path="/qa" element={<QADashboard />} />
         <Route path="/dev" element={<DeveloperDashboard />} />
         <Route path="/manager" element={<ManagerDashboard />} />
         <Route path="/ba" element={<BADashboard />} />
         <Route path="/dba" element={<DBADashboard />} />
         <Route path="/admin" element={<AdminHome />} />
+        <Route path="/sales" element={<SalesDashboard />} />
 
-        {/* 🛠️ QA Tools */}
+        {/* QA Tools */}
         <Route path="/accessibility" element={<AccessibilityScanner />} />
         <Route path="/page-object" element={<PageObjectGenerator />} />
         <Route path="/qa/framework-generator" element={<FrameworkGenerator />} />
 
-        {/* 🧰 Dev Tools */}
+        {/* Dev Tools */}
         <Route path="/developer/json-formatter" element={<JsonFormatter />} />
-        
-        {/* 🧰 Other Tools */}
+
+        {/* Other Tools */}
         <Route path="/predict-defect" element={<DefectPredictor />} />
 
-        {/* 🚀 Role-Based Redirect */}
+        {/* Role-Based Redirect */}
         <Route
           path="/dashboard"
           element={
@@ -92,6 +96,7 @@ function App() {
                   case "ba": return <Navigate to="/ba" />;
                   case "dba": return <Navigate to="/dba" />;
                   case "admin": return <Navigate to="/admin" />;
+                  case "saleslead": return <Navigate to="/sales" />;
                   default: return <Navigate to="/project" />;
                 }
               })()
@@ -101,7 +106,7 @@ function App() {
           }
         />
 
-        {/* 🔄 Catch-all */}
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
