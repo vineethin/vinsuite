@@ -84,7 +84,9 @@ const RegisterPage = () => {
             <option value="dba">DBA</option>
             <option value="saleslead">Sales Lead</option>
             <option value="support">Support</option>
+            <option value="finance">Finance</option> {/* ✅ Added */}
           </select>
+
           <button
             type="submit"
             disabled={loading}

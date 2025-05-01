@@ -34,33 +34,18 @@ const LoginPage = () => {
 
       // 🔁 Role-based redirect
       switch (user.role) {
-        case 'admin':
-          navigate('/admin');
-          break;
-        case 'developer':
-          navigate('/dev');
-          break;
-        case 'qa':
-          navigate('/qa');
-          break;
-        case 'manager':
-          navigate('/manager');
-          break;
-        case 'ba':
-          navigate('/ba');
-          break;
-        case 'dba':
-          navigate('/dba');
-          break;
-        case 'saleslead':
-          navigate('/sales');
-          break;
-        case 'support':
-          navigate('/support');
-          break;
-        default:
-          navigate('/project');
+        case 'admin': navigate('/admin'); break;
+        case 'developer': navigate('/dev'); break;
+        case 'qa': navigate('/qa'); break;
+        case 'manager': navigate('/manager'); break;
+        case 'ba': navigate('/ba'); break;
+        case 'dba': navigate('/dba'); break;
+        case 'saleslead': navigate('/sales'); break;
+        case 'support': navigate('/support'); break;
+        case 'finance': navigate('/finance'); break; // ✅ Added
+        default: navigate('/project');
       }
+
 
 
     } catch (err) {

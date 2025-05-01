@@ -29,19 +29,15 @@ import ManagerDashboard from "./pages/manager/ManagerDashboard";
 import BADashboard from "./pages/ba/BADashboard";
 import DBADashboard from "./pages/dba/DBADashboard";
 
-// DBA Tools
-import QueryOptimizer from "./pages/dba/QueryOptimizer";
-import BackupCheck from "./pages/dba/BackupCheck";
-import SchemaTracker from "./pages/dba/SchemaTracker";
-
 // Admin
 import AdminHome from "./pages/admin/AdminHome";
 
-// Sales
+// Sales & Support
 import SalesDashboard from "./pages/sales/SalesDashboard";
-
-// Support
 import SupportDashboard from "./pages/support/SupportDashboard";
+
+// Finance
+import FinanceDashboard from "./pages/finance/FinanceDashboard";
 
 // Other Tools
 import DefectPredictor from './components/tools/DefectPredictor';
@@ -73,6 +69,8 @@ function App() {
         <Route path="/dba" element={<DBADashboard />} />
         <Route path="/admin" element={<AdminHome />} />
         <Route path="/sales" element={<SalesDashboard />} />
+        <Route path="/support" element={<SupportDashboard />} />
+        <Route path="/finance" element={<FinanceDashboard />} /> {/* ✅ Added */}
 
         {/* QA Tools */}
         <Route path="/accessibility" element={<AccessibilityScanner />} />
@@ -84,9 +82,6 @@ function App() {
 
         {/* Other Tools */}
         <Route path="/predict-defect" element={<DefectPredictor />} />
-
-        {/* Support */}
-        <Route path="/support" element={<SupportDashboard />} />
 
         {/* Role-Based Redirect */}
         <Route
@@ -103,7 +98,8 @@ function App() {
                   case "dba": return <Navigate to="/dba" />;
                   case "admin": return <Navigate to="/admin" />;
                   case "saleslead": return <Navigate to="/sales" />;
-                  case "support": return <Navigate to="/support" />; {/* ✅ Added this line */ }
+                  case "support": return <Navigate to="/support" />;
+                  case "finance": return <Navigate to="/finance" />; {/* ✅ Added */ }
                   default: return <Navigate to="/project" />;
                 }
               })()
