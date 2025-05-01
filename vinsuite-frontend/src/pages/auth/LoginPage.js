@@ -9,8 +9,6 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ... all imports remain unchanged
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -23,7 +21,7 @@ const LoginPage = () => {
 
       const res = await axios.post(`${API.AUTH}/login`, {
         email,
-        password
+        password,
       }, { cancelToken: source.token });
 
       clearTimeout(timeout);
@@ -31,54 +29,56 @@ const LoginPage = () => {
       const user = res.data;
 
       localStorage.setItem("userId", user.id || 'admin');
-      localStorage.setItem("userName", user.name || 'Admin User');
+      localStorage.setItem("userName", user.name || 'User');
       localStorage.setItem("userRole", user.role);
 
-      // ✅ Role-based redirection
+      // 🔁 Role-based redirect
       switch (user.role) {
         case 'admin':
           navigate('/admin');
           break;
         case 'developer':
-          navigate('/dev/dashboard');
+          navigate('/dev');
           break;
         case 'qa':
-          navigate('/qa/dashboard');
+          navigate('/qa');
           break;
         case 'manager':
-          navigate('/manager/dashboard');
+          navigate('/manager');
           break;
         case 'ba':
-          navigate('/ba/dashboard');
+          navigate('/ba');
           break;
         case 'dba':
-          navigate('/dba/dashboard');
+          navigate('/dba');
+          break;
+        case 'saleslead':
+          navigate('/sales');
           break;
         default:
-          navigate('/project'); // fallback
+          navigate('/project');
       }
 
     } catch (err) {
       console.error('Login failed:', err);
 
       if (axios.isCancel(err)) {
-        alert('❌ Server is taking too long to respond. Please try again in a moment.');
+        alert('❌ Server is taking too long to respond. Please try again shortly.');
       } else if (err.response) {
         if (err.response.status === 401) {
-          alert('❌ Incorrect email or password. Please try again.');
+          alert('❌ Incorrect email or password.');
         } else {
           alert(`❌ Login failed: ${err.response.data.message || 'Server error'}`);
         }
       } else if (err.request) {
-        alert('❌ Unable to reach server. Please check your internet connection.');
+        alert('❌ Could not reach the server. Please check your internet connection.');
       } else {
-        alert('❌ An unexpected error occurred. Please try again.');
+        alert('❌ Unexpected error occurred during login.');
       }
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -103,14 +103,14 @@ const LoginPage = () => {
           />
           <button
             type="submit"
-            className={`w-full ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white py-2 rounded flex items-center justify-center`}
             disabled={loading}
+            className={`w-full ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white py-2 rounded flex items-center justify-center`}
           >
             {loading ? (
               <div className="flex items-center space-x-2">
                 <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                 </svg>
                 <span>Logging in...</span>
               </div>
@@ -119,7 +119,7 @@ const LoginPage = () => {
             )}
           </button>
           <p className="text-xs text-center text-gray-500 mt-2">
-            🚀 Server may take a few seconds to wake up if idle.
+            🚀 Server may take a few seconds to respond if idle.
           </p>
         </form>
         <p className="text-center text-sm mt-4">
