@@ -55,9 +55,13 @@ const LoginPage = () => {
         case 'saleslead':
           navigate('/sales');
           break;
+        case 'support':
+          navigate('/support');
+          break;
         default:
           navigate('/project');
       }
+
 
     } catch (err) {
       console.error('Login failed:', err);
