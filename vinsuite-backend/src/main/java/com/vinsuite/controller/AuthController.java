@@ -22,8 +22,16 @@ public class AuthController {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    // 🔐 Pre-generated BCrypt hash for "Admin@123"
+    private static final String ADMIN_HASHED_PASSWORD = "$2b$12$lJKSV5Ou2d65bbLbWILwYO3zvd9.Ml6SDz/.PP8nyWm0cEiGQq2Uu";
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
+        if ("admin".equalsIgnoreCase(registerRequest.getRole())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", "Admin registration is not allowed"));
+        }
+
         if (userRepository.findByEmail(registerRequest.getEmail()) != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("message", "User already exists"));
@@ -41,6 +49,19 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        // ✅ Hardcoded admin login
+        if ("admin@vinsuite.ai".equalsIgnoreCase(loginRequest.getEmail()) &&
+            passwordEncoder.matches(loginRequest.getPassword(), ADMIN_HASHED_PASSWORD)) {
+
+            User adminUser = new User();
+            adminUser.setId(0L); // dummy ID
+            adminUser.setEmail("admin@vinsuite.ai");
+            adminUser.setName("Admin User");
+            adminUser.setRole("admin");
+            return ResponseEntity.ok(adminUser);
+        }
+
+        // 🔐 Normal user login
         User user = userRepository.findByEmail(loginRequest.getEmail());
 
         if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {

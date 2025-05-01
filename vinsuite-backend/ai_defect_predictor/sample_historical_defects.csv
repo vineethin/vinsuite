@@ -1,0 +1,101 @@
+Defect_ID,Severity,Component,Reported_Date,Resolved_Date,File_Changed,Lines_Added,Lines_Removed,Commit_Date,Developer
+1000,High,Payment Module,1/7/2024,1/7/2024,login.java,45,34,12/31/2023,Dev1
+1001,Critical,Payment Module,1/14/2024,1/14/2024,profile.py,37,2,1/7/2024,Dev4
+1002,Low,Dashboard,1/21/2024,1/21/2024,payment.js,72,32,1/14/2024,Dev4
+1003,High,Payment Module,1/28/2024,1/28/2024,dashboard.jsx,37,23,1/21/2024,Dev4
+1004,High,Payment Module,2/4/2024,2/4/2024,profile.py,18,22,1/28/2024,Dev3
+1005,Critical,Dashboard,2/11/2024,2/11/2024,login.java,25,25,2/4/2024,Dev4
+1006,Low,Dashboard,2/18/2024,2/18/2024,dashboard.jsx,52,22,2/11/2024,Dev4
+1007,Low,Login Module,2/25/2024,2/25/2024,login.java,24,22,2/18/2024,Dev4
+1008,High,Reporting,3/3/2024,3/3/2024,login.java,12,49,2/25/2024,Dev2
+1009,Medium,Reporting,3/10/2024,3/10/2024,payment.js,11,42,3/3/2024,Dev3
+1010,High,Payment Module,3/17/2024,3/17/2024,dashboard.jsx,71,6,3/10/2024,Dev4
+1011,High,Reporting,3/24/2024,3/24/2024,dashboard.jsx,21,15,3/17/2024,Dev1
+1012,High,Payment Module,3/31/2024,3/31/2024,payment.js,37,43,3/24/2024,Dev1
+1013,High,Login Module,4/7/2024,4/7/2024,profile.py,52,37,3/31/2024,Dev1
+1014,Critical,Dashboard,4/14/2024,4/14/2024,login.java,80,33,4/7/2024,Dev3
+1015,Low,Dashboard,4/21/2024,4/21/2024,reporting.rb,63,8,4/14/2024,Dev3
+1016,Critical,Dashboard,4/28/2024,4/28/2024,login.java,90,44,4/21/2024,Dev1
+1017,Critical,Reporting,5/5/2024,5/5/2024,login.java,26,44,4/28/2024,Dev4
+1018,Critical,Login Module,5/12/2024,5/12/2024,profile.py,34,5,5/5/2024,Dev3
+1019,High,Reporting,5/19/2024,5/19/2024,login.java,42,39,5/12/2024,Dev1
+1020,Medium,Reporting,5/26/2024,5/26/2024,payment.js,55,4,5/19/2024,Dev1
+1021,Low,Login Module,6/2/2024,6/2/2024,payment.js,58,6,5/26/2024,Dev4
+1022,Medium,Login Module,6/9/2024,6/9/2024,dashboard.jsx,12,45,6/2/2024,Dev2
+1023,Critical,Login Module,6/16/2024,6/16/2024,reporting.rb,31,32,6/9/2024,Dev3
+1024,Critical,Login Module,6/23/2024,6/23/2024,login.java,31,30,6/16/2024,Dev4
+1025,Medium,Dashboard,6/30/2024,6/30/2024,login.java,25,47,6/23/2024,Dev1
+1026,Medium,User Profile,7/7/2024,7/7/2024,profile.py,34,35,6/30/2024,Dev1
+1027,Medium,User Profile,7/14/2024,7/14/2024,payment.js,32,40,7/7/2024,Dev4
+1028,Critical,Login Module,7/21/2024,7/21/2024,reporting.rb,68,16,7/14/2024,Dev3
+1029,Critical,User Profile,7/28/2024,7/28/2024,dashboard.jsx,73,13,7/21/2024,Dev2
+1030,Low,User Profile,8/4/2024,8/4/2024,payment.js,65,42,7/28/2024,Dev2
+1031,Low,Login Module,8/11/2024,8/11/2024,dashboard.jsx,52,30,8/4/2024,Dev1
+1032,Critical,User Profile,8/18/2024,8/18/2024,profile.py,23,19,8/11/2024,Dev3
+1033,Medium,Reporting,8/25/2024,8/25/2024,profile.py,8,17,8/18/2024,Dev2
+1034,Medium,Payment Module,9/1/2024,9/1/2024,login.java,39,19,8/25/2024,Dev3
+1035,Low,Payment Module,9/8/2024,9/8/2024,reporting.rb,68,28,9/1/2024,Dev3
+1036,Critical,Login Module,9/15/2024,9/15/2024,dashboard.jsx,53,26,9/8/2024,Dev1
+1037,Low,Dashboard,9/22/2024,9/22/2024,payment.js,21,37,9/15/2024,Dev2
+1038,Low,Login Module,9/29/2024,9/29/2024,profile.py,48,26,9/22/2024,Dev4
+1039,High,Dashboard,10/6/2024,10/6/2024,login.java,96,23,9/29/2024,Dev1
+1040,High,Payment Module,10/13/2024,10/13/2024,login.java,34,9,10/6/2024,Dev2
+1041,High,Login Module,10/20/2024,10/20/2024,dashboard.jsx,97,12,10/13/2024,Dev2
+1042,Medium,Reporting,10/27/2024,10/27/2024,profile.py,50,1,10/20/2024,Dev2
+1043,Critical,User Profile,11/3/2024,11/3/2024,reporting.rb,10,1,10/27/2024,Dev2
+1044,Critical,Dashboard,11/10/2024,11/10/2024,profile.py,41,47,11/3/2024,Dev2
+1045,Critical,User Profile,11/17/2024,11/17/2024,dashboard.jsx,28,34,11/10/2024,Dev3
+1046,Critical,User Profile,11/24/2024,11/24/2024,dashboard.jsx,97,32,11/17/2024,Dev1
+1047,High,Login Module,12/1/2024,12/1/2024,profile.py,50,48,11/24/2024,Dev3
+1048,Medium,User Profile,12/8/2024,12/8/2024,dashboard.jsx,57,25,12/1/2024,Dev4
+1049,Medium,Reporting,12/15/2024,12/15/2024,profile.py,99,40,12/8/2024,Dev2
+1050,High,User Profile,12/22/2024,12/22/2024,payment.js,64,45,12/15/2024,Dev1
+1051,Medium,Login Module,12/29/2024,12/29/2024,profile.py,67,1,12/22/2024,Dev2
+1052,High,Reporting,1/5/2025,1/5/2025,profile.py,89,16,12/29/2024,Dev1
+1053,Critical,Payment Module,1/12/2025,1/12/2025,dashboard.jsx,36,39,1/5/2025,Dev3
+1054,High,User Profile,1/19/2025,1/19/2025,dashboard.jsx,91,5,1/12/2025,Dev1
+1055,Critical,Login Module,1/26/2025,1/26/2025,login.java,37,22,1/19/2025,Dev4
+1056,Critical,Payment Module,2/2/2025,2/2/2025,login.java,71,29,1/26/2025,Dev4
+1057,Low,Payment Module,2/9/2025,2/9/2025,payment.js,22,3,2/2/2025,Dev1
+1058,High,Dashboard,2/16/2025,2/16/2025,login.java,29,12,2/9/2025,Dev1
+1059,Low,Reporting,2/23/2025,2/23/2025,profile.py,99,26,2/16/2025,Dev1
+1060,High,User Profile,3/2/2025,3/2/2025,dashboard.jsx,58,16,2/23/2025,Dev1
+1061,High,Login Module,3/9/2025,3/9/2025,login.java,62,37,3/2/2025,Dev4
+1062,Low,Dashboard,3/16/2025,3/16/2025,login.java,71,22,3/9/2025,Dev2
+1063,Low,Reporting,3/23/2025,3/23/2025,payment.js,50,29,3/16/2025,Dev1
+1064,High,Dashboard,3/30/2025,3/30/2025,payment.js,28,14,3/23/2025,Dev1
+1065,Medium,Reporting,4/6/2025,4/6/2025,profile.py,36,28,3/30/2025,Dev4
+1066,Critical,Reporting,4/13/2025,4/13/2025,dashboard.jsx,51,5,4/6/2025,Dev4
+1067,Low,User Profile,4/20/2025,4/20/2025,payment.js,90,47,4/13/2025,Dev3
+1068,Critical,Reporting,4/27/2025,4/27/2025,login.java,27,49,4/20/2025,Dev1
+1069,Medium,Dashboard,5/4/2025,5/4/2025,dashboard.jsx,70,30,4/27/2025,Dev3
+1070,Medium,Reporting,5/11/2025,5/11/2025,dashboard.jsx,31,46,5/4/2025,Dev4
+1071,Medium,User Profile,5/18/2025,5/18/2025,login.java,6,5,5/11/2025,Dev4
+1072,Low,User Profile,5/25/2025,5/25/2025,payment.js,94,12,5/18/2025,Dev2
+1073,Medium,Dashboard,6/1/2025,6/1/2025,login.java,21,16,5/25/2025,Dev1
+1074,Low,Payment Module,6/8/2025,6/8/2025,dashboard.jsx,37,26,6/1/2025,Dev3
+1075,Medium,Payment Module,6/15/2025,6/15/2025,reporting.rb,13,26,6/8/2025,Dev4
+1076,Critical,Reporting,6/22/2025,6/22/2025,reporting.rb,47,48,6/15/2025,Dev4
+1077,Critical,Login Module,6/29/2025,6/29/2025,profile.py,52,21,6/22/2025,Dev3
+1078,High,Reporting,7/6/2025,7/6/2025,login.java,43,39,6/29/2025,Dev2
+1079,Critical,Dashboard,7/13/2025,7/13/2025,login.java,97,36,7/6/2025,Dev4
+1080,High,Dashboard,7/20/2025,7/20/2025,profile.py,46,33,7/13/2025,Dev1
+1081,Critical,Dashboard,7/27/2025,7/27/2025,profile.py,30,30,7/20/2025,Dev4
+1082,Low,Dashboard,8/3/2025,8/3/2025,profile.py,54,37,7/27/2025,Dev1
+1083,Critical,Dashboard,8/10/2025,8/10/2025,dashboard.jsx,29,23,8/3/2025,Dev3
+1084,High,User Profile,8/17/2025,8/17/2025,login.java,28,10,8/10/2025,Dev1
+1085,High,Payment Module,8/24/2025,8/24/2025,dashboard.jsx,17,5,8/17/2025,Dev3
+1086,Medium,Dashboard,8/31/2025,8/31/2025,profile.py,64,36,8/24/2025,Dev1
+1087,Low,Login Module,9/7/2025,9/7/2025,login.java,11,34,8/31/2025,Dev3
+1088,Critical,Login Module,9/14/2025,9/14/2025,dashboard.jsx,61,31,9/7/2025,Dev1
+1089,Medium,Login Module,9/21/2025,9/21/2025,dashboard.jsx,40,10,9/14/2025,Dev2
+1090,Critical,Login Module,9/28/2025,9/28/2025,profile.py,49,19,9/21/2025,Dev1
+1091,Critical,User Profile,10/5/2025,10/5/2025,login.java,24,32,9/28/2025,Dev1
+1092,Medium,Login Module,10/12/2025,10/12/2025,profile.py,69,1,10/5/2025,Dev2
+1093,Medium,Dashboard,10/19/2025,10/19/2025,login.java,12,5,10/12/2025,Dev4
+1094,Medium,Reporting,10/26/2025,10/26/2025,reporting.rb,20,45,10/19/2025,Dev4
+1095,Medium,Login Module,11/2/2025,11/2/2025,payment.js,18,4,10/26/2025,Dev1
+1096,Medium,User Profile,11/9/2025,11/9/2025,payment.js,80,16,11/2/2025,Dev2
+1097,Critical,User Profile,11/16/2025,11/16/2025,payment.js,91,24,11/9/2025,Dev1
+1098,Medium,Login Module,11/23/2025,11/23/2025,profile.py,19,16,11/16/2025,Dev3
+1099,Low,Reporting,11/30/2025,11/30/2025,reporting.rb,96,2,11/23/2025,Dev3

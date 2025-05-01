@@ -15,6 +15,8 @@ public class FrameworkGeneratorController {
 
     @PostMapping("/generate")
     public ResponseEntity<byte[]> generateFramework(@RequestBody FrameworkConfigRequest config) {
+        System.out.println("🎯 HIT /api/qa/framework/generate endpoint with config: " + config);
+
         try {
             byte[] zipBytes = generatorService.generateFramework(config);
 

@@ -1,5 +1,8 @@
 package com.vinsuite.dto;
 
+/**
+ * DTO representing the configuration for framework generation.
+ */
 public class FrameworkConfigRequest {
     private String language;
     private String testFramework;
@@ -46,5 +49,15 @@ public class FrameworkConfigRequest {
 
     public void setPackagingTool(String packagingTool) {
         this.packagingTool = packagingTool;
+    }
+
+    @Override
+    public String toString() {
+        return "FrameworkConfigRequest{" +
+                "language='" + language + '\'' +
+                ", testFramework='" + testFramework + '\'' +
+                ", reportTool='" + reportTool + '\'' +
+                ", packagingTool='" + packagingTool + '\'' +
+                '}';
     }
 }

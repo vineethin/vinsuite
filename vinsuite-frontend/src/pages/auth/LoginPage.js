@@ -9,6 +9,8 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // ... all imports remain unchanged
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -27,11 +29,34 @@ const LoginPage = () => {
       clearTimeout(timeout);
 
       const user = res.data;
-      localStorage.setItem("userId", user.id);
-      localStorage.setItem("userName", user.name);
+
+      localStorage.setItem("userId", user.id || 'admin');
+      localStorage.setItem("userName", user.name || 'Admin User');
       localStorage.setItem("userRole", user.role);
 
-      navigate('/project');
+      // ✅ Role-based redirection
+      switch (user.role) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'developer':
+          navigate('/dev/dashboard');
+          break;
+        case 'qa':
+          navigate('/qa/dashboard');
+          break;
+        case 'manager':
+          navigate('/manager/dashboard');
+          break;
+        case 'ba':
+          navigate('/ba/dashboard');
+          break;
+        case 'dba':
+          navigate('/dba/dashboard');
+          break;
+        default:
+          navigate('/project'); // fallback
+      }
 
     } catch (err) {
       console.error('Login failed:', err);
@@ -53,6 +78,7 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
