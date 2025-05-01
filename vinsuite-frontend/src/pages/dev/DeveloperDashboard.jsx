@@ -1,145 +1,68 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import LogoutButton from "../../components/LogoutButton";
-import { Code, FileJson, TestTubes, Eye, ShieldAlert, WandSparkles, Replace, SearchCode } from 'lucide-react';
+
+const tools = [
+  { name: "JSON Formatter", route: "/developer/json-formatter" },
+  { name: "AI Unit Test Generator", route: "#" },
+  { name: "AI Code Reviewer", route: "#" },
+  { name: "Secure Code Analyzer", route: "#" },
+  { name: "Refactor Assistant", route: "#" },
+  { name: "Regex Simplifier", route: "#" },
+  { name: "Code Search Copilot", route: "#" },
+];
 
 const DeveloperDashboard = () => {
   const navigate = useNavigate();
   const userName = localStorage.getItem("userName") || "Developer";
   const userRole = localStorage.getItem("userRole") || "developer";
-  const isAdminView = !localStorage.getItem("userId");
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-green-700 mb-1">
-              💻 Welcome, {userName}
-            </h1>
-            <p className="text-gray-600">
-              You are logged in as a <strong>{userRole}</strong>.
-            </p>
-          </div>
-          <div className="flex gap-4">
-            {isAdminView && (
-              <button
-                onClick={() => navigate("/admin")}
-                className="bg-gray-200 text-sm text-gray-700 px-3 py-1 rounded hover:bg-gray-300"
-              >
-                🔙 Back to Admin
-              </button>
-            )}
-            <LogoutButton />
+          <h1 className="text-3xl font-bold text-green-700">
+            💻 Developer Dashboard
+          </h1>
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate("/admin")}
+              className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 text-sm flex items-center gap-2"
+            >
+              <span className="text-blue-600">⬅️</span> Back to Admin
+            </button>
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
+            >
+              Logout
+            </button>
           </div>
         </div>
 
-        <div className="space-y-4">
-          {/* 🔹 JSON Formatter */}
-          <div className="cursor-pointer p-4 bg-green-50 hover:shadow-md border border-green-100 rounded-lg transition flex items-center space-x-4 group">
-            <div className="flex-shrink-0">
-              <FileJson className="text-green-600 w-8 h-8" />
+        {/* Tool Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tools.map((tool, idx) => (
+            <div
+              key={idx}
+              className="bg-white shadow rounded p-5 hover:shadow-lg transition-all"
+            >
+              <h3 className="text-lg font-semibold mb-2">{tool.name}</h3>
+              <p className="text-gray-600 text-sm">[Placeholder for future AI integration]</p>
+              <button
+                onClick={() => tool.route !== "#" && navigate(tool.route)}
+                className="mt-3 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 text-sm"
+              >
+                Launch
+              </button>
             </div>
-            <div>
-              <h3 className="text-lg font-bold text-green-800 group-hover:text-green-900 transition">
-                JSON Formatter
-              </h3>
-              <p className="text-sm text-gray-700">
-                Format and validate your JSON files for better readability and debugging.
-              </p>
-            </div>
-          </div>
-
-          {/* 🔹 Unit Test Generator */}
-          <div className="cursor-pointer p-4 bg-gradient-to-r from-green-50 to-green-100 hover:scale-[1.02] hover:shadow-xl border border-green-200 rounded-xl transition-all duration-200 ease-in-out flex items-center space-x-4 group">
-            <div className="flex-shrink-0">
-              <TestTubes className="text-green-600 w-8 h-8" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-green-800 group-hover:text-green-900 transition">
-                AI Unit Test Generator
-              </h3>
-              <p className="text-sm text-gray-700">
-                Generate unit tests for your methods and classes using AI prompts.
-              </p>
-            </div>
-          </div>
-
-          {/* 🔹 AI Code Reviewer */}
-          <div className="cursor-pointer p-4 bg-green-50 hover:shadow-md border border-green-100 rounded-lg transition flex items-center space-x-4 group">
-            <div className="flex-shrink-0">
-              <Eye className="text-green-600 w-8 h-8" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-green-800 group-hover:text-green-900 transition">
-                AI Code Reviewer
-              </h3>
-              <p className="text-sm text-gray-700">
-                Receive AI-driven suggestions to improve code quality, security, and readability.
-              </p>
-            </div>
-          </div>
-
-          {/* 🔹 Secure Code Analyzer */}
-          <div className="cursor-pointer p-4 bg-green-50 hover:shadow-md border border-green-100 rounded-lg transition flex items-center space-x-4 group">
-            <div className="flex-shrink-0">
-              <ShieldAlert className="text-green-600 w-8 h-8" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-green-800 group-hover:text-green-900 transition">
-                Secure Code Analyzer
-              </h3>
-              <p className="text-sm text-gray-700">
-                Identify security issues in your code using static analysis and AI hints.
-              </p>
-            </div>
-          </div>
-
-          {/* 🔹 Refactor Assistant */}
-          <div className="cursor-pointer p-4 bg-green-50 hover:shadow-md border border-green-100 rounded-lg transition flex items-center space-x-4 group">
-            <div className="flex-shrink-0">
-              <WandSparkles className="text-green-600 w-8 h-8" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-green-800 group-hover:text-green-900 transition">
-                Refactor Assistant
-              </h3>
-              <p className="text-sm text-gray-700">
-                Improve structure and clarity of your code through AI-guided suggestions.
-              </p>
-            </div>
-          </div>
-
-          {/* 🔹 Regex Simplifier */}
-          <div className="cursor-pointer p-4 bg-green-50 hover:shadow-md border border-green-100 rounded-lg transition flex items-center space-x-4 group">
-            <div className="flex-shrink-0">
-              <Replace className="text-green-600 w-8 h-8" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-green-800 group-hover:text-green-900 transition">
-                Regex Simplifier
-              </h3>
-              <p className="text-sm text-gray-700">
-                Paste regex and get human-readable explanations and simplified alternatives.
-              </p>
-            </div>
-          </div>
-
-          {/* 🔹 Code Search Copilot */}
-          <div className="cursor-pointer p-4 bg-green-50 hover:shadow-md border border-green-100 rounded-lg transition flex items-center space-x-4 group">
-            <div className="flex-shrink-0">
-              <SearchCode className="text-green-600 w-8 h-8" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-green-800 group-hover:text-green-900 transition">
-                Code Search Copilot
-              </h3>
-              <p className="text-sm text-gray-700">
-                Search your codebase semantically using natural language and AI understanding.
-              </p>
-            </div>
-          </div>
-
+          ))}
         </div>
       </div>
     </div>
