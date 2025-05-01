@@ -30,7 +30,7 @@ const LoginPage = () => {
 
       localStorage.setItem("userId", user.id || 'admin');
       localStorage.setItem("userName", user.name || 'User');
-      localStorage.setItem("userRole", user.role);
+      localStorage.setItem("userRole", user.role || 'admin');
 
       // 🔁 Role-based redirect
       switch (user.role) {
