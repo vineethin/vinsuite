@@ -8,9 +8,9 @@ import {
   UserCircle2,
   Target,
   Headphones,
+  DollarSign,
 } from "lucide-react";
 
-// All roles including support
 const roles = [
   {
     role: "tester",
@@ -60,6 +60,13 @@ const roles = [
     icon: <Headphones className="w-6 h-6 text-cyan-600" />,
     description: "Use AI tools for smarter, faster customer support.",
     path: "/support",
+  },
+  {
+    role: "finance",
+    label: "Finance",
+    icon: <DollarSign className="w-6 h-6 text-emerald-600" />,
+    description: "Analyze budgets, costs, forecasts, and financial health.",
+    path: "/finance",
   },
 ];
 
