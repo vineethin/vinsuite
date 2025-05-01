@@ -9,41 +9,58 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // ... all imports remain unchanged
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
+
     try {
       const source = axios.CancelToken.source();
       const timeout = setTimeout(() => {
         source.cancel('Server took too long to respond.');
       }, 15000);
-  
+
       const res = await axios.post(`${API.AUTH}/login`, {
         email,
         password
       }, { cancelToken: source.token });
-  
+
       clearTimeout(timeout);
-  
+
       const user = res.data;
-  
-      // Assuming admin login returns a user with role 'admin'
-      if (user.role === 'admin') {
-        localStorage.setItem("userRole", 'admin');
-        localStorage.setItem("userName", 'Admin User');
-        localStorage.setItem("userId", 'admin'); // Using a dummy admin user ID
-      } else {
-        localStorage.setItem("userId", user.id);
-        localStorage.setItem("userName", user.name);
-        localStorage.setItem("userRole", user.role);
+
+      localStorage.setItem("userId", user.id || 'admin');
+      localStorage.setItem("userName", user.name || 'Admin User');
+      localStorage.setItem("userRole", user.role);
+
+      // ✅ Role-based redirection
+      switch (user.role) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'developer':
+          navigate('/dev/dashboard');
+          break;
+        case 'qa':
+          navigate('/qa/dashboard');
+          break;
+        case 'manager':
+          navigate('/manager/dashboard');
+          break;
+        case 'ba':
+          navigate('/ba/dashboard');
+          break;
+        case 'dba':
+          navigate('/dba/dashboard');
+          break;
+        default:
+          navigate('/project'); // fallback
       }
-  
-      navigate('/project'); // Redirecting to the project page after login
-  
+
     } catch (err) {
       console.error('Login failed:', err);
-  
+
       if (axios.isCancel(err)) {
         alert('❌ Server is taking too long to respond. Please try again in a moment.');
       } else if (err.response) {
@@ -61,6 +78,7 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
