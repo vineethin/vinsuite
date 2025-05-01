@@ -83,7 +83,6 @@ const RegisterPage = () => {
             <option value="ba">Business Analyst</option>
             <option value="dba">DBA</option>
             <option value="saleslead">Sales Lead</option>
-            <option value="admin">Admin</option>
           </select>
           <button
             type="submit"
