@@ -18,6 +18,7 @@ import ResultsPage from "./pages/core/ResultsPage";
 import QADashboard from "./pages/qa/QADashboard";
 import AccessibilityScanner from "./pages/qa/AccessibilityScanner";
 import FrameworkGenerator from "./pages/qa/FrameworkGenerator";
+import AIResponseValidator from "./pages/qa/AIResponseValidator";
 
 // Dev
 import DeveloperDashboard from "./pages/dev/DeveloperDashboard";
@@ -70,12 +71,13 @@ function App() {
         <Route path="/admin" element={<AdminHome />} />
         <Route path="/sales" element={<SalesDashboard />} />
         <Route path="/support" element={<SupportDashboard />} />
-        <Route path="/finance" element={<FinanceDashboard />} /> {/* ✅ Added */}
+        <Route path="/finance" element={<FinanceDashboard />} />
 
         {/* QA Tools */}
         <Route path="/accessibility" element={<AccessibilityScanner />} />
         <Route path="/page-object" element={<PageObjectGenerator />} />
         <Route path="/qa/framework-generator" element={<FrameworkGenerator />} />
+        <Route path="/qa/ai-response-validator" element={<AIResponseValidator />} />
 
         {/* Dev Tools */}
         <Route path="/developer/json-formatter" element={<JsonFormatter />} />
@@ -99,7 +101,9 @@ function App() {
                   case "admin": return <Navigate to="/admin" />;
                   case "saleslead": return <Navigate to="/sales" />;
                   case "support": return <Navigate to="/support" />;
-                  case "finance": return <Navigate to="/finance" />; {/* ✅ Added */ }
+                  case "finance": return <Navigate to="/finance" />;
+                  case "dev": return <Navigate to="/dev" />;
+                  case "sales": return <Navigate to="/sales" />;
                   default: return <Navigate to="/project" />;
                 }
               })()
