@@ -2,16 +2,15 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BadgeCheck,
-  Brain,
   Hammer,
   BookText,
   DatabaseZap,
   UserCircle2,
-  ShieldCheck,
   Target,
+  Headphones,
 } from "lucide-react";
 
-// Define all roles including Sales Lead and Admin
+// All roles including support
 const roles = [
   {
     role: "tester",
@@ -56,11 +55,11 @@ const roles = [
     path: "/sales",
   },
   {
-    role: "admin",
-    label: "Admin",
-    icon: <ShieldCheck className="w-6 h-6 text-gray-700" />,
-    description: "Manage users and simulate any role dashboard.",
-    path: "/admin",
+    role: "support",
+    label: "Support",
+    icon: <Headphones className="w-6 h-6 text-cyan-600" />,
+    description: "Use AI tools for smarter, faster customer support.",
+    path: "/support",
   },
 ];
 
@@ -85,7 +84,6 @@ const AdminHome = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
 
-        {/* Header and Logout */}
         <div className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">🚀 VinSuite Admin Console</h1>
@@ -99,7 +97,6 @@ const AdminHome = () => {
           </button>
         </div>
 
-        {/* Role Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {roles.map((roleCard) => (
             <div

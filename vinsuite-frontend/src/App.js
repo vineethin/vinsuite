@@ -40,6 +40,9 @@ import AdminHome from "./pages/admin/AdminHome";
 // Sales
 import SalesDashboard from "./pages/sales/SalesDashboard";
 
+// Support
+import SupportDashboard from "./pages/support/SupportDashboard";
+
 // Other Tools
 import DefectPredictor from './components/tools/DefectPredictor';
 
@@ -81,6 +84,9 @@ function App() {
 
         {/* Other Tools */}
         <Route path="/predict-defect" element={<DefectPredictor />} />
+
+        {/* Support */}
+        <Route path="/support" element={<SupportDashboard />} />
 
         {/* Role-Based Redirect */}
         <Route
