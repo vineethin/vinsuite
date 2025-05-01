@@ -19,6 +19,7 @@ import QADashboard from "./pages/qa/QADashboard";
 import AccessibilityScanner from "./pages/qa/AccessibilityScanner";
 import FrameworkGenerator from "./pages/qa/FrameworkGenerator";
 import AIResponseValidator from "./pages/qa/AIResponseValidator";
+import TestCoverageEstimator from "./pages/qa/TestCoverageEstimator";
 
 // Dev
 import DeveloperDashboard from "./pages/dev/DeveloperDashboard";
@@ -78,6 +79,7 @@ function App() {
         <Route path="/page-object" element={<PageObjectGenerator />} />
         <Route path="/qa/framework-generator" element={<FrameworkGenerator />} />
         <Route path="/qa/ai-response-validator" element={<AIResponseValidator />} />
+        <Route path="/qa/test-coverage-estimator" element={<TestCoverageEstimator />} />
 
         {/* Dev Tools */}
         <Route path="/developer/json-formatter" element={<JsonFormatter />} />
