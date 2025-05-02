@@ -20,11 +20,13 @@ import AccessibilityScanner from "./pages/qa/AccessibilityScanner";
 import FrameworkGenerator from "./pages/qa/FrameworkGenerator";
 import AIResponseValidator from "./pages/qa/AIResponseValidator";
 import TestCoverageEstimator from "./pages/qa/TestCoverageEstimator";
-import AutomatedTestGenerator from "./pages/qa/AutomatedTestGenerator"; // ✅ Imported here
+import AutomatedTestGenerator from "./pages/qa/AutomatedTestGenerator"; 
+import PageObjectGenerator from "./pages/qa/PageObjectGenerator";
+import ElementIdentifier from './components/tools/ElementIdentifier';
+
 
 // Dev
 import DeveloperDashboard from "./pages/dev/DeveloperDashboard";
-import PageObjectGenerator from "./pages/dev/PageObjectGenerator";
 import JsonFormatter from './pages/dev/JsonFormatter';
 
 // Manager, BA, DBA
@@ -83,6 +85,7 @@ function App() {
         <Route path="/qa/framework-generator" element={<FrameworkGenerator />} />
         <Route path="/qa/ai-response-validator" element={<AIResponseValidator />} />
         <Route path="/qa/test-coverage-estimator" element={<TestCoverageEstimator />} />
+        <Route path="/xpath-image" element={<ElementIdentifier />} /> // ✅ Updated path for direct access
         <Route path="/qa/automated-test-generator" element={<AutomatedTestGenerator />} /> {/* ✅ Added route */}
 
         {/* Dev Tools */}
