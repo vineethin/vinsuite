@@ -1,8 +1,10 @@
-package com.vinsuite.controller;
+package com.vinsuite.controller.qa;
 
-import com.vinsuite.dto.CoverageEstimateRequest;
-import com.vinsuite.service.GroqAIService;
-import com.vinsuite.service.PageObjectGenerationService;
+import com.vinsuite.dto.qa.BugSummaryRequest;
+import com.vinsuite.dto.qa.CoverageEstimateRequest;
+import com.vinsuite.service.qa.PageObjectGenerationService;
+import com.vinsuite.service.qa.QAGroqAIService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +14,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/groq")
-public class GroqAIController {
+public class QAGroqAIController {
 
     @Autowired
-    private GroqAIService groqAIService;
+    private QAGroqAIService groqAIService;
 
     @Autowired
     private PageObjectGenerationService pageObjectGenerationService;
@@ -86,4 +88,25 @@ public class GroqAIController {
                                  .body(Map.of("error", "Coverage estimation failed: " + e.getMessage()));
         }
     }
+
+    @PostMapping("/bug-summary")
+public ResponseEntity<?> summarizeBugReport(@RequestBody BugSummaryRequest request) {
+    try {
+        String bugReport = request.getBugReport();
+
+        if (bugReport == null || bugReport.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Bug report cannot be empty."));
+        }
+
+        Map<String, Object> summaryResult = groqAIService.summarizeBugReport(bugReport);
+
+        return ResponseEntity.ok(summaryResult);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Bug report summarization failed: " + e.getMessage()));
+    }
+}
+
 }

@@ -1,7 +1,8 @@
-package com.vinsuite.controller;
+package com.vinsuite.controller.qa;
 
-import com.vinsuite.dto.FrameworkConfigRequest;
-import com.vinsuite.service.FrameworkGeneratorService;
+import com.vinsuite.dto.qa.FrameworkConfigRequest;
+import com.vinsuite.service.qa.FrameworkGeneratorService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;

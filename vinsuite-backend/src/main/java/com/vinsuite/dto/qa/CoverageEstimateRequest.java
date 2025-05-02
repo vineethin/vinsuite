@@ -1,4 +1,4 @@
-package com.vinsuite.dto;
+package com.vinsuite.dto.qa;
 
 import java.util.List;
 

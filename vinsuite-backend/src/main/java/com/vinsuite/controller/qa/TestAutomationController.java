@@ -1,10 +1,12 @@
-package com.vinsuite.controller;
+package com.vinsuite.controller.qa;
 
-import com.vinsuite.dto.AutomationRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.vinsuite.dto.qa.AutomationRequest;
+
 import reactor.core.publisher.Mono;
 
 import java.util.List;
