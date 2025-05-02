@@ -5,6 +5,10 @@
 - Developers
 - Database Administrators (DBAs)
 - Business Analysts (BAs)
+- Managers (Dev, QA, etc)
+- Sales Leads
+- Support Team
+- Finance Team
 
 It provides smart tools for faster, better testing and development — built with **Java Spring Boot**, **React.js**, and **PostgreSQL**.
 
