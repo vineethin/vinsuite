@@ -1,7 +1,8 @@
-package com.vinsuite.service;
+package com.vinsuite.service.qa;
 
-import com.vinsuite.dto.FrameworkConfigRequest;
 import org.springframework.stereotype.Service;
+
+import com.vinsuite.dto.qa.FrameworkConfigRequest;
 
 import java.io.*;
 import java.nio.file.*;

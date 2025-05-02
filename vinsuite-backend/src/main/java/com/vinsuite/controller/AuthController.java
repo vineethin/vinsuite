@@ -1,9 +1,10 @@
 package com.vinsuite.controller;
 
+import com.vinsuite.dto.common.LoginRequest;
+import com.vinsuite.dto.common.RegisterRequest;
 import com.vinsuite.model.User;
 import com.vinsuite.repository.UserRepository;
-import com.vinsuite.request.LoginRequest;
-import com.vinsuite.request.RegisterRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

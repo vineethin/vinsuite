@@ -2,7 +2,7 @@ package com.vintaas.service;
 
 import org.testng.annotations.Test;
 
-import com.vinsuite.service.PageFactoryGeneratorService;
+import com.vinsuite.service.qa.PageFactoryGeneratorService;
 
 import org.springframework.http.ResponseEntity;
 

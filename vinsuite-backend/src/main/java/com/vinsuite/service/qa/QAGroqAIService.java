@@ -1,4 +1,4 @@
-package com.vinsuite.service;
+package com.vinsuite.service.qa;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vinsuite.model.TestCase;
@@ -6,11 +6,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.*;
 
 @Service
-public class GroqAIService {
+public class QAGroqAIService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -196,4 +199,69 @@ public class GroqAIService {
 
         return Map.of("error", "Failed to get deep coverage estimation from Groq");
     }
+
+    public Map<String, Object> summarizeBugReport(String bugReportText) {
+        String prompt = """
+            You are a QA assistant. Given a raw bug report, summarize it in this structured format:
+            1. Summary of the bug (1–2 sentences)
+            2. Affected module or feature
+            3. Reproduction steps (short)
+            4. Suggested severity (Low/Medium/High)
+            5. AI suggestion for the cause (if any)
+    
+            Bug Report:
+            \"\"\"
+            %s
+            \"\"\"
+            """.formatted(bugReportText);
+    
+        List<Map<String, String>> messages = List.of(
+            Map.of("role", "system", "content", "You are a helpful QA assistant."),
+            Map.of("role", "user", "content", prompt)
+        );
+    
+        String model = "mixtral-8x7b-32768"; // or another model supported by Groq
+    
+        // Use your existing sendChatCompletion() method or Groq API helper
+        String aiResponse = sendChatCompletion(model, messages);  // Adjust this to your actual API call method
+    
+        return Map.of("summary", aiResponse);
+    }
+
+    private String sendChatCompletion(String model, List<Map<String, String>> messages) {
+        String apiUrl = "https://api.groq.com/openai/v1/chat/completions";
+        String apiKey = "YOUR_GROQ_API_KEY"; // 🔐 Move to application.properties or env later
+    
+        RestTemplate restTemplate = new RestTemplate();
+    
+        Map<String, Object> body = new HashMap<>();
+        body.put("model", model);
+        body.put("messages", messages);
+        body.put("temperature", 0.4);
+    
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
+    
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+    
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, Map.class);
+    
+            if (response.getStatusCode().is2xxSuccessful()) {
+                Map<String, Object> responseBody = response.getBody();
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
+                if (choices != null && !choices.isEmpty()) {
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    return message.get("content").toString().trim();
+                }
+            }
+            return "AI did not return a valid response.";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error calling Groq API: " + e.getMessage();
+        }
+    }
+    
+    
 }

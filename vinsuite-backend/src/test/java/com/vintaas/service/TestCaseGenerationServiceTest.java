@@ -1,7 +1,7 @@
 package com.vintaas.service;
 
-import com.vinsuite.dto.SmartTestCaseRequest;
-import com.vinsuite.service.TestCaseGenerationService;
+import com.vinsuite.dto.qa.SmartTestCaseRequest;
+import com.vinsuite.service.qa.TestCaseGenerationService;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
