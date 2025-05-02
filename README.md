@@ -18,10 +18,12 @@ It provides smart tools for faster, better testing and development — built wit
 
 - ✨ Manual and AI-generated Test Case Creation
 - ✨ OCR-based UI Screenshot to Test Case Generation
-- ✨ Database Query Optimizer (for DBAs)
-- ✨ Schema Change Tracker (for DBAs)
-- ✨ Backup Status Checker (for DBAs)
+- ✨ Developer Tools
+- ✨ Future: Database Query Optimizer (for DBAs)
+- ✨ Future: Schema Change Tracker (for DBAs)
+- ✨ Future: Backup Status Checker (for DBAs)
 - ✨ Future: Developer Tools, BA Tools, and More!
+- ✨ Future: More roles
 
 ---
 
