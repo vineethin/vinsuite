@@ -34,6 +34,7 @@ import DBADashboard from "./pages/dba/DBADashboard";
 
 // Admin
 import AdminHome from "./pages/admin/AdminHome";
+import ComingSoon from './pages/admin/ComingSoon';
 
 // Sales & Support
 import SalesDashboard from "./pages/sales/SalesDashboard";
@@ -71,6 +72,7 @@ function App() {
         <Route path="/ba" element={<BADashboard />} />
         <Route path="/dba" element={<DBADashboard />} />
         <Route path="/admin" element={<AdminHome />} />
+        <Route path="/coming-soon/:role" element={<ComingSoon />} />
         <Route path="/sales" element={<SalesDashboard />} />
         <Route path="/support" element={<SupportDashboard />} />
         <Route path="/finance" element={<FinanceDashboard />} />

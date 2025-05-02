@@ -12,20 +12,22 @@ const roles = [
   { label: "Finance", role: "finance", description: "Analyze budgets, costs, forecasts, and financial health." }
 ];
 
+const activeRoles = ["qa", "dev"];
+
 const AdminHome = () => {
   const navigate = useNavigate();
 
   const handleRoleClick = (role) => {
     localStorage.setItem("userId", "admin");
     localStorage.setItem("userName", "Admin");
-    localStorage.setItem("userRole", role); // This sets current view role
-    localStorage.setItem("adminActingAs", role); // Flag for showing back to admin
-    navigate(`/${role}`);
-  };
+    localStorage.setItem("userRole", role);
+    localStorage.setItem("adminActingAs", role);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
+    if (activeRoles.includes(role)) {
+      navigate(`/${role}`);
+    } else {
+      navigate(`/coming-soon/${role}`);
+    }
   };
 
   return (
@@ -37,7 +39,10 @@ const AdminHome = () => {
             <p className="text-gray-600">Select a role below to simulate login and explore tools.</p>
           </div>
           <button
-            onClick={handleLogout}
+            onClick={() => {
+              localStorage.clear();
+              navigate("/login");
+            }}
             className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
           >
             Logout
@@ -45,16 +50,28 @@ const AdminHome = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {roles.map(({ label, role, description }) => (
-            <div
-              key={role}
-              onClick={() => handleRoleClick(role)}
-              className="cursor-pointer bg-white p-5 rounded shadow hover:shadow-lg border border-gray-200"
-            >
-              <h3 className="text-lg font-semibold mb-1 text-gray-800">{label}</h3>
-              <p className="text-sm text-gray-600">{description}</p>
-            </div>
-          ))}
+          {roles.map(({ label, role, description }) => {
+            const isActive = activeRoles.includes(role);
+            return (
+              <div
+                key={role}
+                onClick={() => handleRoleClick(role)}
+                className={`relative p-5 rounded border transition transform hover:scale-105 shadow cursor-pointer ${
+                  isActive
+                    ? "bg-white hover:shadow-lg border-gray-200"
+                    : "bg-gray-100 border-gray-300 opacity-60"
+                }`}
+              >
+                {!isActive && (
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-lg font-semibold rotate-[-20deg] pointer-events-none">
+                    Coming Soon
+                  </div>
+                )}
+                <h3 className="text-lg font-semibold mb-1 text-gray-800 z-10 relative">{label}</h3>
+                <p className="text-sm text-gray-600 z-10 relative">{description}</p>
+              </div>
+            );
+          })}
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-8">
