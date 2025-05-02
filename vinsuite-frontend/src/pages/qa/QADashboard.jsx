@@ -12,9 +12,8 @@ const tools = [
   { name: "CI/CD Test Advisor", route: "#" },
   { name: "AI Response Validator", route: "/qa/ai-response-validator" },
   { name: "Test Coverage Estimator", route: "/qa/test-coverage-estimator" },
-  { name: "Automated Test Generator", route: "/qa/automated-test-generator" } // ✅ new entry
+  { name: "Automated Test Generator", route: "/qa/automated-test-generator" } // ✅ still valid
 ];
-
 
 const QADashboard = () => {
   const navigate = useNavigate();

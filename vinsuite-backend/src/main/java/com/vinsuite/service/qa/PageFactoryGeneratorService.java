@@ -16,7 +16,7 @@ public class PageFactoryGeneratorService {
     public ResponseEntity<?> generateFromHtml(String html) {
         try {
             Document doc = Jsoup.parse(html);
-            Elements elements = doc.select("input, button, select, textarea, a");
+            Elements elements = doc.select("[id]"); // include all elements with ID
 
             if (elements.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("code", "", "error", "No supported elements found."));
@@ -32,9 +32,11 @@ public class PageFactoryGeneratorService {
             for (Element el : elements) {
                 if (ElementUtils.isIrrelevant(el)) continue;
                 String locator = ElementUtils.getBestLocator(el);
-                if (locator != null) {
+                String variableName = ElementUtils.generateVariableName(el);
+                if (locator != null && !variableName.isEmpty()) {
+                    code.append("    // Original label: ").append(el.text()).append("\n");
                     code.append("    ").append(locator).append("\n");
-                    code.append("    public WebElement ").append(ElementUtils.generateVariableName(el)).append(";\n\n");
+                    code.append("    public WebElement ").append(variableName).append(";\n\n");
                 }
             }
 
