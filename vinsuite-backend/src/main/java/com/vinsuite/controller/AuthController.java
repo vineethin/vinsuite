@@ -1,20 +1,18 @@
 package com.vinsuite.controller;
 
-import com.vinsuite.dto.common.LoginRequest;
-import com.vinsuite.dto.common.RegisterRequest;
 import com.vinsuite.model.User;
+import com.vinsuite.dto.common.RegisterRequest;
+import com.vinsuite.dto.common.LoginRequest;
 import com.vinsuite.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.Timestamp;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin
 public class AuthController {
 
     @Autowired
@@ -23,53 +21,36 @@ public class AuthController {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    // 🔐 Pre-generated BCrypt hash for "Admin@123"
-    private static final String ADMIN_HASHED_PASSWORD = "$2b$12$lJKSV5Ou2d65bbLbWILwYO3zvd9.Ml6SDz/.PP8nyWm0cEiGQq2Uu";
-
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
-        if ("admin".equalsIgnoreCase(registerRequest.getRole())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("message", "Admin registration is not allowed"));
-        }
-
-        if (userRepository.findByEmail(registerRequest.getEmail()) != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("message", "User already exists"));
+    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity.status(409).body("Email already registered");
         }
 
         User user = new User();
-        user.setEmail(registerRequest.getEmail());
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        user.setRole(registerRequest.getRole());
-        user.setName(registerRequest.getName());
-        user.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(request.getRole());
+        user.setDepartment(request.getDepartment());
 
-        return ResponseEntity.ok(userRepository.save(user));
+        userRepository.save(user);
+        return ResponseEntity.ok("User registered successfully");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        // ✅ Hardcoded admin login
-        if ("admin@vinsuite.ai".equalsIgnoreCase(loginRequest.getEmail()) &&
-            passwordEncoder.matches(loginRequest.getPassword(), ADMIN_HASHED_PASSWORD)) {
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail());
 
-            User adminUser = new User();
-            adminUser.setId(0L); // dummy ID
-            adminUser.setEmail("admin@vinsuite.ai");
-            adminUser.setName("Admin User");
-            adminUser.setRole("admin");
-            return ResponseEntity.ok(adminUser);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Invalid email or password");
         }
 
-        // 🔐 Normal user login
-        User user = userRepository.findByEmail(loginRequest.getEmail());
-
-        if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Invalid email or password"));
+        boolean isMatch = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        if (!isMatch) {
+            return ResponseEntity.status(401).body("Invalid email or password");
         }
 
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(user); // Optionally return token later
     }
 }
