@@ -8,6 +8,7 @@ const RegisterPage = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
+  const [department, setDepartment] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -20,7 +21,8 @@ const RegisterPage = () => {
         email,
         password,
         name,
-        role
+        role,
+        department,
       });
 
       if (res.status === 200) {
@@ -70,38 +72,103 @@ const RegisterPage = () => {
             className="w-full px-4 py-2 border rounded"
             required
           />
+
+          {/* Department Dropdown First */}
+          <select
+            value={department}
+            onChange={(e) => {
+              setDepartment(e.target.value);
+              setRole('');
+            }}
+            className="w-full px-4 py-2 border rounded"
+            required
+          >
+            <option value="">Select Department</option>
+            <option value="IT">IT</option>
+            <option value="Finance">Finance</option>
+            <option value="HR">HR</option>
+            <option value="Sales">Sales</option>
+            <option value="Support">Support</option>
+            <option value="Trading">Trading</option> {/* ✅ Added */}
+          </select>
+
+          {/* Role Dropdown Based on Department */}
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
             className="w-full px-4 py-2 border rounded"
             required
+            disabled={!department}
           >
             <option value="">Select Role</option>
-            <option value="tester">Tester</option>
-            <option value="developer">Developer</option>
-            <option value="manager">Manager</option>
-            <option value="ba">Business Analyst</option>
-            <option value="dba">DBA</option>
-            <option value="saleslead">Sales Lead</option>
-            <option value="support">Support</option>
-            <option value="finance">Finance</option> {/* ✅ Added */}
+
+            {department === 'IT' && (
+              <>
+                <option value="tester">Tester</option>
+                <option value="developer">Developer</option>
+                <option value="manager">Manager</option>
+                <option value="ba">Business Analyst</option>
+                <option value="dba">DBA</option>
+              </>
+            )}
+
+            {department === 'Finance' && (
+              <>
+                <option value="finance">Finance Analyst</option>
+                <option value="auditor">Auditor</option>
+              </>
+            )}
+
+            {department === 'HR' && (
+              <>
+                <option value="recruiter">Recruiter</option>
+                <option value="hrmanager">HR Manager</option>
+              </>
+            )}
+
+            {department === 'Sales' && (
+              <>
+                <option value="saleslead">Sales Lead</option>
+                <option value="salesrep">Sales Representative</option>
+              </>
+            )}
+
+            {department === 'Support' && (
+              <>
+                <option value="support">Support Engineer</option>
+              </>
+            )}
+
+            {department === 'Trading' && (
+              <>
+                <option value="trader">Trader</option>
+                <option value="portfolioanalyst">Portfolio Analyst</option>
+                <option value="riskmanager">Risk Manager</option>
+              </>
+            )}
           </select>
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white py-2 rounded flex justify-center items-center`}
+            className={`w-full ${
+              loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            } text-white py-2 rounded flex justify-center items-center`}
           >
             {loading ? (
               <div className="flex items-center space-x-2">
                 <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  />
                 </svg>
                 <span>Registering...</span>
               </div>
             ) : (
-              "Register"
+              'Register'
             )}
           </button>
         </form>
