@@ -97,8 +97,9 @@ const ComingSoon = () => {
           )}
         </ul>
 
+        {/* ✅ Fixed back navigation to ensure router context refreshes */}
         <button
-          onClick={() => navigate("/admin")}
+          onClick={() => navigate("/dashboard")}
           className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
         >
           ← Back to Role Selection
