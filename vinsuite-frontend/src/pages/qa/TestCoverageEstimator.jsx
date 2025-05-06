@@ -20,8 +20,12 @@ const TestCoverageEstimator = () => {
       };
 
       if (deepMode) {
-        reqPayload.testCaseSteps = steps.split("\n\n").map(block => block.split("\n").filter(l => l.trim()));
-        reqPayload.acceptanceCriteria = acceptanceCriteria.split("\n\n").map(block => block.split("\n").filter(l => l.trim()));
+        reqPayload.testCaseSteps = steps.split("\n\n").map(block =>
+          block.split("\n").filter(l => l.trim())
+        );
+        reqPayload.acceptanceCriteria = acceptanceCriteria.split("\n\n").map(block =>
+          block.split("\n").filter(l => l.trim())
+        );
       }
 
       const res = await fetch(`${API.TEST_CASES}/coverage-estimator`, {
@@ -31,11 +35,28 @@ const TestCoverageEstimator = () => {
       });
 
       const data = await res.json();
-      const parsed = Array.isArray(data) ? data : JSON.parse(data.choices?.[0]?.message?.content || "[]");
+      console.log("🔍 RAW API response:", data);
+
+      let parsed = [];
+
+      if (Array.isArray(data)) {
+        parsed = data;
+      } else if (data.coverage && Array.isArray(data.coverage)) {
+        parsed = data.coverage;
+      } else if (data.choices?.[0]?.message?.content) {
+        try {
+          parsed = JSON.parse(data.choices[0].message.content);
+        } catch (e) {
+          console.error("❌ Failed to parse AI response:", e);
+          alert("AI response could not be parsed as JSON.");
+        }
+      }
+
+      console.log("✅ Parsed result:", parsed);
       setResults(parsed);
     } catch (err) {
       console.error("Estimation failed:", err);
-      alert("AI response was not in valid JSON format.");
+      alert("❌ Failed to estimate coverage. Please check the backend or try again.");
     } finally {
       setLoading(false);
     }
@@ -43,7 +64,7 @@ const TestCoverageEstimator = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50 max-w-7xl mx-auto">
-      <ToolHeader title="📊 Test Coverage Estimator" />
+      <ToolHeader title="📊 Test Coverage Estimator" showLogout />
 
       <div className="bg-white p-6 rounded shadow-md space-y-4">
         <label className="flex items-center gap-2">
