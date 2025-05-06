@@ -4,15 +4,8 @@ import { useNavigate } from "react-router-dom";
 const tools = [
   { name: "Test Case Generator", route: "/test-generator" },
   { name: "Page Object Generator", route: "/page-object" },
-  { name: "Bug Report Summarizer", route: "#" },
-  { name: "Test Data Generator", route: "#" },
-  { name: "Accessibility Checker", route: "/accessibility" },
-  { name: "API Contract Verifier", route: "#" },
-  { name: "Visual Regression Tool", route: "#" },
-  { name: "CI/CD Test Advisor", route: "#" },
-  { name: "AI Response Validator", route: "/qa/ai-response-validator" },
   { name: "Test Coverage Estimator", route: "/qa/test-coverage-estimator" },
-  { name: "Automated Test Generator", route: "/qa/automated-test-generator" } // ✅ still valid
+  { name: "Automated Test Generator", route: "/qa/automated-test-generator" }
 ];
 
 const QADashboard = () => {
@@ -57,13 +50,8 @@ const QADashboard = () => {
               className="bg-white shadow rounded p-5 hover:shadow-lg transition-all border border-gray-100"
             >
               <h3 className="text-lg font-semibold mb-2">{tool.name}</h3>
-              {tool.route === "#" && (
-                <p className="text-gray-600 text-sm">
-                  [Placeholder for future AI integration]
-                </p>
-              )}
               <button
-                onClick={() => tool.route !== "#" && navigate(tool.route)}
+                onClick={() => navigate(tool.route)}
                 className="mt-3 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 text-sm"
               >
                 Launch

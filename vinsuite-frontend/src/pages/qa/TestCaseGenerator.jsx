@@ -8,7 +8,7 @@ import OCRInputSection from "../../components/testCaseGenerator/OCRInputSection"
 import TestCaseTable from "../../components/testCaseGenerator/TestCaseTable";
 import ExportButton from "../../components/testCaseGenerator/ExportButton";
 import EditControls from "../../components/testCaseGenerator/EditControls";
-import LogoutButton from "../../components/LogoutButton";
+import ToolHeader from "../../components/common/ToolHeader";
 
 const TestCaseGenerator = () => {
   const [tab, setTab] = useState("text");
@@ -56,10 +56,7 @@ const TestCaseGenerator = () => {
 
   return (
     <div className="min-h-screen p-6 bg-gray-50">
-      <div className="flex justify-between mb-4 items-center">
-        <h1 className="text-2xl font-bold">🧠 TestGenie by VinSuite</h1>
-        <LogoutButton />
-      </div>
+      <ToolHeader title="🧠 TestGenie by VinSuite" />
 
       <TabSwitcher activeTab={tab} onSwitch={handleTabSwitch} />
 
