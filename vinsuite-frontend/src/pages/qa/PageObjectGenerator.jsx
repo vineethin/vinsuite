@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import ElementIdentifier from '../../components/tools/ElementIdentifier';
 import PageObjectFromText from '../../components/tools/PageObjectFromText';
+import ToolHeader from "../../components/common/ToolHeader";
 
 const PageObjectGenerator = () => {
   const [activeTab, setActiveTab] = useState("default");
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <h2 className="text-3xl font-bold text-blue-700 mb-6">📄 Page Object Generator</h2>
+      <ToolHeader title="📄 Page Object Generator" showLogout={true} />
 
       <div className="flex space-x-4 mb-6">
         <button
@@ -33,7 +34,7 @@ const PageObjectGenerator = () => {
       </div>
 
       <div className="bg-white shadow-md rounded p-6">
-        {activeTab === "default" && <PageObjectFromText  />}
+        {activeTab === "default" && <PageObjectFromText />}
         {activeTab === "image" && <ElementIdentifier />}
       </div>
     </div>
