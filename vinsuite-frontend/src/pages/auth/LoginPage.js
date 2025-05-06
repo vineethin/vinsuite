@@ -32,21 +32,24 @@ const LoginPage = () => {
       localStorage.setItem("userName", user.name || 'User');
       localStorage.setItem("userRole", user.role || 'admin');
 
-      // 🔁 Role-based redirect
-      switch (user.role) {
-        case 'admin': navigate('/admin'); break;
-        case 'developer': navigate('/dev'); break;
-        case 'qa': navigate('/qa'); break;
-        case 'manager': navigate('/manager'); break;
-        case 'ba': navigate('/ba'); break;
-        case 'dba': navigate('/dba'); break;
-        case 'saleslead': navigate('/sales'); break;
-        case 'support': navigate('/support'); break;
-        case 'finance': navigate('/finance'); break; // ✅ Added
-        default: navigate('/project');
+      if (user.role === 'admin') {
+        const dept = user.department || 'IT'; // fallback default
+        localStorage.setItem("userDepartment", dept);
+        navigate(`/admin/${dept.toLowerCase()}`);
+      } else {
+        // 🔁 Role-based redirect
+        switch (user.role) {
+          case 'developer': navigate('/dev'); break;
+          case 'qa': navigate('/qa'); break;
+          case 'manager': navigate('/manager'); break;
+          case 'ba': navigate('/ba'); break;
+          case 'dba': navigate('/dba'); break;
+          case 'saleslead': navigate('/sales'); break;
+          case 'support': navigate('/support'); break;
+          case 'finance': navigate('/finance'); break;
+          default: navigate('/project');
+        }
       }
-
-
 
     } catch (err) {
       console.error('Login failed:', err);
