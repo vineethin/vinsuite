@@ -9,9 +9,14 @@ const AutomatedTestGenerator = () => {
   const [framework, setFramework] = useState('TestNG');
   const [generatedCode, setGeneratedCode] = useState('');
 
+  const frameworkOptions = {
+    Java: ['TestNG', 'JUnit'],
+    Python: ['PyTest', 'unittest']
+  };
+
   const handleGenerate = async () => {
     try {
-      const response = await fetch(`${API.FRAMEWORK}/automation/generate`, {
+      const response = await fetch(`${API.FRAMEWORK}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ testCase, htmlCode, language, framework }),
@@ -51,10 +56,15 @@ const AutomatedTestGenerator = () => {
           <select
             className="border rounded p-2"
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
+            onChange={(e) => {
+              const selected = e.target.value;
+              setLanguage(selected);
+              setFramework(frameworkOptions[selected][0]); // reset to default
+            }}
           >
-            <option>Java</option>
-            <option>Python</option>
+            {Object.keys(frameworkOptions).map((lang) => (
+              <option key={lang} value={lang}>{lang}</option>
+            ))}
           </select>
         </div>
 
@@ -65,8 +75,9 @@ const AutomatedTestGenerator = () => {
             value={framework}
             onChange={(e) => setFramework(e.target.value)}
           >
-            <option>TestNG</option>
-            <option>JUnit</option>
+            {frameworkOptions[language].map((fw) => (
+              <option key={fw} value={fw}>{fw}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -81,7 +92,9 @@ const AutomatedTestGenerator = () => {
       {generatedCode && (
         <div className="mt-6">
           <h3 className="font-semibold mb-2">Generated Script</h3>
-          <pre className="bg-gray-100 p-4 rounded overflow-x-auto">{generatedCode}</pre>
+          <pre className="bg-gray-100 p-4 rounded overflow-x-auto whitespace-pre-wrap">
+            {generatedCode}
+          </pre>
         </div>
       )}
     </div>
