@@ -6,7 +6,7 @@ import HomePage from './pages/core/HomePage';
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ProjectPage from "./pages/core/ProjectPage";
-import TestCaseGenerator from "./pages/core/TestCaseGenerator";
+import TestCaseGenerator from "./pages/qa/TestCaseGenerator";
 import ResultsPage from "./pages/core/ResultsPage";
 
 // QA
