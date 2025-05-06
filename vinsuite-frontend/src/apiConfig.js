@@ -1,6 +1,7 @@
 const BASE_URL = process.env.REACT_APP_API_BASE || "http://localhost:8081/api";
 
 const API = {
+  BASE_URL,
   AUTH: `${BASE_URL}/auth`,
   PROJECTS: `${BASE_URL}/projects`,
   TEST_CASES: `${BASE_URL}/groq`, // keep this if used elsewhere
@@ -9,7 +10,8 @@ const API = {
   QUERY: `${BASE_URL}/dba`,
   SCHEMA: `${BASE_URL}/schema`,
   ACCESSIBILITY: `${BASE_URL}/accessibility`,
-  FRAMEWORK: `${BASE_URL}/qa/framework`
+  FRAMEWORK: `${BASE_URL}/qa/framework`,
+  OCR_TEST_CASES: `${BASE_URL}/vision/generate-ocr-testcases`
 };
 
 export default API;
