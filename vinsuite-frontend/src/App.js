@@ -22,6 +22,7 @@ import ElementIdentifier from './components/tools/ElementIdentifier';
 // Dev
 import DeveloperDashboard from "./pages/dev/DeveloperDashboard";
 import JsonFormatter from './pages/dev/JsonFormatter';
+import UnitTestGenerator from './pages/dev/UnitTestGenerator'; // ✅ Added
 
 // Manager, BA, DBA
 import ManagerDashboard from "./pages/manager/ManagerDashboard";
@@ -80,6 +81,7 @@ function App() {
 
         {/* Dev Tools */}
         <Route path="/developer/json-formatter" element={<JsonFormatter />} />
+        <Route path="/dev/unit-test-generator" element={<UnitTestGenerator />} /> {/* ✅ Added */}
 
         {/* Admin Department Dashboards */}
         <Route path="/admin/it" element={<AdminITDashboard />} />
