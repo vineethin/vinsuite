@@ -1,44 +1,72 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const DashboardLayout = ({ title, children }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const userRole = localStorage.getItem("userRole");
+  const userDepartment = localStorage.getItem("userDepartment");
   const isAdmin = userRole === "admin" || !!localStorage.getItem("adminActingAs");
 
-  console.log("🔍 userRole in DashboardLayout:", userRole);
+  if (!userRole) return null;
 
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
   };
 
-  if (!userRole) return null; // Prevent layout from rendering before role is loaded
+  const isDev = userRole === "Developer" && userDepartment === "IT";
+
+  const navItems = isDev
+    ? [
+        {
+          title: "🧪 Unit Test Generator",
+          path: "/dev/unit-test-generator",
+        },
+        // Add more dev tools here later
+      ]
+    : [];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-blue-700">{title}</h1>
-          <div className="flex gap-2">
-            {isAdmin && (
-              <button
-                onClick={() => navigate("/admin")}
-                className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 text-sm flex items-center gap-2"
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <div className="w-64 bg-white shadow-md p-4">
+        <h2 className="text-xl font-semibold mb-4 text-blue-700">VinSuite</h2>
+        <ul className="space-y-2">
+          {navItems.map((item) => (
+            <li key={item.path}>
+              <Link
+                to={item.path}
+                className={`block px-3 py-2 rounded hover:bg-blue-100 ${
+                  location.pathname === item.path ? "bg-blue-200 font-semibold" : ""
+                }`}
               >
-                <span className="text-blue-600">⬅️</span> Back to Admin
-              </button>
-            )}
+                {item.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-6 space-y-2">
+          {isAdmin && (
             <button
-              onClick={handleLogout}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
+              onClick={() => navigate("/admin")}
+              className="w-full bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 text-sm flex items-center gap-2"
             >
-              Logout
+              ⬅️ Back to Admin
             </button>
-          </div>
+          )}
+          <button
+            onClick={handleLogout}
+            className="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
+          >
+            Logout
+          </button>
         </div>
+      </div>
 
+      {/* Main content */}
+      <div className="flex-1 p-6">
+        <h1 className="text-3xl font-bold text-blue-700 mb-6">{title}</h1>
         {children}
       </div>
     </div>
