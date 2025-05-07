@@ -9,9 +9,25 @@ const AdminHome = () => {
     navigate(path);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userDepartment');
+    navigate('/');
+  };
+
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold text-blue-800 mb-2">🚀 VinSuite Admin Console</h1>
+      {/* Top header with title and logout */}
+      <div className="flex justify-between items-center mb-2">
+        <h1 className="text-3xl font-bold text-blue-800">🚀 VinSuite Admin Console</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+        >
+          Logout
+        </button>
+      </div>
+
       <p className="text-gray-600 mb-6">Select a role below to simulate login and explore tools.</p>
 
       {/* ✅ Show Change Department dropdown at the top */}
