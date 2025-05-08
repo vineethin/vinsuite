@@ -20,28 +20,42 @@ public class UnitTestAIService {
 
     public String generateTestCode(String prompt) {
         RestTemplate restTemplate = new RestTemplate();
-
+    
         Map<String, Object> message = Map.of(
             "role", "user",
             "content", prompt
         );
-
+    
         Map<String, Object> requestBody = Map.of(
             "model", MODEL,
             "messages", List.of(message),
             "temperature", 0.3
         );
-
+    
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(groqApiKey);
-
+    
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-        ResponseEntity<Map> response = restTemplate.exchange(GROQ_API_URL, HttpMethod.POST, request, Map.class);
-
-        Map completion = (Map) ((List) response.getBody().get("choices")).get(0);
-        Map messageResult = (Map) completion.get("message");
-
-        return (String) messageResult.get("content");
+    
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(GROQ_API_URL, HttpMethod.POST, request, Map.class);
+    
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
+                if (choices != null && !choices.isEmpty()) {
+                    Map<String, Object> messageResult = (Map<String, Object>) choices.get(0).get("message");
+                    if (messageResult != null && messageResult.containsKey("content")) {
+                        return (String) messageResult.get("content");
+                    }
+                }
+            }
+    
+            return "// Error: No response content from Groq";
+        } catch (Exception e) {
+            e.printStackTrace();  // ✅ Log the real issue in logs
+            return "// Error: Exception occurred while calling Groq - " + e.getMessage();
+        }
     }
+    
 }
