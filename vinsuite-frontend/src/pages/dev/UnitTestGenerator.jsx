@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import API from "../../apiConfig";
 
 export default function UnitTestGenerator() {
   const navigate = useNavigate();
@@ -16,15 +17,38 @@ export default function UnitTestGenerator() {
   const handleGenerate = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/dev/unit-test", {
+      const res = await fetch(API.UNIT_TEST_GENERATOR, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, language }),
       });
+
+      const contentType = res.headers.get("content-type") || "";
+
+      if (!res.ok) {
+        if (contentType.includes("application/json")) {
+          const errorData = await res.json();
+          alert(errorData.message || "Failed to generate unit test.");
+        } else {
+          const text = await res.text();
+          console.error("Non-JSON response from server:\n", text);
+          alert("Server returned an unexpected response. Check console for details.");
+        }
+        setGeneratedTest("");
+        return;
+      }
+
       const data = await res.json();
-      setGeneratedTest(data.testCode);
+
+      if (data.error) {
+        alert(data.message || "Failed to generate unit test.");
+        setGeneratedTest("");
+      } else {
+        setGeneratedTest(data.testCode);
+      }
     } catch (err) {
-      alert("Error generating test case.");
+      alert("Unexpected error: " + err.message);
+      setGeneratedTest("");
     } finally {
       setLoading(false);
     }
@@ -45,7 +69,7 @@ export default function UnitTestGenerator() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      {/* Header Bar with right-aligned buttons */}
+      {/* Header Bar */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-blue-700 flex items-center gap-2">
           🧪 Unit Test Generator

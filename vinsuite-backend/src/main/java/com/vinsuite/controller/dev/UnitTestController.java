@@ -20,6 +20,13 @@ public class UnitTestController {
     public ResponseEntity<UnitTestResponse> generateUnitTest(@RequestBody UnitTestRequest request) {
         String prompt = buildPrompt(request.getCode(), request.getLanguage());
         String testCode = aiService.generateTestCode(prompt);
+    
+        if (testCode == null || testCode.startsWith("// Error")) {
+            return ResponseEntity
+                    .status(500)
+                    .body(new UnitTestResponse(true, "Failed to generate test code from AI."));
+        }
+    
         return ResponseEntity.ok(new UnitTestResponse(testCode));
     }
 
@@ -30,4 +37,5 @@ public class UnitTestController {
             return "Generate unit test cases in Pytest for the following Python function:\n\n" + code;
         }
     }
+    
 }
