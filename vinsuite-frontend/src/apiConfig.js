@@ -11,7 +11,8 @@ const API = {
   SCHEMA: `${BASE_URL}/schema`,
   ACCESSIBILITY: `${BASE_URL}/accessibility`,
   FRAMEWORK: `${BASE_URL}/qa/framework`,
-  OCR_TEST_CASES: `${BASE_URL}/vision/generate-ocr-testcases`
+  OCR_TEST_CASES: `${BASE_URL}/vision/generate-ocr-testcases`,
+  UNIT_TEST_GENERATOR: `${BASE_URL}/dev/unit-test` 
 };
 
 export default API;
