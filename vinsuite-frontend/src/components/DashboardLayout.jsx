@@ -1,17 +1,28 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useApp } from "../contexts/AppContext"; // Import useApp hook
 
 const DashboardLayout = ({ title, children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const userRole = localStorage.getItem("userRole");
-  const userDepartment = localStorage.getItem("userDepartment");
+  const { userRole, userDepartment, setUserRole, setUserDepartment } = useApp(); // Use context
+
   const isAdmin = userRole === "admin" || !!localStorage.getItem("adminActingAs");
+
+  // Sync context state with localStorage on initial load
+  useEffect(() => {
+    if (!userRole) {
+      setUserRole(localStorage.getItem("userRole"));
+    }
+    if (!userDepartment) {
+      setUserDepartment(localStorage.getItem("userDepartment"));
+    }
+  }, [userRole, userDepartment, setUserRole, setUserDepartment]);
 
   if (!userRole) return null;
 
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.clear(); // Keep clearing localStorage for logout
     navigate("/login");
   };
 
@@ -37,9 +48,7 @@ const DashboardLayout = ({ title, children }) => {
             <li key={item.path}>
               <Link
                 to={item.path}
-                className={`block px-3 py-2 rounded hover:bg-blue-100 ${
-                  location.pathname === item.path ? "bg-blue-200 font-semibold" : ""
-                }`}
+                className={`block px-3 py-2 rounded hover:bg-blue-100 ${location.pathname === item.path ? "bg-blue-200 font-semibold" : ""}`}
               >
                 {item.title}
               </Link>

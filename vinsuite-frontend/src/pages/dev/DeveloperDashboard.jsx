@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useApp } from "../../contexts/AppContext"; // Import useApp hook
 
 const tools = [
   { name: "JSON Formatter", route: "/developer/json-formatter" },
@@ -19,12 +20,13 @@ const tools = [
 
 const DeveloperDashboard = () => {
   const navigate = useNavigate();
-  const userRole = localStorage.getItem("userRole");
+  const { userRole, setUserRole } = useApp(); // Access userRole from context
+
   const isAdmin = userRole === "admin" || !!localStorage.getItem("adminActingAs");
 
   const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
+    setUserRole(''); // Clear role in context
+    navigate("/login"); // Redirect to login
   };
 
   if (!userRole) return null;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useApp } from "../../contexts/AppContext"; // Import useApp hook
 import API from '../../apiConfig';
 
 const LoginPage = () => {
@@ -8,6 +9,8 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const { setUserRole, setUserId, setUserDepartment } = useApp(); // Access context setters
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,10 +31,17 @@ const LoginPage = () => {
 
       const user = res.data;
 
-      localStorage.setItem("userId", user.id || 'admin');
-      localStorage.setItem("userName", user.name || 'User');
-      localStorage.setItem("userRole", user.role || 'admin');
+      // Set user data in context and localStorage
+      setUserRole(user.role || 'admin'); // Set role from API response
+      setUserId(user.id || 'admin');  // Set userId from API response
+      setUserDepartment(user.department || 'IT'); // Set department from API response
 
+      // Save to localStorage
+      localStorage.setItem("userRole", user.role || 'admin');
+      localStorage.setItem("userId", user.id || 'admin');
+      localStorage.setItem("userDepartment", user.department || 'IT');
+
+      // Redirect based on user role
       if (user.role === 'admin') {
         const dept = user.department || 'IT'; // fallback default
         localStorage.setItem("userDepartment", dept);

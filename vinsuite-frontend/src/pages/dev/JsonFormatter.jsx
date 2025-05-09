@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useApp } from "../../contexts/AppContext"; // Import useApp hook
 
 export default function JsonFormatter() {
   const navigate = useNavigate();
+  const { setUserRole, setUserDepartment } = useApp(); // Use context for userRole and userDepartment
   const [rawJson, setRawJson] = useState("");
   const [formattedJson, setFormattedJson] = useState("");
 
   const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
+    setUserRole(''); // Clear role in context
+    setUserDepartment(''); // Clear department in context
+    navigate("/login"); // Redirect to login
   };
 
   const handleFormat = () => {

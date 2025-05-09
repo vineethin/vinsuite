@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LogoutButton from '../../components/LogoutButton';
+import { useApp } from "../../contexts/AppContext"; // Import useApp hook
 import API from '../../apiConfig';
 
 function ProjectPage() {
   const [projects, setProjects] = useState([]);
-  const [selectedId, setSelectedId] = useState(localStorage.getItem("activeProjectId") || "");
   const [newName, setNewName] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
-  const userId = localStorage.getItem("userId");
+
+  const { userId, activeProjectId, setActiveProjectId } = useApp(); // Use context for userId and activeProjectId
 
   useEffect(() => {
     fetch(`${API.PROJECTS}`)
@@ -18,6 +19,13 @@ function ProjectPage() {
       .then(data => setProjects(data))
       .catch(err => console.error("Error fetching projects:", err));
   }, []);
+
+  useEffect(() => {
+    // Sync activeProjectId from context to localStorage
+    if (activeProjectId) {
+      localStorage.setItem("activeProjectId", activeProjectId);
+    }
+  }, [activeProjectId]);
 
   const handleCreateProject = async (e) => {
     e.preventDefault();
@@ -32,8 +40,7 @@ function ProjectPage() {
 
     if (res.ok) {
       const created = await res.json();
-      setSelectedId(String(created.id));
-      localStorage.setItem("activeProjectId", String(created.id));
+      setActiveProjectId(String(created.id)); // Set selected project via context
       setProjects([...projects, created]);
       setMessage("✅ Project created and selected.");
       setNewName('');
@@ -45,19 +52,18 @@ function ProjectPage() {
 
   const handleSelect = (e) => {
     const id = e.target.value;
-    setSelectedId(id);
-    localStorage.setItem("activeProjectId", String(id));
+    setActiveProjectId(id); // Set selected project via context
     setMessage("✅ Project selected.");
   };
 
   const handleContinue = () => {
-    if (!selectedId) {
+    if (!activeProjectId) {
       alert("Please select or create a project first.");
       return;
     }
-  
+
     const role = localStorage.getItem("userRole");
-  
+
     let dashboardRoute = "/qa"; // default for QA
     if (role === "developer") dashboardRoute = "/dev";
     else if (role === "manager") dashboardRoute = "/manager";
@@ -66,10 +72,9 @@ function ProjectPage() {
     else if (role === "saleslead") dashboardRoute = "/sales";
     else if (role === "support") dashboardRoute = "/support";
     else if (role === "finance") dashboardRoute = "/finance";
-  
+
     navigate(dashboardRoute);
   };
-  
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -83,7 +88,7 @@ function ProjectPage() {
           <label className="block text-gray-700 font-medium mb-2">Select existing project:</label>
           <select
             className="w-full border rounded px-3 py-2 shadow-sm"
-            value={selectedId}
+            value={activeProjectId}
             onChange={handleSelect}
           >
             <option value="">-- Select Project --</option>
@@ -127,9 +132,9 @@ function ProjectPage() {
         <div className="mt-6 flex justify-end">
           <button
             onClick={handleContinue}
-            disabled={!selectedId}
+            disabled={!activeProjectId}
             className={`px-6 py-2 rounded text-white font-semibold ${
-              !selectedId ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+              !activeProjectId ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
             }`}
           >
             Continue to Dashboard →

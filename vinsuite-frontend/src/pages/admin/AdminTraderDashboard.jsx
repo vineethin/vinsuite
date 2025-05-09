@@ -1,14 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useApp } from "../../contexts/AppContext"; // Import useApp hook
 import AdminDeptSwitcher from '../../components/admin/AdminDeptSwitcher';
 
 const AdminTraderDashboard = () => {
   const navigate = useNavigate();
+  const { setUserRole, setUserDepartment } = useApp(); // Use context for userRole and userDepartment
 
   const handleLogout = () => {
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userDepartment');
-    navigate('/');
+    setUserRole(''); // Clear role in context
+    setUserDepartment(''); // Clear department in context
+    navigate('/'); // Redirect to login
   };
 
   return (

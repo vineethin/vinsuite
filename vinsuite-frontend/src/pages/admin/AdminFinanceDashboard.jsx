@@ -1,14 +1,17 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useApp } from "../../contexts/AppContext"; // Import useApp hook
 import AdminDeptSwitcher from "../../components/admin/AdminDeptSwitcher";
 
 const AdminFinanceDashboard = () => {
   const navigate = useNavigate();
 
+  const { setUserRole, setUserDepartment } = useApp(); // Access context setters
+
   const handleLogout = () => {
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("userDepartment");
-    navigate("/");
+    setUserRole(""); // Clear role in context
+    setUserDepartment(""); // Clear department in context
+    navigate("/"); // Redirect to login
   };
 
   return (
