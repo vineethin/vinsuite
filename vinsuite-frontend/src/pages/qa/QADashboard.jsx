@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useApp } from "../../contexts/AppContext"; // Import useApp hook
 
 const tools = [
   { name: "Test Case Generator", route: "/test-generator" },
@@ -10,11 +11,12 @@ const tools = [
 
 const QADashboard = () => {
   const navigate = useNavigate();
-  const userRole = localStorage.getItem("userRole");
+  const { userRole, setUserRole } = useApp(); // Use context for userRole
+
   const isAdmin = userRole === "admin" || !!localStorage.getItem("adminActingAs");
 
   const handleLogout = () => {
-    localStorage.clear();
+    setUserRole(''); // Clear role in context
     navigate("/login");
   };
 

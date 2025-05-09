@@ -1,5 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+
+// Importing the AppContext hook
+import { useApp } from "./contexts/AppContext";
 
 // Core
 import HomePage from './pages/core/HomePage';
@@ -9,51 +12,39 @@ import ProjectPage from "./pages/core/ProjectPage";
 import TestCaseGenerator from "./pages/qa/TestCaseGenerator";
 import ResultsPage from "./pages/core/ResultsPage";
 
-// QA
-import QADashboard from "./pages/qa/QADashboard";
-import AccessibilityScanner from "./pages/qa/AccessibilityScanner";
-import FrameworkGenerator from "./pages/qa/FrameworkGenerator";
-import AIResponseValidator from "./pages/qa/AIResponseValidator";
-import TestCoverageEstimator from "./pages/qa/TestCoverageEstimator";
-import AutomatedTestGenerator from "./pages/qa/AutomatedTestGenerator";
-import PageObjectGenerator from "./pages/qa/PageObjectGenerator";
+// Import all other pages
+import AccessibilityScanner from './pages/qa/AccessibilityScanner';
+import PageObjectGenerator from './pages/qa/PageObjectGenerator';
+import FrameworkGenerator from './pages/qa/FrameworkGenerator';
+import AIResponseValidator from './pages/qa/AIResponseValidator';
+import TestCoverageEstimator from './pages/qa/TestCoverageEstimator';
 import ElementIdentifier from './components/tools/ElementIdentifier';
-
-// Dev
-import DeveloperDashboard from "./pages/dev/DeveloperDashboard";
+import AutomatedTestGenerator from './pages/qa/AutomatedTestGenerator';
 import JsonFormatter from './pages/dev/JsonFormatter';
-import UnitTestGenerator from './pages/dev/UnitTestGenerator'; // ✅ Already added
-import AIReviewer from './pages/dev/AIReviewer'; // ✅ NEWLY added
-
-// Manager, BA, DBA
-import ManagerDashboard from "./pages/manager/ManagerDashboard";
-import BADashboard from "./pages/ba/BADashboard";
-import DBADashboard from "./pages/dba/DBADashboard";
-
-// Admin
-import AdminHome from "./pages/admin/AdminHome";
-import ComingSoon from './pages/admin/ComingSoon';
+import UnitTestGenerator from './pages/dev/UnitTestGenerator';
+import AIReviewer from './pages/dev/AIReviewer';
 import AdminITDashboard from './pages/admin/AdminITDashboard';
 import AdminFinanceDashboard from './pages/admin/AdminFinanceDashboard';
 import AdminTraderDashboard from './pages/admin/AdminTraderDashboard';
 import AdminSupportDashboard from './pages/admin/AdminSupportDashboard';
 import AdminSalesDashboard from './pages/admin/AdminSalesDashboard';
-
-// Sales & Support
-import SalesDashboard from "./pages/sales/SalesDashboard";
-import SupportDashboard from "./pages/support/SupportDashboard";
-
-// Finance
-import FinanceDashboard from "./pages/finance/FinanceDashboard";
-
-// Other Tools
+import AdminHome from './pages/admin/AdminHome';
+import ComingSoon from './pages/admin/ComingSoon';
+import QADashboard from './pages/qa/QADashboard';
+import DeveloperDashboard from './pages/dev/DeveloperDashboard';
+import ManagerDashboard from './pages/manager/ManagerDashboard';
+import BADashboard from './pages/ba/BADashboard';
+import DBADashboard from './pages/dba/DBADashboard';
+import SalesDashboard from './pages/sales/SalesDashboard';
+import SupportDashboard from './pages/support/SupportDashboard';
+import FinanceDashboard from './pages/finance/FinanceDashboard';
 import DefectPredictor from './components/tools/DefectPredictor';
-
-// Role & Department Router
-import MainRouter from "./routes/MainRouter";
+import MainRouter from './routes/MainRouter';
 
 function App() {
-  const isLoggedIn = !!localStorage.getItem("userId");
+  const { userId, userRole, userDepartment } = useApp(); // Use context for user data
+
+  const isLoggedIn = !!userId; // Check login status from context state
 
   return (
     <Router>

@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useApp } from "../../contexts/AppContext"; // Import useApp hook
 import DashboardLayout from "../../components/DashboardLayout";
 
 const tools = [
@@ -15,6 +16,7 @@ const tools = [
 
 const SalesDashboard = () => {
   const navigate = useNavigate();
+  const { userRole, userDepartment } = useApp(); // Use context for userRole and userDepartment
 
   return (
     <DashboardLayout title="📊 Sales Lead Dashboard">
@@ -38,6 +40,13 @@ const SalesDashboard = () => {
           </div>
         ))}
       </div>
+
+      {/* Role/Department-based Rendering */}
+      {userRole === "sales" && userDepartment === "Sales" && (
+        <div className="mt-6 text-center text-gray-600">
+          <p>Welcome, {userRole} in the {userDepartment} department!</p>
+        </div>
+      )}
     </DashboardLayout>
   );
 };
