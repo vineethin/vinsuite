@@ -2,12 +2,16 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import { AppProvider } from './contexts/AppContext';  // Import AppProvider
 import reportWebVitals from './reportWebVitals';
 
+// Wrap App with AppProvider to make context available throughout the app
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <AppProvider>  {/* Wrap App with AppProvider */}
+      <App />
+    </AppProvider>
   </React.StrictMode>
 );
 

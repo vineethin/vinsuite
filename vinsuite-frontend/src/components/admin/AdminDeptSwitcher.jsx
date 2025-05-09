@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useApp } from "../../contexts/AppContext"; // Import useApp hook
 
 const AdminDeptSwitcher = () => {
   const navigate = useNavigate();
-  const currentDept = localStorage.getItem("userDepartment") || "";
+  const { userDepartment, setUserDepartment } = useApp(); // Use context for userDepartment
   const [isChanging, setIsChanging] = useState(false);
-  const [selectedDept, setSelectedDept] = useState(currentDept);
+  const [selectedDept, setSelectedDept] = useState(userDepartment || "");
 
   const handleChangeClick = () => setIsChanging(true);
   const handleSelectChange = (e) => setSelectedDept(e.target.value);
@@ -16,13 +17,14 @@ const AdminDeptSwitcher = () => {
       return;
     }
 
-    localStorage.setItem("userDepartment", selectedDept);
+    setUserDepartment(selectedDept); // Update department in context
+    localStorage.setItem("userDepartment", selectedDept); // Persist department to localStorage
 
     const targetPath = `/admin/${selectedDept.toLowerCase()}`;
 
-    // If already on same path, force reload manually
+    // If already on the same path, force reload
     if (window.location.pathname === targetPath) {
-      window.location.reload(); // this will re-trigger useEffect or re-fetch logic if you have any
+      window.location.reload();
     } else {
       navigate(targetPath);
     }

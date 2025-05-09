@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useApp } from '../contexts/AppContext'; // Import useApp hook
 
 // Dashboards
 import QADashboard from '../pages/qa/QADashboard';
@@ -23,37 +24,42 @@ import AdminHome from '../pages/admin/AdminHome';
 import UnitTestGenerator from '../pages/dev/UnitTestGenerator'; // ✅ Import tool page
 
 const MainRouter = () => {
-  const role = localStorage.getItem('userRole');
-  const department = localStorage.getItem('userDepartment');
+  const { userRole, userDepartment } = useApp(); // Use context for role and department
 
-  if (!role) return <Navigate to="/login" />;
+  useEffect(() => {
+    if (!userRole) {
+      <Navigate to="/login" />;
+    }
+  }, [userRole]);
+
+  if (!userRole) return <Navigate to="/login" />;
 
   return (
     <Routes>
       {/* Role-based dashboards */}
-      {(role === 'qa' || role === 'tester') && <Route path="/" element={<QADashboard />} />}
-      {(role === 'developer' || role === 'dev') && (
+      {(userRole === 'qa' || userRole === 'tester') && <Route path="/" element={<QADashboard />} />}
+      {(userRole === 'developer' || userRole === 'dev') && (
         <>
           <Route path="/" element={<DeveloperDashboard />} />
           <Route path="/dev/unit-test-generator" element={<UnitTestGenerator />} />
         </>
       )}
-      {role === 'manager' && <Route path="/" element={<ManagerDashboard />} />}
-      {role === 'ba' && <Route path="/" element={<BADashboard />} />}
-      {role === 'dba' && <Route path="/" element={<DBADashboard />} />}
-      {(role === 'saleslead' || role === 'sales') && <Route path="/" element={<SalesDashboard />} />}
-      {role === 'support' && <Route path="/" element={<SupportDashboard />} />}
-      {role === 'finance' && <Route path="/" element={<FinanceDashboard />} />}
+      {userRole === 'manager' && <Route path="/" element={<ManagerDashboard />} />}
+      {userRole === 'ba' && <Route path="/" element={<BADashboard />} />}
+      {userRole === 'dba' && <Route path="/" element={<DBADashboard />} />}
+      {(userRole === 'saleslead' || userRole === 'sales') && <Route path="/" element={<SalesDashboard />} />}
+      {userRole === 'support' && <Route path="/" element={<SupportDashboard />} />}
+      {userRole === 'finance' && <Route path="/" element={<FinanceDashboard />} />}
 
       {/* Admin department-based routing */}
-      {role === 'admin' && (
+      {userRole === 'admin' && (
         <>
-          {department === 'IT' && <Route path="/" element={<AdminITDashboard />} />}
-          {department === 'Finance' && <Route path="/" element={<AdminFinanceDashboard />} />}
-          {department === 'Trader' && <Route path="/" element={<AdminTraderDashboard />} />}
-          {department === 'Support' && <Route path="/" element={<AdminSupportDashboard />} />}
-          {department === 'Sales' && <Route path="/" element={<AdminSalesDashboard />} />}
-          {!department && <Route path="/" element={<AdminHome />} />}
+          {userDepartment === 'IT' && <Route path="/" element={<AdminITDashboard />} />}
+          {userDepartment === 'Finance' && <Route path="/" element={<AdminFinanceDashboard />} />}
+          {userDepartment === 'Trader' && <Route path="/" element={<AdminTraderDashboard />} />}
+          {userDepartment === 'Support' && <Route path="/" element={<AdminSupportDashboard />} />}
+          {userDepartment === 'Sales' && <Route path="/" element={<AdminSalesDashboard />} />}
+          {!userDepartment && <Route path="/" element={<AdminHome />} />}
         </>
       )}
 
