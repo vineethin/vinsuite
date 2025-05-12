@@ -46,12 +46,13 @@ const HomePage = () => {
         transition={{ duration: 0.6 }}
         variants={fadeInUp}
         className="relative w-full bg-cover bg-center h-auto md:h-screen"
-        style={{ backgroundImage: 'url(/vinsuite_homepage.png)' }} // Updated path to your image
+        style={{ backgroundImage: 'url(/assets/vinsuite_homepage_optimized.webp)' }}
       >
         <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="relative z-10 text-center text-white py-32 px-4 md:px-16">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">Innovative IT Solutions for Your Business</h2>
-          <p className="mb-6">Empowering your business with cutting-edge IT services and AI-powered productivity tools.</p>
+          <h1 className="text-3xl md:text-5xl font-bold mb-6">VinSuite – Making Technology Work for You</h1>
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">Smart, Simple Digital Tools for Everyone</h2>
+          <p className="mb-6 text-lg">From daily productivity to team collaboration, VinSuite brings AI-powered simplicity to your fingertips.</p>
           <button
             onClick={() => navigate('/register')}
             className="bg-red-400 text-white px-6 py-3 rounded shadow-lg hover:bg-red-500 transition"
@@ -73,14 +74,16 @@ const HomePage = () => {
       >
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10">
           <img
-            src="https://images.unsplash.com/photo-1580587776320-88a442b0de4d"
+            src="/assets/mission.jpg"
             alt="mission"
             className="rounded-md shadow-lg md:w-1/2 hover:scale-105 transition-transform"
           />
           <div className="md:w-1/2">
             <h3 className="text-3xl font-bold mb-4">Our Mission</h3>
-            <p>
-              At VinSuite 360, our mission is to deliver innovative IT solutions that empower teams to thrive in the digital age. We focus on providing AI-powered, high-quality services that meet the evolving needs of developers, testers, DBAs, and project leaders.
+            <p className="text-lg leading-relaxed">
+              At VinSuite 360, we believe smart tools should work for everyone — not just tech experts. 
+              Our mission is to bring AI-powered simplicity to your everyday digital tasks, helping individuals 
+              and teams save time, stay organized, and get more done with less effort.
             </p>
           </div>
         </div>
