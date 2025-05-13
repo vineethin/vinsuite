@@ -6,6 +6,7 @@ public class PerformanceRequest {
     private int users;
     private int rampUp;
     private int duration;
+    private String url; // ✅ Add this
 
     // Getters and Setters
     public String getTestCase() { return testCase; }
@@ -22,4 +23,7 @@ public class PerformanceRequest {
 
     public int getDuration() { return duration; }
     public void setDuration(int duration) { this.duration = duration; }
+
+    public String getUrl() { return url; } // ✅ Add getter
+    public void setUrl(String url) { this.url = url; } // ✅ Add setter
 }
