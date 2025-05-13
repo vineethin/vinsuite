@@ -1,7 +1,5 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-
-// Importing the AppContext hook
 import { useApp } from "./contexts/AppContext";
 
 // Core Pages
@@ -9,17 +7,19 @@ import HomePage from './pages/core/HomePage';
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import ProjectPage from "./pages/core/ProjectPage";
-import TestCaseGenerator from "./pages/qa/TestCaseGenerator";
 import ResultsPage from "./pages/core/ResultsPage";
 
-// Import all other pages
+// QA Tools
+import TestCaseGenerator from "./pages/qa/TestCaseGenerator";
 import AccessibilityScanner from './pages/qa/AccessibilityScanner';
 import PageObjectGenerator from './pages/qa/PageObjectGenerator';
 import FrameworkGenerator from './pages/qa/FrameworkGenerator';
 import AIResponseValidator from './pages/qa/AIResponseValidator';
 import TestCoverageEstimator from './pages/qa/TestCoverageEstimator';
-import ElementIdentifier from './components/tools/ElementIdentifier';
 import AutomatedTestGenerator from './pages/qa/AutomatedTestGenerator';
+import PerformanceScriptGenerator from './pages/qa/PerformanceScriptGenerator';
+
+// Dev Tools
 import JsonFormatter from './pages/dev/JsonFormatter';
 import UnitTestGenerator from './pages/dev/UnitTestGenerator';
 import AIReviewer from './pages/dev/AIReviewer';
@@ -44,75 +44,80 @@ import SupportDashboard from './pages/support/SupportDashboard';
 import FinanceDashboard from './pages/finance/FinanceDashboard';
 
 // Other Tools
+import ElementIdentifier from './components/tools/ElementIdentifier';
 import DefectPredictor from './components/tools/DefectPredictor';
 
-// MainRouter for role-based smart routing
+// Smart Role-Based Router
 import MainRouter from './routes/MainRouter';
 
-// 404 Page Component
-import NotFoundPage from './pages/NotFoundPage'; // Custom 404 page component
+// Not Found Page
+import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
-  const { userId, userRole, userDepartment } = useApp(); // Use context for user data
+  const { isLoggedIn } = useApp();
 
-  const isLoggedIn = !!userId; // Check login status from context state
+  // ✅ Protect routes with PrivateRoute
+  const PrivateRoute = ({ children }) => {
+    return isLoggedIn ? children : <Navigate to="/login" />;
+  };
 
   return (
     <Router>
       <Routes>
-        {/* Home Page */}
+        {/* Home or Redirect to Dashboard */}
         <Route path="/" element={isLoggedIn ? <Navigate to="/dashboard" /> : <HomePage />} />
 
         {/* Auth Routes */}
-        <Route path="/login" element={isLoggedIn ? <Navigate to="/dashboard" /> : <LoginPage />} />
-        <Route path="/register" element={isLoggedIn ? <Navigate to="/dashboard" /> : <RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={!isLoggedIn ? <RegisterPage /> : <Navigate to="/dashboard" />} />
 
-        {/* Core Routes */}
-        <Route path="/project" element={<ProjectPage />} />
-        <Route path="/results" element={<ResultsPage />} />
+        {/* Protected Core Pages */}
+        <Route path="/project" element={<PrivateRoute><ProjectPage /></PrivateRoute>} />
+        <Route path="/results" element={<PrivateRoute><ResultsPage /></PrivateRoute>} />
 
         {/* QA Tools */}
-        <Route path="/test-generator" element={<TestCaseGenerator />} />
-        <Route path="/generate" element={<TestCaseGenerator />} /> {/* Consolidated */}
-        <Route path="/accessibility" element={<AccessibilityScanner />} />
-        <Route path="/page-object" element={<PageObjectGenerator />} />
-        <Route path="/qa/framework-generator" element={<FrameworkGenerator />} />
-        <Route path="/qa/ai-response-validator" element={<AIResponseValidator />} />
-        <Route path="/qa/test-coverage-estimator" element={<TestCoverageEstimator />} />
-        <Route path="/xpath-image" element={<ElementIdentifier />} />
-        <Route path="/qa/automated-test-generator" element={<AutomatedTestGenerator />} />
+        <Route path="/test-generator" element={<PrivateRoute><TestCaseGenerator /></PrivateRoute>} />
+        <Route path="/generate" element={<PrivateRoute><TestCaseGenerator /></PrivateRoute>} />
+        <Route path="/accessibility" element={<PrivateRoute><AccessibilityScanner /></PrivateRoute>} />
+        <Route path="/page-object" element={<PrivateRoute><PageObjectGenerator /></PrivateRoute>} />
+        <Route path="/qa/framework-generator" element={<PrivateRoute><FrameworkGenerator /></PrivateRoute>} />
+        <Route path="/qa/ai-response-validator" element={<PrivateRoute><AIResponseValidator /></PrivateRoute>} />
+        <Route path="/qa/test-coverage-estimator" element={<PrivateRoute><TestCoverageEstimator /></PrivateRoute>} />
+        <Route path="/qa/automated-test-generator" element={<PrivateRoute><AutomatedTestGenerator /></PrivateRoute>} />
+        <Route path="/qa/performance-generator" element={<PrivateRoute><PerformanceScriptGenerator /></PrivateRoute>} />
 
-        {/* Dev Tools */}
-        <Route path="/developer/json-formatter" element={<JsonFormatter />} />
-        <Route path="/dev/unit-test-generator" element={<UnitTestGenerator />} />
-        <Route path="/dev/ai-reviewer" element={<AIReviewer />} />
+        {/* Developer Tools */}
+        <Route path="/developer/json-formatter" element={<PrivateRoute><JsonFormatter /></PrivateRoute>} />
+        <Route path="/dev/unit-test-generator" element={<PrivateRoute><UnitTestGenerator /></PrivateRoute>} />
+        <Route path="/dev/ai-reviewer" element={<PrivateRoute><AIReviewer /></PrivateRoute>} />
 
-        {/* Admin Department Dashboards */}
-        <Route path="/admin/it" element={<AdminITDashboard />} />
-        <Route path="/admin/finance" element={<AdminFinanceDashboard />} />
-        <Route path="/admin/trader" element={<AdminTraderDashboard />} />
-        <Route path="/admin/support" element={<AdminSupportDashboard />} />
-        <Route path="/admin/sales" element={<AdminSalesDashboard />} />
-        <Route path="/admin" element={<AdminHome />} />
-        <Route path="/coming-soon/:role" element={<ComingSoon />} />
+        {/* Admin Dashboards */}
+        <Route path="/admin/it" element={<PrivateRoute><AdminITDashboard /></PrivateRoute>} />
+        <Route path="/admin/finance" element={<PrivateRoute><AdminFinanceDashboard /></PrivateRoute>} />
+        <Route path="/admin/trader" element={<PrivateRoute><AdminTraderDashboard /></PrivateRoute>} />
+        <Route path="/admin/support" element={<PrivateRoute><AdminSupportDashboard /></PrivateRoute>} />
+        <Route path="/admin/sales" element={<PrivateRoute><AdminSalesDashboard /></PrivateRoute>} />
+        <Route path="/admin" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
+        <Route path="/coming-soon/:role" element={<PrivateRoute><ComingSoon /></PrivateRoute>} />
 
-        {/* Dashboards */}
-        <Route path="/qa" element={<QADashboard />} />
-        <Route path="/dev" element={<DeveloperDashboard />} />
-        <Route path="/manager" element={<ManagerDashboard />} />
-        <Route path="/ba" element={<BADashboard />} />
-        <Route path="/dba" element={<DBADashboard />} />
-        <Route path="/sales" element={<SalesDashboard />} />
-        <Route path="/support" element={<SupportDashboard />} />
-        <Route path="/finance" element={<FinanceDashboard />} />
+        {/* Department Dashboards */}
+        <Route path="/qa" element={<PrivateRoute><QADashboard /></PrivateRoute>} />
+        <Route path="/dev" element={<PrivateRoute><DeveloperDashboard /></PrivateRoute>} />
+        <Route path="/manager" element={<PrivateRoute><ManagerDashboard /></PrivateRoute>} />
+        <Route path="/ba" element={<PrivateRoute><BADashboard /></PrivateRoute>} />
+        <Route path="/dba" element={<PrivateRoute><DBADashboard /></PrivateRoute>} />
+        <Route path="/sales" element={<PrivateRoute><SalesDashboard /></PrivateRoute>} />
+        <Route path="/support" element={<PrivateRoute><SupportDashboard /></PrivateRoute>} />
+        <Route path="/finance" element={<PrivateRoute><FinanceDashboard /></PrivateRoute>} />
 
         {/* Other Tools */}
-        <Route path="/predict-defect" element={<DefectPredictor />} />
+        <Route path="/xpath-image" element={<PrivateRoute><ElementIdentifier /></PrivateRoute>} />
+        <Route path="/predict-defect" element={<PrivateRoute><DefectPredictor /></PrivateRoute>} />
 
-        {/* Role-Based Smart Routing */}
-        <Route path="/dashboard" element={<MainRouter />} />
+        {/* Smart Role-Based Routing */}
+        <Route path="/dashboard/*" element={<PrivateRoute><MainRouter /></PrivateRoute>} />
 
-        {/* Catch-all Route for 404 */}
+        {/* 404 Page */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
