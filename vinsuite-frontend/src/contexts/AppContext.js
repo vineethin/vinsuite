@@ -2,37 +2,56 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-// Create a context
+// Create context
 const AppContext = createContext();
 
-// Create a provider to wrap your app
 export const AppProvider = ({ children }) => {
   const [userId, setUserId] = useState(localStorage.getItem("userId") || "");
   const [userName, setUserName] = useState(localStorage.getItem("userName") || "");
   const [userRole, setUserRole] = useState(localStorage.getItem("userRole") || "");
   const [userDepartment, setUserDepartment] = useState(localStorage.getItem("userDepartment") || "");
   const [activeProjectId, setActiveProjectId] = useState(localStorage.getItem("activeProjectId") || "");
+  const [adminActingAs, setAdminActingAs] = useState(localStorage.getItem("adminActingAs") || "");
 
-  // Sync context state to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("userId", userId);
-    localStorage.setItem("userName", userName);
-    localStorage.setItem("userRole", userRole);
-    localStorage.setItem("userDepartment", userDepartment);
-    localStorage.setItem("activeProjectId", activeProjectId);
-  }, [userId, userName, userRole, userDepartment, activeProjectId]);
+  // ✅ Derived login state
+  const isLoggedIn = !!userId;
 
-  // Logout function to clear state and localStorage
+  // ✅ Helper to safely set only non-empty values
+  const setItemIfNotEmpty = (key, value) => {
+    if (value !== "") {
+      localStorage.setItem(key, value);
+    } else {
+      localStorage.removeItem(key);
+    }
+  };
+
+  // ✅ Safe syncing to avoid infinite loops
+  useEffect(() => setItemIfNotEmpty("userId", userId), [userId]);
+  useEffect(() => setItemIfNotEmpty("userName", userName), [userName]);
+  useEffect(() => setItemIfNotEmpty("userRole", userRole), [userRole]);
+  useEffect(() => setItemIfNotEmpty("userDepartment", userDepartment), [userDepartment]);
+  useEffect(() => setItemIfNotEmpty("activeProjectId", activeProjectId), [activeProjectId]);
+  useEffect(() => setItemIfNotEmpty("adminActingAs", adminActingAs), [adminActingAs]);
+
+  // Logout clears both context and storage
   const logout = () => {
-    localStorage.clear();
+    [
+      "userId",
+      "userName",
+      "userRole",
+      "userDepartment",
+      "activeProjectId",
+      "adminActingAs"
+    ].forEach((key) => localStorage.removeItem(key));
+
     setUserId("");
     setUserName("");
     setUserRole("");
     setUserDepartment("");
     setActiveProjectId("");
+    setAdminActingAs("");
   };
 
-  // Provide state and functions to children components
   return (
     <AppContext.Provider
       value={{
@@ -41,7 +60,9 @@ export const AppProvider = ({ children }) => {
         userRole, setUserRole,
         userDepartment, setUserDepartment,
         activeProjectId, setActiveProjectId,
-        logout
+        adminActingAs, setAdminActingAs,
+        logout,
+        isLoggedIn
       }}
     >
       {children}
@@ -49,5 +70,5 @@ export const AppProvider = ({ children }) => {
   );
 };
 
-// Custom hook to access AppContext
+// Hook
 export const useApp = () => useContext(AppContext);

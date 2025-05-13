@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useApp } from "../../contexts/AppContext"; // Import useApp hook
+import { useApp } from "../../contexts/AppContext";
 import API from '../../apiConfig';
 
 const LoginPage = () => {
@@ -10,7 +10,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const { setUserRole, setUserId, setUserDepartment } = useApp(); // Access context setters
+  const { setUserRole, setUserId, setUserDepartment } = useApp();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -29,35 +29,31 @@ const LoginPage = () => {
 
       clearTimeout(timeout);
 
-      const user = res.data;
+      const user = res.data || {};
+      const role = user.role || 'admin';
+      const id = user.id || 'admin';
+      const dept = user.department || 'IT';
 
-      // Set user data in context and localStorage
-      setUserRole(user.role || 'admin'); // Set role from API response
-      setUserId(user.id || 'admin');  // Set userId from API response
-      setUserDepartment(user.department || 'IT'); // Set department from API response
+      // ✅ Update context (AppContext handles syncing to localStorage)
+      setUserRole(role);
+      setUserId(id);
+      setUserDepartment(dept);
 
-      // Save to localStorage
-      localStorage.setItem("userRole", user.role || 'admin');
-      localStorage.setItem("userId", user.id || 'admin');
-      localStorage.setItem("userDepartment", user.department || 'IT');
-
-      // Redirect based on user role
-      if (user.role === 'admin') {
-        const dept = user.department || 'IT'; // fallback default
-        localStorage.setItem("userDepartment", dept);
+      // ✅ Redirect based on role
+      if (role === 'admin') {
         navigate(`/admin/${dept.toLowerCase()}`);
       } else {
-        // 🔁 Role-based redirect
-        switch (user.role) {
+        switch (role) {
           case 'developer': navigate('/dev'); break;
           case 'qa': navigate('/qa'); break;
           case 'manager': navigate('/manager'); break;
           case 'ba': navigate('/ba'); break;
           case 'dba': navigate('/dba'); break;
-          case 'saleslead': navigate('/sales'); break;
+          case 'saleslead':
+          case 'sales': navigate('/sales'); break;
           case 'support': navigate('/support'); break;
           case 'finance': navigate('/finance'); break;
-          default: navigate('/project');
+          default: navigate('/project'); break;
         }
       }
 
@@ -66,16 +62,10 @@ const LoginPage = () => {
 
       if (axios.isCancel(err)) {
         alert('❌ Server is taking too long to respond. Please try again shortly.');
-      } else if (err.response) {
-        if (err.response.status === 401) {
-          alert('❌ Incorrect email or password.');
-        } else {
-          alert(`❌ Login failed: ${err.response.data.message || 'Server error'}`);
-        }
-      } else if (err.request) {
-        alert('❌ Could not reach the server. Please check your internet connection.');
+      } else if (err.response?.status === 401) {
+        alert('❌ Incorrect email or password.');
       } else {
-        alert('❌ Unexpected error occurred during login.');
+        alert(`❌ Login failed: ${err.response?.data?.message || 'Unexpected server error.'}`);
       }
     } finally {
       setLoading(false);
@@ -116,9 +106,7 @@ const LoginPage = () => {
                 </svg>
                 <span>Logging in...</span>
               </div>
-            ) : (
-              "Login"
-            )}
+            ) : "Login"}
           </button>
           <p className="text-xs text-center text-gray-500 mt-2">
             🚀 Server may take a few seconds to respond if idle.
