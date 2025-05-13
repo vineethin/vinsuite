@@ -13,7 +13,8 @@ const API = {
   FRAMEWORK: `${BASE_URL}/qa/framework`,
   OCR_TEST_CASES: `${BASE_URL}/vision/generate-ocr-testcases`,
   UNIT_TEST_GENERATOR: `${BASE_URL}/dev/unit-test` ,
-  AI_REVIEWER: `${BASE_URL}/dev/ai-review` 
+  AI_REVIEWER: `${BASE_URL}/dev/ai-review`,
+  PERFORMANCE: `${BASE_URL}/qa/performance` 
 };
 
 export default API;
