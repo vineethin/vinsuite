@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useApp } from "../../contexts/AppContext"; // Import useApp hook
+import { useApp } from "../../contexts/AppContext";
 
 const AdminDeptSwitcher = () => {
   const navigate = useNavigate();
@@ -9,6 +9,7 @@ const AdminDeptSwitcher = () => {
   const [selectedDept, setSelectedDept] = useState(userDepartment || "");
 
   const handleChangeClick = () => setIsChanging(true);
+
   const handleSelectChange = (e) => setSelectedDept(e.target.value);
 
   const handleConfirm = () => {
@@ -21,7 +22,6 @@ const AdminDeptSwitcher = () => {
     localStorage.setItem("userDepartment", selectedDept);
 
     const targetPath = `/admin/${selectedDept.toLowerCase()}`;
-
     if (window.location.pathname === targetPath) {
       window.location.reload();
     } else {
@@ -32,23 +32,28 @@ const AdminDeptSwitcher = () => {
   return (
     <div className="mt-2">
       {!isChanging ? (
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           <p className="text-lg font-medium">
             Department: <span className="font-bold">{selectedDept}</span>
           </p>
           <button
             onClick={handleChangeClick}
-            className="text-blue-600 underline text-sm"
+            className="text-sm text-blue-600 underline"
           >
             Change Department
           </button>
         </div>
       ) : (
-        <div className="flex space-x-2 mt-2">
+        <div className="flex items-center gap-2 mt-2">
+          <label htmlFor="department-select" className="sr-only">
+            Select Department
+          </label>
           <select
+            id="department-select"
             value={selectedDept}
             onChange={handleSelectChange}
-            className="border px-3 py-1 rounded"
+            className="border px-3 py-1 rounded focus:outline-blue-500"
+            aria-label="Select Department"
           >
             <option value="">-- Select --</option>
             <option value="IT">IT</option>
@@ -60,7 +65,7 @@ const AdminDeptSwitcher = () => {
           </select>
           <button
             onClick={handleConfirm}
-            className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700"
+            className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 transition duration-200"
           >
             Confirm
           </button>

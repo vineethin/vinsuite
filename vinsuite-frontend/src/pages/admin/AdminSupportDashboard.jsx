@@ -1,21 +1,21 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from "../../contexts/AppContext"; // Import useApp hook
+import { useApp } from "../../contexts/AppContext";
 import AdminDeptSwitcher from '../../components/admin/AdminDeptSwitcher';
 
 const AdminSupportDashboard = () => {
   const navigate = useNavigate();
-  const { setUserRole, setUserDepartment } = useApp(); // Use context for userRole and userDepartment
+  const { setUserRole, setUserDepartment } = useApp();
 
   const handleLogout = () => {
-    setUserRole(''); // Clear role in context
-    setUserDepartment(''); // Clear department in context
-    navigate('/'); // Redirect to login
+    setUserRole('');
+    setUserDepartment('');
+    navigate('/');
   };
 
   return (
     <div className="p-8">
-      {/* Header with title and Logout */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-3xl font-bold text-green-700">🛠️ Admin Support Dashboard</h1>
         <button
@@ -28,41 +28,25 @@ const AdminSupportDashboard = () => {
 
       <p className="text-gray-600 mb-4">Department: Support</p>
 
-      {/* 🔄 Department Switcher */}
+      {/* Department Switcher */}
       <AdminDeptSwitcher />
 
-      {/* 🧩 Coming Soon Tools */}
+      {/* Coming Soon Tools */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-        <div className="border rounded p-4 opacity-50">
-          <h3 className="font-bold text-lg">AI-Suggested Ticket Replies</h3>
-          <p>Respond faster with AI-generated solutions.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div className="border rounded p-4 opacity-50">
-          <h3 className="font-bold text-lg">Sentiment Analyzer</h3>
-          <p>Understand customer mood in real-time.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div className="border rounded p-4 opacity-50">
-          <h3 className="font-bold text-lg">Smart Ticket Routing</h3>
-          <p>Automatically route tickets to the right agent.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div className="border rounded p-4 opacity-50">
-          <h3 className="font-bold text-lg">Ticket Summarizer</h3>
-          <p>Summarize long ticket conversations with one click.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div className="border rounded p-4 opacity-50">
-          <h3 className="font-bold text-lg">Knowledge Base Generator</h3>
-          <p>Convert resolved tickets into knowledge articles.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div className="border rounded p-4 opacity-50">
-          <h3 className="font-bold text-lg">Response Time Predictor</h3>
-          <p>Estimate and improve agent response SLAs.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
+        {[
+          { title: "AI-Suggested Ticket Replies", desc: "Respond faster with AI-generated solutions." },
+          { title: "Sentiment Analyzer", desc: "Understand customer mood in real-time." },
+          { title: "Smart Ticket Routing", desc: "Automatically route tickets to the right agent." },
+          { title: "Ticket Summarizer", desc: "Summarize long ticket conversations with one click." },
+          { title: "Knowledge Base Generator", desc: "Convert resolved tickets into knowledge articles." },
+          { title: "Response Time Predictor", desc: "Estimate and improve agent response SLAs." }
+        ].map((tool, index) => (
+          <div key={index} className="border rounded p-4 opacity-50 hover:shadow-md transition">
+            <h3 className="font-bold text-lg">{tool.title}</h3>
+            <p className="text-sm text-gray-600 mt-1">{tool.desc}</p>
+            <span className="text-xs text-gray-400">Coming Soon</span>
+          </div>
+        ))}
       </div>
 
       <p className="text-xs text-gray-400 mt-6">

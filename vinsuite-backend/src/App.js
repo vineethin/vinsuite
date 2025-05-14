@@ -12,7 +12,7 @@ function App() {
     setLoading(true);
     setMessage('');
 
-    const userId = 1; // Replace with actual user ID from auth in production
+    const userId = 1; // TODO: Replace with real auth-integrated userId
 
     try {
       const response = await fetch(`https://vinsuite.onrender.com/api/projects?userId=${userId}`, {
@@ -26,10 +26,11 @@ function App() {
         setName('');
         setDescription('');
       } else {
-        setMessage('❌ Error creating project');
+        const errorText = await response.text();
+        setMessage(`❌ Failed: ${errorText || 'Error creating project'}`);
       }
     } catch (error) {
-      setMessage(`❌ Error: ${error.message}`);
+      setMessage(`❌ Network error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -38,7 +39,9 @@ function App() {
   return (
     <div className="App min-h-screen flex items-center justify-center bg-gray-100 p-6">
       <div className="bg-white rounded shadow-md p-6 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center text-blue-700 mb-4">Create New Project</h1>
+        <h1 className="text-2xl font-bold text-center text-blue-700 mb-4">
+          Create New Project
+        </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -68,14 +71,15 @@ function App() {
               required
               className="w-full border px-3 py-2 rounded focus:outline-blue-400"
               aria-label="Project Description"
-            ></textarea>
+            />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full text-white font-semibold py-2 px-4 rounded ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-              }`}
+            className={`w-full text-white font-semibold py-2 px-4 rounded transition duration-200 ${
+              loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            }`}
           >
             {loading ? 'Creating...' : 'Create Project'}
           </button>

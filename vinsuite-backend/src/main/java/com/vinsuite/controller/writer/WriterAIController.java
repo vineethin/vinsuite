@@ -3,13 +3,14 @@ package com.vinsuite.controller.writer;
 import com.vinsuite.ratelimiter.RateLimiterService;
 import com.vinsuite.service.writer.WriterAIService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
-@RequestMapping("/writer")
+@RequestMapping("/api/writer") // ✅ IMPORTANT: matches frontend /api/writer/...
 public class WriterAIController {
 
     @Autowired
@@ -18,18 +19,18 @@ public class WriterAIController {
     @Autowired
     private RateLimiterService rateLimiterService;
 
-    @PostMapping("/generate-content")
+    @PostMapping(value = "/generate-content", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> generateContent(
             @RequestHeader(value = "X-USER-ID", defaultValue = "anonymous") String userId,
             @RequestBody Map<String, String> request) {
 
-        String topic = request.get("topic");
-        String tone = request.get("tone");
-        String audience = request.get("audience");
+        String topic = request.getOrDefault("topic", null);
+        String tone = request.getOrDefault("tone", null);
+        String audience = request.getOrDefault("audience", null);
         String role = "writer";
 
         if (topic == null || tone == null || audience == null) {
-            return ResponseEntity.badRequest().body("Missing fields in request");
+            return ResponseEntity.badRequest().body("❌ Missing topic, tone, or audience.");
         }
 
         if (!rateLimiterService.isAllowed(userId, role)) {
@@ -45,18 +46,18 @@ public class WriterAIController {
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/generate-email")
+    @PostMapping(value = "/generate-email", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> generateEmail(
             @RequestHeader(value = "X-USER-ID", defaultValue = "anonymous") String userId,
             @RequestBody Map<String, String> request) {
 
-        String emailType = request.get("emailType");
-        String productOrService = request.get("productOrService");
-        String recipient = request.get("recipient");
+        String emailType = request.getOrDefault("emailType", null);
+        String productOrService = request.getOrDefault("productOrService", null);
+        String recipient = request.getOrDefault("recipient", null);
         String role = "writer";
 
         if (emailType == null || productOrService == null || recipient == null) {
-            return ResponseEntity.badRequest().body("Missing fields in request");
+            return ResponseEntity.badRequest().body("❌ Missing emailType, product/service, or recipient.");
         }
 
         if (!rateLimiterService.isAllowed(userId, role)) {
@@ -73,18 +74,18 @@ public class WriterAIController {
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/generate-document")
+    @PostMapping(value = "/generate-document", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> generateDocument(
             @RequestHeader(value = "X-USER-ID", defaultValue = "anonymous") String userId,
             @RequestBody Map<String, String> request) {
 
-        String docType = request.get("docType");
-        String purpose = request.get("purpose");
-        String points = request.get("points");
+        String docType = request.getOrDefault("docType", null);
+        String purpose = request.getOrDefault("purpose", null);
+        String points = request.getOrDefault("points", null);
         String role = "writer";
 
         if (docType == null || purpose == null || points == null) {
-            return ResponseEntity.badRequest().body("Missing fields in request");
+            return ResponseEntity.badRequest().body("❌ Missing docType, purpose, or points.");
         }
 
         if (!rateLimiterService.isAllowed(userId, role)) {
@@ -101,8 +102,8 @@ public class WriterAIController {
         return ResponseEntity.ok(result);
     }
 
-    // ✅ NEW: Get remaining quota
-    @GetMapping("/quota")
+    // ✅ Return remaining quota
+    @GetMapping(value = "/quota", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> getRemainingQuota(
             @RequestHeader(value = "X-USER-ID", defaultValue = "anonymous") String userId) {
         String role = "writer";

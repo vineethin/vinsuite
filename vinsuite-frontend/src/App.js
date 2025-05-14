@@ -30,6 +30,7 @@ import AdminFinanceDashboard from './pages/admin/AdminFinanceDashboard';
 import AdminTraderDashboard from './pages/admin/AdminTraderDashboard';
 import AdminSupportDashboard from './pages/admin/AdminSupportDashboard';
 import AdminSalesDashboard from './pages/admin/AdminSalesDashboard';
+import AdminWriterDashboard from './pages/admin/AdminWriterDashboard'; // ✅ FIXED
 import AdminHome from './pages/admin/AdminHome';
 import ComingSoon from './pages/admin/ComingSoon';
 
@@ -44,7 +45,7 @@ import SupportDashboard from './pages/support/SupportDashboard';
 import FinanceDashboard from './pages/finance/FinanceDashboard';
 import WriterDashboard from './pages/writer/WriterDashboard';
 
-// ✅ Fix: Import Writer Tools
+// ✅ Writer Tools
 import ContentGenerator from './pages/writer/ContentGenerator';
 import EmailWriter from './pages/writer/EmailWriter';
 import DocumentAssistant from './pages/writer/DocumentAssistant';
@@ -58,7 +59,6 @@ import MainRouter from './routes/MainRouter';
 
 // Not Found Page
 import NotFoundPage from './pages/NotFoundPage';
-
 
 function App() {
   const { isLoggedIn } = useApp();
@@ -75,7 +75,7 @@ function App() {
 
         {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={!isLoggedIn ? <RegisterPage /> : <Navigate to="/dashboard" />} />
+        <Route path="/register" element={<RegisterPage />} />
 
         {/* Protected Core Pages */}
         <Route path="/project" element={<PrivateRoute><ProjectPage /></PrivateRoute>} />
@@ -103,6 +103,7 @@ function App() {
         <Route path="/admin/trader" element={<PrivateRoute><AdminTraderDashboard /></PrivateRoute>} />
         <Route path="/admin/support" element={<PrivateRoute><AdminSupportDashboard /></PrivateRoute>} />
         <Route path="/admin/sales" element={<PrivateRoute><AdminSalesDashboard /></PrivateRoute>} />
+        <Route path="/admin/writer" element={<PrivateRoute><AdminWriterDashboard /></PrivateRoute>} /> {/* ✅ FIXED */}
         <Route path="/admin" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
         <Route path="/coming-soon/:role" element={<PrivateRoute><ComingSoon /></PrivateRoute>} />
 
@@ -116,13 +117,11 @@ function App() {
         <Route path="/support" element={<PrivateRoute><SupportDashboard /></PrivateRoute>} />
         <Route path="/finance" element={<PrivateRoute><FinanceDashboard /></PrivateRoute>} />
 
-        {/* ✅ Writer Tools */}
+        {/* Writer Tools */}
         <Route path="/writer/dashboard" element={<PrivateRoute><WriterDashboard /></PrivateRoute>} />
         <Route path="/writer/content-generator" element={<PrivateRoute><ContentGenerator /></PrivateRoute>} />
         <Route path="/writer/email-writer" element={<PrivateRoute><EmailWriter /></PrivateRoute>} />
         <Route path="/writer/document-assistant" element={<PrivateRoute><DocumentAssistant /></PrivateRoute>} />
-
-
 
         {/* Other Tools */}
         <Route path="/xpath-image" element={<PrivateRoute><ElementIdentifier /></PrivateRoute>} />

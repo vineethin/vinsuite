@@ -76,15 +76,16 @@ const ComingSoon = () => {
   const navigate = useNavigate();
   const tools = plannedFeatures[role] || [];
 
+  const formattedRole = role ? role.replace("-", " ").toUpperCase() : "Role";
+
   return (
     <div className="min-h-screen bg-white p-10">
       <div className="max-w-3xl mx-auto text-center">
         <h2 className="text-2xl font-bold text-blue-700 mb-2 capitalize">
-          {role.replace("-", " ")} Tools Coming Soon 🚧
+          🚧 {formattedRole} Tools — Coming Soon
         </h2>
         <p className="text-gray-600 mb-6">
-          We're actively working to build powerful features for this role.
-          Here’s a sneak peek:
+          We're actively working to build powerful features for this role. Here's a sneak peek:
         </p>
 
         <ul className="text-left max-w-md mx-auto mb-6">
@@ -97,12 +98,11 @@ const ComingSoon = () => {
           )}
         </ul>
 
-        {/* ✅ Fixed back navigation to ensure router context refreshes */}
         <button
           onClick={() => navigate("/dashboard")}
-          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
+          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition"
         >
-          ← Back to Role Selection
+          ← Back to Dashboard
         </button>
       </div>
     </div>
