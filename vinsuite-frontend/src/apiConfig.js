@@ -4,17 +4,18 @@ const API = {
   BASE_URL,
   AUTH: `${BASE_URL}/auth`,
   PROJECTS: `${BASE_URL}/projects`,
-  TEST_CASES: `${BASE_URL}/groq`, 
-  OPENAI_XPATH: `${BASE_URL}/openai-xpath`, 
+  TEST_CASES: `${BASE_URL}/groq`,
+  OPENAI_XPATH: `${BASE_URL}/openai-xpath`,
   BACKUP: `${BASE_URL}/backup`,
   QUERY: `${BASE_URL}/dba`,
   SCHEMA: `${BASE_URL}/schema`,
   ACCESSIBILITY: `${BASE_URL}/accessibility`,
   FRAMEWORK: `${BASE_URL}/qa/framework`,
   OCR_TEST_CASES: `${BASE_URL}/vision/generate-ocr-testcases`,
-  UNIT_TEST_GENERATOR: `${BASE_URL}/dev/unit-test` ,
+  UNIT_TEST_GENERATOR: `${BASE_URL}/dev/unit-test`,
   AI_REVIEWER: `${BASE_URL}/dev/ai-review`,
-  PERFORMANCE: `${BASE_URL}/qa/performance` 
+  PERFORMANCE: `${BASE_URL}/qa/performance`,
+  WRITER: `${BASE_URL}/writer`
 };
 
 export default API;

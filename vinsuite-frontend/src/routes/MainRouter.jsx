@@ -11,6 +11,7 @@ import DBADashboard from '../pages/dba/DBADashboard';
 import SalesDashboard from '../pages/sales/SalesDashboard';
 import SupportDashboard from '../pages/support/SupportDashboard';
 import FinanceDashboard from '../pages/finance/FinanceDashboard';
+import WriterDashboard from '../pages/writer/WriterDashboard';
 
 // Admin Dashboards
 import AdminITDashboard from '../pages/admin/AdminITDashboard';
@@ -18,6 +19,7 @@ import AdminFinanceDashboard from '../pages/admin/AdminFinanceDashboard';
 import AdminTraderDashboard from '../pages/admin/AdminTraderDashboard';
 import AdminSupportDashboard from '../pages/admin/AdminSupportDashboard';
 import AdminSalesDashboard from '../pages/admin/AdminSalesDashboard';
+import AdminWriterDashboard from '../pages/admin/AdminWriterDashboard';
 import AdminHome from '../pages/admin/AdminHome';
 
 // Tool Pages
@@ -27,7 +29,6 @@ import PerformanceScriptGenerator from '../pages/qa/PerformanceScriptGenerator';
 const MainRouter = () => {
   const { userId, userRole, userDepartment, adminActingAs } = useApp();
 
-  // ❗ Force redirect to /login if not logged in
   if (!userId || !userRole) {
     return <Navigate to="/login" replace />;
   }
@@ -52,21 +53,24 @@ const MainRouter = () => {
         </>
       )}
 
+      {/* Other Roles */}
       {userRole === 'manager' && <Route path="" element={<ManagerDashboard />} />}
       {userRole === 'ba' && <Route path="" element={<BADashboard />} />}
       {userRole === 'dba' && <Route path="" element={<DBADashboard />} />}
       {(userRole === 'saleslead' || userRole === 'sales') && <Route path="" element={<SalesDashboard />} />}
       {userRole === 'support' && <Route path="" element={<SupportDashboard />} />}
       {userRole === 'finance' && <Route path="" element={<FinanceDashboard />} />}
+      {userRole === 'writer' && <Route path="" element={<WriterDashboard />} />}
 
-      {/* Admin */}
+      {/* Admin Dashboards Based on Department */}
       {userRole === 'admin' && (
         <>
-          {userDepartment === 'IT' && <Route path="" element={<AdminITDashboard />} />}
-          {userDepartment === 'Finance' && <Route path="" element={<AdminFinanceDashboard />} />}
-          {userDepartment === 'Trader' && <Route path="" element={<AdminTraderDashboard />} />}
-          {userDepartment === 'Support' && <Route path="" element={<AdminSupportDashboard />} />}
-          {userDepartment === 'Sales' && <Route path="" element={<AdminSalesDashboard />} />}
+          {userDepartment?.toLowerCase() === 'it' && <Route path="" element={<AdminITDashboard />} />}
+          {userDepartment?.toLowerCase() === 'finance' && <Route path="" element={<AdminFinanceDashboard />} />}
+          {userDepartment?.toLowerCase() === 'trader' && <Route path="" element={<AdminTraderDashboard />} />}
+          {userDepartment?.toLowerCase() === 'support' && <Route path="" element={<AdminSupportDashboard />} />}
+          {userDepartment?.toLowerCase() === 'sales' && <Route path="" element={<AdminSalesDashboard />} />}
+          {userDepartment?.toLowerCase() === 'writer' && <Route path="" element={<AdminWriterDashboard />} />}
           {!userDepartment && <Route path="" element={<AdminHome />} />}
         </>
       )}

@@ -42,6 +42,12 @@ import DBADashboard from './pages/dba/DBADashboard';
 import SalesDashboard from './pages/sales/SalesDashboard';
 import SupportDashboard from './pages/support/SupportDashboard';
 import FinanceDashboard from './pages/finance/FinanceDashboard';
+import WriterDashboard from './pages/writer/WriterDashboard';
+
+// ✅ Fix: Import Writer Tools
+import ContentGenerator from './pages/writer/ContentGenerator';
+import EmailWriter from './pages/writer/EmailWriter';
+import DocumentAssistant from './pages/writer/DocumentAssistant';
 
 // Other Tools
 import ElementIdentifier from './components/tools/ElementIdentifier';
@@ -53,10 +59,10 @@ import MainRouter from './routes/MainRouter';
 // Not Found Page
 import NotFoundPage from './pages/NotFoundPage';
 
+
 function App() {
   const { isLoggedIn } = useApp();
 
-  // ✅ Protect routes with PrivateRoute
   const PrivateRoute = ({ children }) => {
     return isLoggedIn ? children : <Navigate to="/login" />;
   };
@@ -109,6 +115,14 @@ function App() {
         <Route path="/sales" element={<PrivateRoute><SalesDashboard /></PrivateRoute>} />
         <Route path="/support" element={<PrivateRoute><SupportDashboard /></PrivateRoute>} />
         <Route path="/finance" element={<PrivateRoute><FinanceDashboard /></PrivateRoute>} />
+
+        {/* ✅ Writer Tools */}
+        <Route path="/writer/dashboard" element={<PrivateRoute><WriterDashboard /></PrivateRoute>} />
+        <Route path="/writer/content-generator" element={<PrivateRoute><ContentGenerator /></PrivateRoute>} />
+        <Route path="/writer/email-writer" element={<PrivateRoute><EmailWriter /></PrivateRoute>} />
+        <Route path="/writer/document-assistant" element={<PrivateRoute><DocumentAssistant /></PrivateRoute>} />
+
+
 
         {/* Other Tools */}
         <Route path="/xpath-image" element={<PrivateRoute><ElementIdentifier /></PrivateRoute>} />

@@ -4,7 +4,7 @@ import { useApp } from "../../contexts/AppContext"; // Import useApp hook
 
 const AdminDeptSwitcher = () => {
   const navigate = useNavigate();
-  const { userDepartment, setUserDepartment } = useApp(); // Use context for userDepartment
+  const { userDepartment, setUserDepartment } = useApp();
   const [isChanging, setIsChanging] = useState(false);
   const [selectedDept, setSelectedDept] = useState(userDepartment || "");
 
@@ -17,12 +17,11 @@ const AdminDeptSwitcher = () => {
       return;
     }
 
-    setUserDepartment(selectedDept); // Update department in context
-    localStorage.setItem("userDepartment", selectedDept); // Persist department to localStorage
+    setUserDepartment(selectedDept);
+    localStorage.setItem("userDepartment", selectedDept);
 
     const targetPath = `/admin/${selectedDept.toLowerCase()}`;
 
-    // If already on the same path, force reload
     if (window.location.pathname === targetPath) {
       window.location.reload();
     } else {
@@ -57,6 +56,7 @@ const AdminDeptSwitcher = () => {
             <option value="Trader">Trader</option>
             <option value="Support">Support</option>
             <option value="Sales">Sales</option>
+            <option value="Writer">Writer</option> {/* ✅ Added */}
           </select>
           <button
             onClick={handleConfirm}
