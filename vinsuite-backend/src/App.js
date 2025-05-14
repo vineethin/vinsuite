@@ -4,74 +4,91 @@ import './App.css';
 function App() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [loading, setLoading] = useState(false); // New state for loading
-  const [message, setMessage] = useState(''); // New state for feedback message
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true);
+    setMessage('');
 
-    const userId = 1; // For example, user ID 1
-
-    const projectData = {
-      name: name,
-      description: description,
-    };
-
-    setLoading(true); // Start loading
+    const userId = 1; // TODO: Replace with real auth-integrated userId
 
     try {
       const response = await fetch(`https://vinsuite.onrender.com/api/projects?userId=${userId}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(projectData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description }),
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setMessage('Project created successfully!'); // Success message
-        setName(''); // Clear form fields
+        setMessage('✅ Project created successfully!');
+        setName('');
         setDescription('');
       } else {
-        setMessage('Error creating project'); // Error message
+        const errorText = await response.text();
+        setMessage(`❌ Failed: ${errorText || 'Error creating project'}`);
       }
     } catch (error) {
-      setMessage('Error: ' + error.message); // Error handling
+      setMessage(`❌ Network error: ${error.message}`);
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
   return (
-    <div className="App">
-      <h1>Create New Project</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="name">Project Name:</label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="description">Project Description:</label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" disabled={loading}>
-          {loading ? 'Creating...' : 'Submit'}
-        </button>
-      </form>
+    <div className="App min-h-screen flex items-center justify-center bg-gray-100 p-6">
+      <div className="bg-white rounded shadow-md p-6 w-full max-w-md">
+        <h1 className="text-2xl font-bold text-center text-blue-700 mb-4">
+          Create New Project
+        </h1>
 
-      {message && <p>{message}</p>} {/* Show message */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="name" className="block font-medium text-gray-700 mb-1">
+              Project Name
+            </label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full border px-3 py-2 rounded focus:outline-blue-400"
+              aria-label="Project Name"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="description" className="block font-medium text-gray-700 mb-1">
+              Project Description
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={4}
+              required
+              className="w-full border px-3 py-2 rounded focus:outline-blue-400"
+              aria-label="Project Description"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full text-white font-semibold py-2 px-4 rounded transition duration-200 ${
+              loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+          >
+            {loading ? 'Creating...' : 'Create Project'}
+          </button>
+        </form>
+
+        {message && (
+          <p className="text-sm mt-4 text-center text-gray-700">{message}</p>
+        )}
+      </div>
     </div>
   );
 }

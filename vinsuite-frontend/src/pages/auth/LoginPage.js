@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useApp } from "../../contexts/AppContext";
 import API from '../../apiConfig';
@@ -32,20 +32,21 @@ const LoginPage = () => {
       const user = res.data || {};
       const role = user.role || 'admin';
       const id = user.id || 'admin';
-      const dept = user.department || 'IT';
+      const dept = user.department || '';
 
-      // ✅ Update context (AppContext handles syncing to localStorage)
       setUserRole(role);
       setUserId(id);
       setUserDepartment(dept);
 
-      // ✅ Redirect based on role
+      // ✅ Role-based redirection
       if (role === 'admin') {
-        navigate(`/admin/${dept.toLowerCase()}`);
+        const path = dept ? `/admin/${dept.toLowerCase()}` : '/admin';
+        navigate(path);
       } else {
         switch (role) {
           case 'developer': navigate('/dev'); break;
-          case 'qa': navigate('/qa'); break;
+          case 'qa':
+          case 'tester': navigate('/qa'); break;
           case 'manager': navigate('/manager'); break;
           case 'ba': navigate('/ba'); break;
           case 'dba': navigate('/dba'); break;
@@ -53,13 +54,13 @@ const LoginPage = () => {
           case 'sales': navigate('/sales'); break;
           case 'support': navigate('/support'); break;
           case 'finance': navigate('/finance'); break;
+          case 'writer': navigate('/writer/dashboard'); break;
           default: navigate('/project'); break;
         }
       }
 
     } catch (err) {
       console.error('Login failed:', err);
-
       if (axios.isCancel(err)) {
         alert('❌ Server is taking too long to respond. Please try again shortly.');
       } else if (err.response?.status === 401) {
@@ -84,6 +85,7 @@ const LoginPage = () => {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-4 py-2 border rounded"
             required
+            disabled={loading}
           />
           <input
             type="password"
@@ -92,6 +94,7 @@ const LoginPage = () => {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-2 border rounded"
             required
+            disabled={loading}
           />
           <button
             type="submit"
@@ -108,15 +111,16 @@ const LoginPage = () => {
               </div>
             ) : "Login"}
           </button>
-          <p className="text-xs text-center text-gray-500 mt-2">
-            🚀 Server may take a few seconds to respond if idle.
-          </p>
         </form>
         <p className="text-center text-sm mt-4">
           Don't have an account?{' '}
-          <a href="/register" className="text-blue-600 hover:underline font-medium">
+          <Link
+            to="/register"
+            title="Go to Registration Page"
+            className="text-blue-600 hover:underline font-medium"
+          >
             Register here
-          </a>
+          </Link>
         </p>
       </div>
     </div>
