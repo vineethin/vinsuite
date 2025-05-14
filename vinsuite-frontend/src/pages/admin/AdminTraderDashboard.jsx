@@ -1,21 +1,30 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from "../../contexts/AppContext"; // Import useApp hook
+import { useApp } from "../../contexts/AppContext";
 import AdminDeptSwitcher from '../../components/admin/AdminDeptSwitcher';
 
 const AdminTraderDashboard = () => {
   const navigate = useNavigate();
-  const { setUserRole, setUserDepartment } = useApp(); // Use context for userRole and userDepartment
+  const { setUserRole, setUserDepartment } = useApp();
 
   const handleLogout = () => {
-    setUserRole(''); // Clear role in context
-    setUserDepartment(''); // Clear department in context
-    navigate('/'); // Redirect to login
+    setUserRole('');
+    setUserDepartment('');
+    navigate('/');
   };
+
+  const tools = [
+    { title: "Trade Execution Monitor", desc: "Track trade execution rates and anomalies." },
+    { title: "AI Strategy Generator", desc: "Generate trading strategies with AI insights." },
+    { title: "Trade Volume Analyzer", desc: "Analyze market trends and volume spikes." },
+    { title: "Latency Tracker", desc: "Measure and optimize trade execution speed." },
+    { title: "Compliance Checker", desc: "Ensure all trades follow regulatory policies." },
+    { title: "Anomaly Detection", desc: "Detect irregular or risky trading behavior." }
+  ];
 
   return (
     <div className="p-8">
-      {/* Header with title and Logout */}
+      {/* Header */}
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-3xl font-bold text-red-700">📈 Admin Trader Dashboard</h1>
         <button
@@ -28,41 +37,18 @@ const AdminTraderDashboard = () => {
 
       <p className="text-gray-600 mb-4">Department: Trader</p>
 
-      {/* 🔄 Department Switcher */}
+      {/* Department Switcher */}
       <AdminDeptSwitcher />
 
-      {/* 🧩 Tool Cards */}
+      {/* Coming Soon Tools */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-        <div className="border rounded p-4 opacity-50">
-          <h3 className="font-bold text-lg">Trade Execution Monitor</h3>
-          <p>Track trade execution rates and anomalies.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div className="border rounded p-4 opacity-50">
-          <h3 className="font-bold text-lg">AI Strategy Generator</h3>
-          <p>Generate trading strategies with AI insights.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div className="border rounded p-4 opacity-50">
-          <h3 className="font-bold text-lg">Trade Volume Analyzer</h3>
-          <p>Analyze market trends and volume spikes.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div className="border rounded p-4 opacity-50">
-          <h3 className="font-bold text-lg">Latency Tracker</h3>
-          <p>Measure and optimize trade execution speed.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div className="border rounded p-4 opacity-50">
-          <h3 className="font-bold text-lg">Compliance Checker</h3>
-          <p>Ensure all trades follow regulatory policies.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div className="border rounded p-4 opacity-50">
-          <h3 className="font-bold text-lg">Anomaly Detection</h3>
-          <p>Detect irregular or risky trading behavior.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
+        {tools.map((tool, idx) => (
+          <div key={idx} className="border rounded p-4 opacity-50 hover:shadow-md transition">
+            <h3 className="font-bold text-lg">{tool.title}</h3>
+            <p className="text-sm text-gray-600 mt-1">{tool.desc}</p>
+            <span className="text-xs text-gray-400">Coming Soon</span>
+          </div>
+        ))}
       </div>
 
       <p className="text-xs text-gray-400 mt-6">

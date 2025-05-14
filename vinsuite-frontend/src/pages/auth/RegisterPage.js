@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import API from '../../apiConfig';
 
@@ -73,7 +73,7 @@ const RegisterPage = () => {
             required
           />
 
-          {/* Department Dropdown First */}
+          {/* Department Dropdown */}
           <select
             value={department}
             onChange={(e) => {
@@ -89,10 +89,11 @@ const RegisterPage = () => {
             <option value="HR">HR</option>
             <option value="Sales">Sales</option>
             <option value="Support">Support</option>
-            <option value="Trading">Trading</option> {/* ✅ Added */}
+            <option value="Trading">Trading</option>
+            <option value="Writer">Writer</option> {/* ✅ Added */}
           </select>
 
-          {/* Role Dropdown Based on Department */}
+          {/* Role Dropdown */}
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
@@ -134,9 +135,7 @@ const RegisterPage = () => {
             )}
 
             {department === 'Support' && (
-              <>
-                <option value="support">Support Engineer</option>
-              </>
+              <option value="support">Support Engineer</option>
             )}
 
             {department === 'Trading' && (
@@ -144,6 +143,12 @@ const RegisterPage = () => {
                 <option value="trader">Trader</option>
                 <option value="portfolioanalyst">Portfolio Analyst</option>
                 <option value="riskmanager">Risk Manager</option>
+              </>
+            )}
+
+            {department === 'Writer' && (
+              <>
+                <option value="writer">Writer</option>
               </>
             )}
           </select>
@@ -158,7 +163,15 @@ const RegisterPage = () => {
             {loading ? (
               <div className="flex items-center space-x-2">
                 <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
                   <path
                     className="opacity-75"
                     fill="currentColor"
@@ -174,9 +187,9 @@ const RegisterPage = () => {
         </form>
         <p className="text-center text-sm mt-4">
           Already have an account?{' '}
-          <a href="/login" className="text-blue-600 hover:underline font-medium">
+          <Link to="/login" className="text-blue-600 hover:underline font-medium">
             Login here
-          </a>
+          </Link>
         </p>
       </div>
     </div>

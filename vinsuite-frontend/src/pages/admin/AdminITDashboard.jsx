@@ -1,20 +1,20 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from "../../contexts/AppContext"; // Import useApp hook
+import { useApp } from "../../contexts/AppContext";
 import AdminDeptSwitcher from '../../components/admin/AdminDeptSwitcher';
 
 const AdminITDashboard = () => {
   const navigate = useNavigate();
-  const { setUserRole, setUserDepartment } = useApp(); // Use context for userRole and userDepartment
+  const { setUserRole, setUserDepartment } = useApp();
 
   const handleCardClick = (path) => {
     navigate(path);
   };
 
   const handleLogout = () => {
-    setUserRole(''); // Clear role in context
-    setUserDepartment(''); // Clear department in context
-    navigate('/'); // Redirect to login
+    setUserRole('');
+    setUserDepartment('');
+    navigate('/');
   };
 
   return (
@@ -32,10 +32,10 @@ const AdminITDashboard = () => {
 
       <p className="text-gray-600 mb-4">Department: IT</p>
 
-      {/* ✅ Department switcher */}
+      {/* Department switcher */}
       <AdminDeptSwitcher />
 
-      {/* 🧩 Tool Cards */}
+      {/* Tool Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         <div onClick={() => handleCardClick('/qa')} className="cursor-pointer border rounded p-4 hover:shadow-md">
           <h3 className="font-bold text-lg">QA Tester</h3>
@@ -45,8 +45,12 @@ const AdminITDashboard = () => {
           <h3 className="font-bold text-lg">Developer</h3>
           <p>Access AI code tools and productivity boosters.</p>
         </div>
+        <div onClick={() => handleCardClick('/admin/writer')} className="cursor-pointer border rounded p-4 hover:shadow-md">
+          <h3 className="font-bold text-lg">Writer</h3>
+          <p>Generate emails, content, and documents using AI.</p>
+        </div>
 
-        {/* Coming Soon cards that are clickable */}
+        {/* Coming Soon cards (clickable) */}
         <div onClick={() => handleCardClick('/coming-soon/manager')} className="cursor-pointer border rounded p-4 opacity-50 hover:shadow-md">
           <h3 className="font-bold text-lg">Manager</h3>
           <p>View dashboards, productivity insights, and risk analysis.</p>
@@ -79,7 +83,9 @@ const AdminITDashboard = () => {
         </div>
       </div>
 
-      <p className="text-xs text-gray-400 mt-6">🔐 Built for multi-role AI-assisted quality collaboration</p>
+      <p className="text-xs text-gray-400 mt-6">
+        🔐 Built for multi-role AI-assisted quality collaboration
+      </p>
     </div>
   );
 };
