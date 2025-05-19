@@ -1,13 +1,18 @@
 package com.vinsuite.service.writer;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class WriterAIService {
@@ -15,13 +20,16 @@ public class WriterAIService {
     @Value("${groq.api.key}")
     private String groqApiKey;
 
+    @Value("${groq.model.name}")
+    private String groqModelName;
+
     private final RestTemplate restTemplate = new RestTemplate();
 
     private static final Logger logger = LoggerFactory.getLogger(WriterAIService.class);
 
     public String generate(String systemRole, String prompt) {
         Map<String, Object> body = new HashMap<>();
-        body.put("model", "mixtral-8x7b-32768");
+        body.put("model", groqModelName);
         body.put("messages", List.of(
                 Map.of("role", "system", "content", systemRole),
                 Map.of("role", "user", "content", prompt)));
@@ -43,6 +51,7 @@ public class WriterAIService {
             logger.info("WriterAI Prompt: {}", prompt);
             return (String) ((Map<String, Object>) choices.get(0).get("message")).get("content");
         } catch (Exception e) {
+            logger.error("Error during content generation", e); // ✅ Logs the error
             return "⚠️ Failed to generate content.";
         }
     }
