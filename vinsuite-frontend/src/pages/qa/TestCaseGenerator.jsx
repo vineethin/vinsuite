@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import axios from "axios";
-import API from '../../apiConfig';
+import API from "../../apiConfig";
+import { useApp } from "../../contexts/AppContext";
 
 import TabSwitcher from "../../components/testCaseGenerator/TabSwitcher";
 import TextInputSection from "../../components/testCaseGenerator/TextInputSection";
@@ -11,6 +13,8 @@ import EditControls from "../../components/testCaseGenerator/EditControls";
 import ToolHeader from "../../components/common/ToolHeader";
 
 const TestCaseGenerator = () => {
+  console.log("🚀 Reached TestCaseGenerator component render");
+  const { userId, userRole, hydrated } = useApp();
   const [tab, setTab] = useState("text");
   const [inputText, setInputText] = useState("");
   const [image, setImage] = useState(null);
@@ -19,6 +23,20 @@ const TestCaseGenerator = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isOCRTableEditable, setIsOCRTableEditable] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    console.log("✅ TestCaseGenerator mounted");
+    console.log("🔍 hydrated:", hydrated);
+    console.log("🔍 userId:", userId);
+    console.log("🔍 userRole:", userRole);
+  }, [hydrated, userId, userRole]);
+
+  // Wait for hydration before checking role
+  if (!hydrated) return <div>⏳ Waiting for hydration...</div>;
+  if (!userRole) {
+    console.log("🚨 Redirecting to /login from TestCaseGenerator");
+    return <Navigate to="/login" replace />;
+  }
 
   const handleTabSwitch = (newTab) => {
     setTab(newTab);
@@ -35,7 +53,7 @@ const TestCaseGenerator = () => {
     setLoading(true);
     try {
       const res = await axios.post(`${API.TEST_CASES}/generate-test-cases`, {
-        feature: inputText
+        feature: inputText,
       });
       const raw = res.data.testCases;
       const result = typeof raw === "string" ? JSON.parse(raw) : raw;
@@ -74,8 +92,20 @@ const TestCaseGenerator = () => {
               {loading ? (
                 <div className="flex items-center space-x-2">
                   <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                    />
                   </svg>
                   <span>Generating...</span>
                 </div>

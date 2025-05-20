@@ -1,39 +1,59 @@
-// src/contexts/AppContext.js
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 // Create context
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [userId, setUserId] = useState(localStorage.getItem("userId") || "");
-  const [userName, setUserName] = useState(localStorage.getItem("userName") || "");
-  const [userRole, setUserRole] = useState(localStorage.getItem("userRole") || "");
-  const [userDepartment, setUserDepartment] = useState(localStorage.getItem("userDepartment") || "");
-  const [activeProjectId, setActiveProjectId] = useState(localStorage.getItem("activeProjectId") || "");
-  const [adminActingAs, setAdminActingAs] = useState(localStorage.getItem("adminActingAs") || "");
+  const [userId, setUserId] = useState("");
+  const [userName, setUserName] = useState("");
+  const [userRole, setUserRole] = useState("");
+  const [userDepartment, setUserDepartment] = useState("");
+  const [activeProjectId, setActiveProjectId] = useState("");
+  const [adminActingAs, setAdminActingAs] = useState("");
 
-  // ✅ Derived login state
+  const [hydrated, setHydrated] = useState(false); // ✅ NEW
+
+  // ✅ Load from localStorage once on app mount
+  useEffect(() => {
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      setUserId(storedUserId);
+      setUserName(localStorage.getItem("userName") || "");
+      setUserRole(localStorage.getItem("userRole") || "");
+      setUserDepartment(localStorage.getItem("userDepartment") || "");
+      setActiveProjectId(localStorage.getItem("activeProjectId") || "");
+      setAdminActingAs(localStorage.getItem("adminActingAs") || "");
+    }
+    setHydrated(true); // ✅ Mark as hydrated
+  }, []);
+
+  // ✅ Keep localStorage updated
+  useEffect(() => {
+    if (userId) localStorage.setItem("userId", userId);
+  }, [userId]);
+
+  useEffect(() => {
+    if (userName) localStorage.setItem("userName", userName);
+  }, [userName]);
+
+  useEffect(() => {
+    if (userRole) localStorage.setItem("userRole", userRole);
+  }, [userRole]);
+
+  useEffect(() => {
+    if (userDepartment) localStorage.setItem("userDepartment", userDepartment);
+  }, [userDepartment]);
+
+  useEffect(() => {
+    if (activeProjectId) localStorage.setItem("activeProjectId", activeProjectId);
+  }, [activeProjectId]);
+
+  useEffect(() => {
+    if (adminActingAs) localStorage.setItem("adminActingAs", adminActingAs);
+  }, [adminActingAs]);
+
   const isLoggedIn = !!userId;
 
-  // ✅ Helper to safely set only non-empty values
-  const setItemIfNotEmpty = (key, value) => {
-    if (value !== "") {
-      localStorage.setItem(key, value);
-    } else {
-      localStorage.removeItem(key);
-    }
-  };
-
-  // ✅ Safe syncing to avoid infinite loops
-  useEffect(() => setItemIfNotEmpty("userId", userId), [userId]);
-  useEffect(() => setItemIfNotEmpty("userName", userName), [userName]);
-  useEffect(() => setItemIfNotEmpty("userRole", userRole), [userRole]);
-  useEffect(() => setItemIfNotEmpty("userDepartment", userDepartment), [userDepartment]);
-  useEffect(() => setItemIfNotEmpty("activeProjectId", activeProjectId), [activeProjectId]);
-  useEffect(() => setItemIfNotEmpty("adminActingAs", adminActingAs), [adminActingAs]);
-
-  // Logout clears both context and storage
   const logout = () => {
     [
       "userId",
@@ -62,7 +82,8 @@ export const AppProvider = ({ children }) => {
         activeProjectId, setActiveProjectId,
         adminActingAs, setAdminActingAs,
         logout,
-        isLoggedIn
+        isLoggedIn,
+        hydrated // ✅ Expose to consumers
       }}
     >
       {children}
@@ -70,5 +91,4 @@ export const AppProvider = ({ children }) => {
   );
 };
 
-// Hook
 export const useApp = () => useContext(AppContext);

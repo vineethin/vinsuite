@@ -6,10 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.*;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.*;
 
 @Service
@@ -20,6 +17,9 @@ public class QAGroqAIService {
 
     @Value("${groq.api.key}")
     private String groqApiKey;
+
+    @Value("${groq.model.name}")
+    private String modelName;
 
     private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
@@ -41,52 +41,80 @@ public class QAGroqAIService {
                 ]
 
                 Do NOT include any explanation, intro, or text — only the pure JSON array.
-            """.formatted(featureText.trim());
+                """.formatted(featureText.trim());
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(groqApiKey);
-
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "llama3-70b-8192");
-            requestBody.put("messages", List.of(
+            List<Map<String, String>> messages = List.of(
                     Map.of("role", "system", "content", "You are a helpful QA assistant."),
                     Map.of("role", "user", "content", prompt)
-            ));
-
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    GROQ_API_URL,
-                    HttpMethod.POST,
-                    entity,
-                    Map.class
             );
 
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
-                if (choices != null && !choices.isEmpty()) {
-                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    String content = (String) message.get("content");
-
-                    List<TestCase> testCases = Arrays.asList(objectMapper.readValue(content, TestCase[].class));
-                    return Map.of("testCases", testCases);
-                }
-            }
+            String content = sendChatCompletion(modelName, messages);
+            List<TestCase> testCases = Arrays.asList(objectMapper.readValue(content, TestCase[].class));
+            return Map.of("testCases", testCases);
 
         } catch (Exception e) {
             e.printStackTrace();
+            return Map.of("testCases", Collections.emptyList());
         }
+    }
 
-        return Map.of("testCases", Collections.emptyList());
+    public Map<String, Object> analyzePageStructureWithAI(String html, String url) {
+        try {
+            String prompt = String.format("""
+                    You are a UI/UX and SEO expert. Analyze the following HTML for a web page and score its structure, accessibility, and semantic use.
+
+                    URL: %s
+
+                    HTML:
+                    %s
+
+                    Respond strictly in JSON:
+                    {
+                      "aiScore": <0-100>,
+                      "aiComment": "<summary of your analysis>"
+                    }
+                    """, url, html);
+
+            List<Map<String, String>> messages = List.of(
+                    Map.of("role", "user", "content", prompt)
+            );
+
+            String resultJson = sendChatCompletion(modelName, messages);
+            return objectMapper.readValue(resultJson, Map.class);
+
+        } catch (Exception e) {
+            return Map.of(
+                    "aiScore", 50,
+                    "aiComment", "⚠️ Could not evaluate AI score: " + e.getMessage()
+            );
+        }
+    }
+
+    public Map<String, Object> summarizeBugReport(String bugReportText) {
+        String prompt = """
+                You are a QA assistant. Given a raw bug report, summarize it in this structured format:
+                1. Summary of the bug (1–2 sentences)
+                2. Affected module or feature
+                3. Reproduction steps (short)
+                4. Suggested severity (Low/Medium/High)
+                5. AI suggestion for the cause (if any)
+
+                Bug Report:
+                \"\"\"%s\"\"\"""".formatted(bugReportText);
+
+        List<Map<String, String>> messages = List.of(
+                Map.of("role", "system", "content", "You are a helpful QA assistant."),
+                Map.of("role", "user", "content", prompt)
+        );
+
+        return Map.of("summary", sendChatCompletion(modelName, messages));
     }
 
     public Map<String, Object> estimateCoverage(List<String> userStories, List<String> testCases, boolean deep) {
         try {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Evaluate test coverage:\n\nUser Stories:\n");
+            StringBuilder sb = new StringBuilder("Evaluate test coverage:\n\nUser Stories:\n");
             for (int i = 0; i < userStories.size(); i++) {
-                sb.append((i + 1)).append(". ").append(userStories.get(i)).append("\n");
+                sb.append(i + 1).append(". ").append(userStories.get(i)).append("\n");
             }
 
             sb.append("\nTest Cases:\n");
@@ -98,35 +126,19 @@ public class QAGroqAIService {
             sb.append("[{\"story\":\"...\",\"status\":\"covered|partial|missing\",\"matchedTestCases\":[\"...\"]}]\n");
             sb.append("Do not include any explanation or intro.");
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(groqApiKey);
-
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "llama3-70b-8192");
-            requestBody.put("messages", List.of(
+            List<Map<String, String>> messages = List.of(
                     Map.of("role", "system", "content", "You are an assistant that maps user stories to test cases."),
                     Map.of("role", "user", "content", sb.toString())
-            ));
+            );
 
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-            ResponseEntity<Map> response = restTemplate.exchange(GROQ_API_URL, HttpMethod.POST, entity, Map.class);
+            String result = sendChatCompletion(modelName, messages);
+            List<Map<String, Object>> parsed = objectMapper.readValue(result, List.class);
+            return Map.of("coverage", parsed);
 
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
-                if (choices != null && !choices.isEmpty()) {
-                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    String content = (String) message.get("content");
-                    if (content != null && content.trim().startsWith("[")) {
-                        List<Map<String, Object>> parsed = objectMapper.readValue(content, List.class);
-                        return Map.of("coverage", parsed);
-                    }
-                }
-            }
         } catch (Exception e) {
             e.printStackTrace();
+            return Map.of("error", "Failed to get coverage estimation from Groq");
         }
-        return Map.of("error", "Failed to get coverage estimation from Groq");
     }
 
     public Map<String, Object> estimateDeepCoverage(
@@ -136,9 +148,7 @@ public class QAGroqAIService {
             List<List<String>> testCaseSteps) {
 
         try {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Perform deep test coverage analysis.\n\n");
-            sb.append("User Stories:\n");
+            StringBuilder sb = new StringBuilder("Perform deep test coverage analysis.\n\nUser Stories:\n");
             for (int i = 0; i < userStories.size(); i++) {
                 sb.append(i + 1).append(". ").append(userStories.get(i)).append("\n");
             }
@@ -168,86 +178,35 @@ public class QAGroqAIService {
             sb.append("[{\"story\":\"...\",\"status\":\"covered|partial|missing\",\"matchedTestCases\":[\"...\"]}]\n");
             sb.append("Do not include any explanation or formatting.");
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(groqApiKey);
-
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "llama3-70b-8192");
-            requestBody.put("messages", List.of(
+            List<Map<String, String>> messages = List.of(
                     Map.of("role", "system", "content", "You are an expert QA analyst."),
                     Map.of("role", "user", "content", sb.toString())
-            ));
+            );
 
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-            ResponseEntity<Map> response = restTemplate.exchange(GROQ_API_URL, HttpMethod.POST, entity, Map.class);
+            String result = sendChatCompletion(modelName, messages);
+            List<Map<String, Object>> parsed = objectMapper.readValue(result, List.class);
+            return Map.of("coverage", parsed);
 
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
-                if (choices != null && !choices.isEmpty()) {
-                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    String content = (String) message.get("content");
-                    if (content != null && content.trim().startsWith("[")) {
-                        List<Map<String, Object>> parsed = objectMapper.readValue(content, List.class);
-                        return Map.of("coverage", parsed);
-                    }
-                }
-            }
         } catch (Exception e) {
             e.printStackTrace();
+            return Map.of("error", "Failed to get deep coverage estimation from Groq");
         }
-
-        return Map.of("error", "Failed to get deep coverage estimation from Groq");
-    }
-
-    public Map<String, Object> summarizeBugReport(String bugReportText) {
-        String prompt = """
-            You are a QA assistant. Given a raw bug report, summarize it in this structured format:
-            1. Summary of the bug (1–2 sentences)
-            2. Affected module or feature
-            3. Reproduction steps (short)
-            4. Suggested severity (Low/Medium/High)
-            5. AI suggestion for the cause (if any)
-    
-            Bug Report:
-            \"\"\"
-            %s
-            \"\"\"
-            """.formatted(bugReportText);
-    
-        List<Map<String, String>> messages = List.of(
-            Map.of("role", "system", "content", "You are a helpful QA assistant."),
-            Map.of("role", "user", "content", prompt)
-        );
-    
-        String model = "mixtral-8x7b-32768"; // or another model supported by Groq
-    
-        // Use your existing sendChatCompletion() method or Groq API helper
-        String aiResponse = sendChatCompletion(model, messages);  // Adjust this to your actual API call method
-    
-        return Map.of("summary", aiResponse);
     }
 
     private String sendChatCompletion(String model, List<Map<String, String>> messages) {
-        String apiUrl = "https://api.groq.com/openai/v1/chat/completions";
-        String apiKey = "YOUR_GROQ_API_KEY"; // 🔐 Move to application.properties or env later
-    
-        RestTemplate restTemplate = new RestTemplate();
-    
         Map<String, Object> body = new HashMap<>();
         body.put("model", model);
         body.put("messages", messages);
         body.put("temperature", 0.4);
-    
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(apiKey);
-    
+        headers.setBearerAuth(groqApiKey);
+
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-    
+
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, Map.class);
-    
+            ResponseEntity<Map> response = restTemplate.exchange(GROQ_API_URL, HttpMethod.POST, entity, Map.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 Map<String, Object> responseBody = response.getBody();
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
@@ -262,6 +221,4 @@ public class QAGroqAIService {
             return "Error calling Groq API: " + e.getMessage();
         }
     }
-    
-    
 }

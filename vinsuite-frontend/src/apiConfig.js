@@ -15,7 +15,8 @@ const API = {
   UNIT_TEST_GENERATOR: `${BASE_URL}/dev/unit-test`,
   AI_REVIEWER: `${BASE_URL}/dev/ai-review`,
   PERFORMANCE: `${BASE_URL}/qa/performance`,
-  WRITER: `${BASE_URL}/writer`
+  WRITER: `${BASE_URL}/writer`,
+  PAGE_TEST: `${BASE_URL}/page-test`
 };
 
 export default API;
