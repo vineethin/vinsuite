@@ -26,15 +26,28 @@ public class RateLimiterService {
     @Value("${rate.limit.support:15}")
     private int supportLimit;
 
+    /**
+     * Check if the user is still allowed based on current usage and role limit.
+     */
     public boolean isAllowed(String userId, String role) {
         String key = userId + ":" + role;
-        UsageCounter counter = usageMap.computeIfAbsent(key, k -> new UsageCounter());
-        counter.increment();
-
+        UsageCounter counter = usageMap.getOrDefault(key, new UsageCounter());
         int limit = getLimitForRole(role);
-        return counter.getCount() <= limit;
+        return counter.getCount() < limit;
     }
 
+    /**
+     * Increment usage count for the given user and role.
+     */
+    public void consumeQuota(String userId, String role) {
+        String key = userId + ":" + role;
+        UsageCounter counter = usageMap.computeIfAbsent(key, k -> new UsageCounter());
+        counter.increment(); // ✅ Now we only increment here
+    }
+
+    /**
+     * Return the remaining quota for the given user and role.
+     */
     public int getRemainingQuota(String userId, String role) {
         String key = userId + ":" + role;
         UsageCounter counter = usageMap.get(key);
@@ -42,6 +55,9 @@ public class RateLimiterService {
         return counter == null ? limit : Math.max(0, limit - counter.getCount());
     }
 
+    /**
+     * Fetch the quota limit for a given role.
+     */
     private int getLimitForRole(String role) {
         return switch (role.toLowerCase()) {
             case "writer" -> writerLimit;
@@ -49,7 +65,7 @@ public class RateLimiterService {
             case "dev" -> devLimit;
             case "ba" -> baLimit;
             case "support" -> supportLimit;
-            default -> 10; // fallback limit
+            default -> 10; // fallback default
         };
     }
 }
