@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/writer") // ✅ IMPORTANT: matches frontend /api/writer/...
+@RequestMapping("/api/writer")
 public class WriterAIController {
 
     @Autowired
@@ -24,9 +24,9 @@ public class WriterAIController {
             @RequestHeader(value = "X-USER-ID", defaultValue = "anonymous") String userId,
             @RequestBody Map<String, String> request) {
 
-        String topic = request.getOrDefault("topic", null);
-        String tone = request.getOrDefault("tone", null);
-        String audience = request.getOrDefault("audience", null);
+        String topic = request.get("topic");
+        String tone = request.get("tone");
+        String audience = request.get("audience");
         String role = "writer";
 
         if (topic == null || tone == null || audience == null) {
@@ -37,10 +37,16 @@ public class WriterAIController {
             return ResponseEntity.status(429).body("⚠️ Daily quota exceeded. Try again tomorrow.");
         }
 
-        String prompt = String.format(
-                "You are a professional content writer. Generate a high-quality article based on the following:\n" +
-                        "Topic: \"%s\"\nTone: %s\nTarget Audience: %s\n\nWrite at least 300 words.",
-                topic, tone, audience);
+        rateLimiterService.consumeQuota(userId, role); // ✅ Deduct quota
+
+        String prompt = String.format("""
+                You are a professional content writer. Generate a high-quality article based on the following:
+                Topic: "%s"
+                Tone: %s
+                Target Audience: %s
+                
+                Write at least 300 words.
+                """, topic, tone, audience);
 
         String result = writerAIService.generate("You are a helpful writing assistant.", prompt);
         return ResponseEntity.ok(result);
@@ -51,9 +57,9 @@ public class WriterAIController {
             @RequestHeader(value = "X-USER-ID", defaultValue = "anonymous") String userId,
             @RequestBody Map<String, String> request) {
 
-        String emailType = request.getOrDefault("emailType", null);
-        String productOrService = request.getOrDefault("productOrService", null);
-        String recipient = request.getOrDefault("recipient", null);
+        String emailType = request.get("emailType");
+        String productOrService = request.get("productOrService");
+        String recipient = request.get("recipient");
         String role = "writer";
 
         if (emailType == null || productOrService == null || recipient == null) {
@@ -64,11 +70,16 @@ public class WriterAIController {
             return ResponseEntity.status(429).body("⚠️ Daily quota exceeded. Try again tomorrow.");
         }
 
-        String prompt = String.format(
-                "You are a professional email copywriter. Generate a %s email.\n\n" +
-                        "Topic: %s\nAudience: %s\n\n" +
-                        "Keep it clear, persuasive, and under 200 words.",
-                emailType, productOrService, recipient);
+        rateLimiterService.consumeQuota(userId, role); // ✅ Deduct quota
+
+        String prompt = String.format("""
+                You are a professional email copywriter. Generate a %s email.
+
+                Topic: %s
+                Audience: %s
+
+                Keep it clear, persuasive, and under 200 words.
+                """, emailType, productOrService, recipient);
 
         String result = writerAIService.generate("You are a helpful AI email writer.", prompt);
         return ResponseEntity.ok(result);
@@ -79,9 +90,9 @@ public class WriterAIController {
             @RequestHeader(value = "X-USER-ID", defaultValue = "anonymous") String userId,
             @RequestBody Map<String, String> request) {
 
-        String docType = request.getOrDefault("docType", null);
-        String purpose = request.getOrDefault("purpose", null);
-        String points = request.getOrDefault("points", null);
+        String docType = request.get("docType");
+        String purpose = request.get("purpose");
+        String points = request.get("points");
         String role = "writer";
 
         if (docType == null || purpose == null || points == null) {
@@ -92,17 +103,22 @@ public class WriterAIController {
             return ResponseEntity.status(429).body("⚠️ Daily quota exceeded. Try again tomorrow.");
         }
 
-        String prompt = String.format(
-                "You are a professional document writer. Create a structured %s.\n" +
-                        "Purpose: %s\n\nInclude the following points:\n%s\n\n" +
-                        "Make it well-formatted and professional. Use headings and bullet points where helpful.",
-                docType, purpose, points);
+        rateLimiterService.consumeQuota(userId, role); // ✅ Deduct quota
+
+        String prompt = String.format("""
+                You are a professional document writer. Create a structured %s.
+                Purpose: %s
+
+                Include the following points:
+                %s
+
+                Make it well-formatted and professional. Use headings and bullet points where helpful.
+                """, docType, purpose, points);
 
         String result = writerAIService.generate("You are an expert technical and business writer.", prompt);
         return ResponseEntity.ok(result);
     }
 
-    // ✅ Return remaining quota
     @GetMapping(value = "/quota", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> getRemainingQuota(
             @RequestHeader(value = "X-USER-ID", defaultValue = "anonymous") String userId) {
