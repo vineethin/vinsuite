@@ -3,7 +3,7 @@ import API from '../../apiConfig';
 import { saveAs } from 'file-saver';
 import htmlDocx from 'html-docx-js/dist/html-docx';
 import jsPDF from 'jspdf';
-import ToolHeader from '../../components/common/ToolHeader';
+import ToolLayout from '../../components/common/ToolLayout';
 
 const EmailWriter = () => {
   const [emailType, setEmailType] = useState('Cold Outreach');
@@ -55,7 +55,6 @@ const EmailWriter = () => {
       });
       const updatedQuota = await res.text();
       setQuota(updatedQuota);
-
     } catch (error) {
       console.error(error);
       setResult('⚠️ Failed to generate email.');
@@ -87,10 +86,8 @@ const EmailWriter = () => {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <ToolHeader title="📧 AI Email Writer" backTo="/admin/writer" />
-
-      <div className="space-y-4">
+    <ToolLayout title="📧 AI Email Writer" backTo="/admin/writer" showLogout={true}>
+      <div className="space-y-4 max-w-4xl mx-auto">
         {quota !== null && (
           <div className="text-sm text-gray-600">
             🧮 Remaining quota: {quota}/20
@@ -159,7 +156,7 @@ const EmailWriter = () => {
           </div>
         )}
       </div>
-    </div>
+    </ToolLayout>
   );
 };
 

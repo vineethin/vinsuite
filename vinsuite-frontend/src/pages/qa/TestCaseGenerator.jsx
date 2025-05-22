@@ -8,7 +8,7 @@ import OCRInputSection from "../../components/testCaseGenerator/OCRInputSection"
 import TestCaseTable from "../../components/testCaseGenerator/TestCaseTable";
 import ExportButton from "../../components/testCaseGenerator/ExportButton";
 import EditControls from "../../components/testCaseGenerator/EditControls";
-import ToolHeader from "../../components/common/ToolHeader";
+import ToolLayout from "../../components/common/ToolLayout";
 
 const TestCaseGenerator = () => {
   const [tab, setTab] = useState("text");
@@ -55,9 +55,7 @@ const TestCaseGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      <ToolHeader title="🧠 TestGenie by VinSuite" />
-
+    <ToolLayout title="🧠 TestGenie by VinSuite">
       <TabSwitcher activeTab={tab} onSwitch={handleTabSwitch} />
 
       {tab === "text" && (
@@ -92,7 +90,6 @@ const TestCaseGenerator = () => {
           <div className="bg-yellow-100 text-yellow-800 text-center p-2 rounded mb-4 shadow">
             ✨ Smart OCR + Text Mode Activated. Upload an image and describe the feature to generate test cases!
           </div>
-
           <OCRInputSection
             image={image}
             setImage={setImage}
@@ -120,7 +117,7 @@ const TestCaseGenerator = () => {
           <ExportButton testCases={testCases} />
         </>
       )}
-    </div>
+    </ToolLayout>
   );
 };
 

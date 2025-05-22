@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import API from "../../apiConfig";
-import ToolHeader from "../../components/common/ToolHeader";
+import ToolLayout from "../../components/common/ToolLayout";
 
 const TestCoverageEstimator = () => {
   const [requirements, setRequirements] = useState("");
@@ -63,10 +63,8 @@ const TestCoverageEstimator = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50 max-w-7xl mx-auto">
-      <ToolHeader title="📊 Test Coverage Estimator" showLogout />
-
-      <div className="bg-white p-6 rounded shadow-md space-y-4">
+    <ToolLayout title="📊 Test Coverage Estimator">
+      <div className="bg-white bg-opacity-80 p-6 rounded-2xl shadow-md space-y-4">
         <label className="flex items-center gap-2">
           <input type="checkbox" checked={deepMode} onChange={() => setDeepMode(!deepMode)} />
           <span className="text-sm font-medium text-gray-700">Enable Deep Coverage Mode</span>
@@ -159,7 +157,7 @@ const TestCoverageEstimator = () => {
           </div>
         )}
       </div>
-    </div>
+    </ToolLayout>
   );
 };
 

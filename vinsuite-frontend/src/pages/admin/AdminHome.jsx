@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from "../../contexts/AppContext";
 import AdminDeptSwitcher from '../../components/admin/AdminDeptSwitcher';
@@ -6,6 +6,7 @@ import AdminDeptSwitcher from '../../components/admin/AdminDeptSwitcher';
 const AdminHome = () => {
   const navigate = useNavigate();
   const { setUserRole, setUserDepartment } = useApp();
+  const [userCount, setUserCount] = useState(0);
 
   const handleCardClick = (path) => {
     navigate(path);
@@ -16,6 +17,13 @@ const AdminHome = () => {
     setUserDepartment('');
     navigate('/');
   };
+
+  useEffect(() => {
+    fetch('/api/admin/user-count')
+      .then((res) => res.json())
+      .then((data) => setUserCount(data))
+      .catch((err) => console.error("❌ Failed to fetch user count", err));
+  }, []);
 
   return (
     <div className="p-8">
@@ -54,7 +62,7 @@ const AdminHome = () => {
       {/* Dashboard Insights */}
       <div className="mt-10">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">🔍 System Usage Summary</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-blue-100 rounded p-4">
             <p className="font-medium">Departments</p>
             <p className="text-2xl">7</p>
@@ -66,6 +74,10 @@ const AdminHome = () => {
           <div className="bg-purple-100 rounded p-4">
             <p className="font-medium">Tools Available</p>
             <p className="text-2xl">21</p>
+          </div>
+          <div className="bg-yellow-100 rounded p-4">
+            <p className="font-medium">Users Registered</p>
+            <p className="text-2xl">{userCount}</p>
           </div>
         </div>
       </div>

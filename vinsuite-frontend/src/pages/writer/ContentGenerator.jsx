@@ -3,7 +3,7 @@ import API from '../../apiConfig';
 import { saveAs } from 'file-saver';
 import htmlDocx from 'html-docx-js/dist/html-docx';
 import jsPDF from 'jspdf';
-import ToolHeader from '../../components/common/ToolHeader';
+import ToolLayout from '../../components/common/ToolLayout';
 
 const ContentGenerator = () => {
   const [topic, setTopic] = useState('');
@@ -28,7 +28,6 @@ const ContentGenerator = () => {
         console.error('Quota fetch failed:', err);
       }
     };
-
     fetchQuota();
   }, []);
 
@@ -91,10 +90,8 @@ const ContentGenerator = () => {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <ToolHeader title="✍️ AI Content Generator" backTo="/admin/writer" />
-
-      <div className="space-y-4">
+    <ToolLayout title="✍️ AI Content Generator" backTo="/admin/writer" showLogout={true}>
+      <div className="space-y-4 max-w-4xl mx-auto">
         {quota !== null && (
           <div className="text-sm text-gray-600">
             🧮 Remaining quota: {quota}/20
@@ -143,19 +140,19 @@ const ContentGenerator = () => {
             <div className="flex flex-wrap gap-3 mt-3">
               <button
                 onClick={downloadAsDocx}
-                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow-md transition duration-200"
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow-md"
               >
                 📄 Export Word
               </button>
               <button
                 onClick={downloadAsPdf}
-                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow-md transition duration-200"
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow-md"
               >
                 🧾 Export PDF
               </button>
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded shadow-md transition duration-200"
+                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded shadow-md"
               >
                 📋 Copy Text
               </button>
@@ -163,7 +160,7 @@ const ContentGenerator = () => {
           </div>
         )}
       </div>
-    </div>
+    </ToolLayout>
   );
 };
 

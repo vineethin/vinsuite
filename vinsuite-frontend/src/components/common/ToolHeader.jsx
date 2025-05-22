@@ -7,21 +7,25 @@ const ToolHeader = ({ title, showLogout = true, showBack = true, backTo = "/qa" 
   const navigate = useNavigate();
 
   return (
-    <div className="flex justify-between items-center mb-6">
-      {/* Title */}
-      <h1 className="text-3xl font-bold text-blue-800 flex items-center space-x-2">
-        <span>{title}</span>
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 bg-white/5 p-4 rounded-xl shadow border border-white/10">
+      {/* Title with animated AI icon */}
+      <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+        <span className="relative flex w-8 h-8 items-center justify-center">
+          <span className="absolute inline-flex h-full w-full rounded-full bg-pink-500 opacity-75 animate-ping" />
+          <span className="relative inline-flex rounded-full bg-pink-500 w-4 h-4" />
+        </span>
+        {title}
       </h1>
 
       {/* Buttons */}
-      <div className="flex gap-2 items-center">
+      <div className="flex gap-2 mt-4 sm:mt-0">
         {showBack && (
           <button
             onClick={() => navigate(backTo)}
-            className="bg-gray-200 hover:bg-gray-300 text-black font-semibold py-2 px-4 rounded flex items-center space-x-2 text-sm"
+            className="bg-white/20 hover:bg-white/30 text-gray-900 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
+            Back to Dashboard
           </button>
         )}
         {showLogout && <LogoutButton />}

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ToolHeader from "../../components/common/ToolHeader";
+import ToolLayout from "../../components/common/ToolLayout";
 
 const PerformanceScriptGenerator = () => {
   const [testUrl, setTestUrl] = useState("");
@@ -35,10 +35,8 @@ const PerformanceScriptGenerator = () => {
   };
 
   return (
-    <div className="p-6">
-      <ToolHeader title="🚀 Performance Test Generator" />
-
-      <div className="grid gap-4 max-w-3xl mx-auto bg-white p-6 rounded-xl shadow">
+    <ToolLayout title="🚀 Performance Test Generator">
+      <div className="grid gap-4 max-w-3xl mx-auto bg-white bg-opacity-80 p-6 rounded-xl shadow">
         <input
           type="text"
           placeholder="Enter test URL (e.g., https://yourapi.com/login)"
@@ -101,7 +99,7 @@ const PerformanceScriptGenerator = () => {
           </div>
         )}
       </div>
-    </div>
+    </ToolLayout>
   );
 };
 
