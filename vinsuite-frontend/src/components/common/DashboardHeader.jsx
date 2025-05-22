@@ -1,27 +1,22 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import LogoutButton from "../LogoutButton";
 
-const ToolHeader = ({ title, showLogout = true, showBack = true, backTo = "/qa" }) => {
+const DashboardHeader = ({ title, backTo = "/admin", showLogout = true, showBack = true }) => {
   const navigate = useNavigate();
 
   return (
     <div className="flex justify-between items-center mb-6">
-      {/* Title */}
       <h1 className="text-3xl font-bold text-blue-800 flex items-center space-x-2">
         <span>{title}</span>
       </h1>
-
-      {/* Buttons */}
       <div className="flex gap-2 items-center">
         {showBack && (
           <button
             onClick={() => navigate(backTo)}
             className="bg-gray-200 hover:bg-gray-300 text-black font-semibold py-2 px-4 rounded flex items-center space-x-2 text-sm"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
+            <span>⬅️</span>
+            <span>Back to Admin</span>
           </button>
         )}
         {showLogout && <LogoutButton />}
@@ -30,4 +25,5 @@ const ToolHeader = ({ title, showLogout = true, showBack = true, backTo = "/qa" 
   );
 };
 
-export default ToolHeader;
+
+export default DashboardHeader;

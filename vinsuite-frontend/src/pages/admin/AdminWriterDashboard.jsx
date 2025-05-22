@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import AdminDeptSwitcher from "../../components/admin/AdminDeptSwitcher";
-import ToolHeader from "../../components/common/ToolHeader";
+import DashboardHeader from "../../components/common/DashboardHeader";
 
 const AdminWriterDashboard = () => {
   const navigate = useNavigate();
@@ -12,10 +12,13 @@ const AdminWriterDashboard = () => {
 
   return (
     <div className="p-8">
-      {/* Header with Logout + Back to Dashboard */}
-      <ToolHeader title="✍️ Admin Writer Dashboard" showBack={false} />
-
-      <p className="text-gray-600 mb-4">Department: Writer</p>
+      {/* Reusable Header */}
+      <DashboardHeader
+        title="✍️ Admin Writer Dashboard"
+        showBack={true}
+        backTo="/admin"
+        showLogout={true}
+      />
 
       {/* Department Switcher */}
       <AdminDeptSwitcher />
