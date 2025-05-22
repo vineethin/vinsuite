@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import API from '../../apiConfig';
-import LogoutButton from '../../components/LogoutButton';
+import ToolLayout from '../../components/common/ToolLayout';
 
 const AccessibilityScanner = () => {
   const [url, setUrl] = useState('');
@@ -27,13 +27,8 @@ const AccessibilityScanner = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
-      <div className="flex justify-between mb-6 items-center">
-        <h1 className="text-2xl font-bold text-blue-700">♿ Accessibility Scanner</h1>
-        <LogoutButton />
-      </div>
-
-      <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
+    <ToolLayout title="♿ Accessibility Scanner" showLogout={true}>
+      <div className="bg-white bg-opacity-90 p-6 rounded-lg shadow-md space-y-4 max-w-3xl mx-auto">
         <input
           type="text"
           placeholder="Enter URL (https://example.com)"
@@ -52,7 +47,7 @@ const AccessibilityScanner = () => {
       </div>
 
       {violations.length > 0 && (
-        <div className="mt-8 overflow-x-auto">
+        <div className="mt-8 overflow-x-auto max-w-5xl mx-auto">
           <h2 className="text-xl font-semibold mb-4">Accessibility Issues Found:</h2>
           <table className="min-w-full bg-white border rounded-lg">
             <thead className="bg-gray-100">
@@ -76,7 +71,7 @@ const AccessibilityScanner = () => {
           </table>
         </div>
       )}
-    </div>
+    </ToolLayout>
   );
 };
 

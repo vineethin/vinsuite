@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import DashboardLayout from "../../components/DashboardLayout";
+import ToolLayout from "../../components/common/ToolLayout";
 
 const AIResponseValidator = () => {
   const [prompt, setPrompt] = useState("");
@@ -22,8 +22,8 @@ const AIResponseValidator = () => {
   };
 
   return (
-    <DashboardLayout title="🧠 AI Response Validator">
-      <div className="bg-white p-6 rounded shadow-md space-y-4">
+    <ToolLayout title="🧠 AI Response Validator">
+      <div className="bg-white bg-opacity-90 p-6 rounded shadow-md space-y-4 max-w-3xl mx-auto">
         <div>
           <label className="block text-sm font-medium text-gray-700">Prompt</label>
           <textarea
@@ -69,7 +69,7 @@ const AIResponseValidator = () => {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </ToolLayout>
   );
 };
 
