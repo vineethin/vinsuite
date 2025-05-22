@@ -1,6 +1,7 @@
 // src/pages/qa/WebDefectScanner.jsx
 import React, { useState } from 'react';
-import API from '../../apiConfig'
+import API from '../../apiConfig';
+import ToolHeader from "../../components/common/ToolHeader";
 
 const WebDefectScanner = () => {
   const [url, setUrl] = useState('');
@@ -8,6 +9,9 @@ const WebDefectScanner = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [defectOutput, setDefectOutput] = useState('');
+
+  console.log("✅ WebDefectScanner mounted");
+  console.log("🌐 API.WEB_DEFECT_SCANNER =", API.WEB_DEFECT_SCANNER);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +41,7 @@ const WebDefectScanner = () => {
       if (contentType && contentType.includes('application/json')) {
         const result = await response.json();
         setMessage('✅ Defect scan completed successfully!');
-        setDefectOutput(result); // If it's a stringified JSON array
+        setDefectOutput(result);
         console.log('✅ Defect output:', result);
       } else {
         const text = await response.text();
@@ -55,7 +59,8 @@ const WebDefectScanner = () => {
 
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white p-6 rounded-xl shadow">
-      <h2 className="text-2xl font-semibold mb-4">AI Web Defect Scanner</h2>
+      <ToolHeader title="AI Web Defect Scanner" backTo="/dashboard" />
+      
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block font-medium mb-1">Page URL</label>
@@ -82,16 +87,22 @@ const WebDefectScanner = () => {
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+          className={`px-6 py-2 rounded-lg text-white ${loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}
         >
           {loading ? 'Scanning...' : 'Start Scan'}
         </button>
 
-        {message && <p className="mt-4 text-sm text-gray-700">{message}</p>}
+        {message && (
+          <p className="mt-4 text-sm text-gray-700">
+            {message}
+          </p>
+        )}
 
         {defectOutput && (
           <pre className="mt-6 p-4 bg-gray-100 text-sm overflow-x-auto whitespace-pre-wrap">
-            {typeof defectOutput === 'string' ? defectOutput : JSON.stringify(defectOutput, null, 2)}
+            {typeof defectOutput === 'string'
+              ? defectOutput
+              : JSON.stringify(defectOutput, null, 2)}
           </pre>
         )}
       </form>
