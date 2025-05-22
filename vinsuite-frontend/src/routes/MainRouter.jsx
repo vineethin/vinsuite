@@ -25,6 +25,8 @@ import AdminHome from '../pages/admin/AdminHome';
 // Tool Pages
 import UnitTestGenerator from '../pages/dev/UnitTestGenerator';
 import PerformanceScriptGenerator from '../pages/qa/PerformanceScriptGenerator';
+import WebDefectScanner from '../pages/qa/WebDefectScanner'; 
+
 
 const MainRouter = () => {
   const { userId, userRole, userDepartment, adminActingAs } = useApp();
@@ -39,11 +41,13 @@ const MainRouter = () => {
     <Routes>
       {/* QA */}
       {isQA && (
-        <>
-          <Route path="" element={<QADashboard />} />
-          <Route path="qa/performance-generator" element={<PerformanceScriptGenerator />} />
-        </>
-      )}
+  <>
+    <Route path="" element={<QADashboard />} />
+    <Route path="qa/performance-generator" element={<PerformanceScriptGenerator />} />
+    <Route path="qa/web-defect-scanner" element={<WebDefectScanner />} /> {/* ✅ New route */}
+  </>
+)}
+
 
       {/* Developer */}
       {(userRole === 'developer' || userRole === 'dev') && (
