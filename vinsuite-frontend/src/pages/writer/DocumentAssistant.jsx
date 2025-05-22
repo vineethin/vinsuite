@@ -86,7 +86,7 @@ const DocumentAssistant = () => {
   };
 
   return (
-    <ToolLayout title="📝 AI Document Assistant" backTo="/dashboard/writer" showLogout={true}>
+    <ToolLayout title="📝 AI Document Assistant" backTo="/admin/writer" showLogout={true}>
       <div className="space-y-4 max-w-4xl mx-auto">
         {quota !== null && (
           <div className="text-sm text-gray-600">

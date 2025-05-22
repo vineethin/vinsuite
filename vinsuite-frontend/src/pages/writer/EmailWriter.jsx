@@ -86,7 +86,7 @@ const EmailWriter = () => {
   };
 
   return (
-    <ToolLayout title="📧 AI Email Writer" backTo="/dashboard/writer" showLogout={true}>
+    <ToolLayout title="📧 AI Email Writer" backTo="/admin/writer" showLogout={true}>
       <div className="space-y-4 max-w-4xl mx-auto">
         {quota !== null && (
           <div className="text-sm text-gray-600">

@@ -90,7 +90,7 @@ const ContentGenerator = () => {
   };
 
   return (
-    <ToolLayout title="✍️ AI Content Generator" backTo="/dashboard/writer" showLogout={true}>
+    <ToolLayout title="✍️ AI Content Generator" backTo="/admin/writer" showLogout={true}>
       <div className="space-y-4 max-w-4xl mx-auto">
         {quota !== null && (
           <div className="text-sm text-gray-600">
