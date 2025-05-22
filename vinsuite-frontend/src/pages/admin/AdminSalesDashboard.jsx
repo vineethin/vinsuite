@@ -1,32 +1,12 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useApp } from "../../contexts/AppContext";
 import AdminDeptSwitcher from '../../components/admin/AdminDeptSwitcher';
+import DashboardHeader from '../../components/common/DashboardHeader';
 
 const AdminSalesDashboard = () => {
-  const navigate = useNavigate();
-  const { setUserRole, setUserDepartment } = useApp();
-
-  const handleLogout = () => {
-    setUserRole('');
-    setUserDepartment('');
-    navigate('/');
-  };
-
   return (
     <div className="p-8">
-      {/* Header with title and Logout */}
-      <div className="flex justify-between items-center mb-2">
-        <h1 className="text-3xl font-bold text-red-700">📊 Admin Sales Dashboard</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          Logout
-        </button>
-      </div>
-
-      <p className="text-gray-600 mb-4">Department: Sales</p>
+      {/* Reusable Header */}
+      <DashboardHeader title="📊 Admin Sales Dashboard" />
 
       {/* Department Switcher */}
       <AdminDeptSwitcher />
