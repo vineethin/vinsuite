@@ -2,13 +2,13 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../contexts/AppContext"; // Import useApp hook
 
-// Add to tools array
 const tools = [
   { name: "Test Case Generator", route: "/test-generator" },
   { name: "Page Object Generator", route: "/page-object" },
   { name: "Test Coverage Estimator", route: "/qa/test-coverage-estimator" },
   { name: "Automated Test Generator", route: "/qa/automated-test-generator" },
-  { name: "Performance Script Generator", route: "/qa/performance-generator" } // ✅ New tool added
+  { name: "Performance Script Generator", route: "/qa/performance-generator" },
+  { name: "Web Defect Scanner", route: "/dashboard/qa/web-defect-scanner" } // ✅ Newly added
 ];
 
 
