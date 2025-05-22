@@ -6,10 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.*;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.*;
 
 @Service
@@ -208,46 +205,43 @@ public class QAGroqAIService {
             3. Reproduction steps (short)
             4. Suggested severity (Low/Medium/High)
             5. AI suggestion for the cause (if any)
-    
+
             Bug Report:
             \"\"\"
             %s
             \"\"\"
             """.formatted(bugReportText);
-    
+
         List<Map<String, String>> messages = List.of(
-            Map.of("role", "system", "content", "You are a helpful QA assistant."),
-            Map.of("role", "user", "content", prompt)
+                Map.of("role", "system", "content", "You are a helpful QA assistant."),
+                Map.of("role", "user", "content", prompt)
         );
-    
-        String model = "mixtral-8x7b-32768"; // or another model supported by Groq
-    
-        // Use your existing sendChatCompletion() method or Groq API helper
-        String aiResponse = sendChatCompletion(model, messages);  // Adjust this to your actual API call method
-    
+
+        String model = "mixtral-8x7b-32768";
+
+        String aiResponse = sendChatCompletion(model, messages);
+
         return Map.of("summary", aiResponse);
     }
 
     private String sendChatCompletion(String model, List<Map<String, String>> messages) {
-        String apiUrl = "https://api.groq.com/openai/v1/chat/completions";
-        String apiKey = "YOUR_GROQ_API_KEY"; // 🔐 Move to application.properties or env later
-    
-        RestTemplate restTemplate = new RestTemplate();
-    
+        String apiUrl = GROQ_API_URL;
+        String apiKey = groqApiKey; // ✅ Use injected key
+
         Map<String, Object> body = new HashMap<>();
         body.put("model", model);
         body.put("messages", messages);
         body.put("temperature", 0.4);
-    
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(apiKey);
-    
+
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-    
+
         try {
             ResponseEntity<Map> response = restTemplate.exchange(apiUrl, HttpMethod.POST, entity, Map.class);
-    
+
             if (response.getStatusCode().is2xxSuccessful()) {
                 Map<String, Object> responseBody = response.getBody();
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
@@ -262,6 +256,38 @@ public class QAGroqAIService {
             return "Error calling Groq API: " + e.getMessage();
         }
     }
-    
-    
+
+    public String generateDefectsFromHtml(String htmlContent) {
+        try {
+            String prompt = """
+                You are a senior QA tester. Perform a complete functional and UI review of the HTML below.
+                Apply strategies like boundary value analysis, negative testing, validation checks, and identify security/accessibility issues.
+                Return a structured JSON array of defects like this:
+                [
+                  {
+                    "title": "Clear defect title",
+                    "stepsToReproduce": ["Step 1", "Step 2", "Step 3"],
+                    "expectedResult": "Expected system behavior",
+                    "actualResult": "Observed behavior from HTML",
+                    "severity": "High | Medium | Low",
+                    "affectedElement": "Element tag, ID, or class",
+                    "suggestedFix": "What should be fixed or added"
+                  }
+                ]
+                Do not include any explanation — return only the pure JSON array.
+                HTML:
+                """ + htmlContent;
+
+            List<Map<String, String>> messages = List.of(
+                    Map.of("role", "system", "content", "You are a strict QA analyst."),
+                    Map.of("role", "user", "content", prompt)
+            );
+
+            return sendChatCompletion("llama3-70b-8192", messages);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "[]";
+        }
+    }
 }
