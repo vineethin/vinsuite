@@ -45,39 +45,51 @@ const AdminHome = () => {
           <h3 className="font-bold text-lg">Developer</h3>
           <p>Access AI code tools and productivity boosters.</p>
         </div>
-        <div onClick={() => handleCardClick('/coming-soon/manager')} className="cursor-pointer border rounded p-4 opacity-50 hover:shadow-md">
-          <h3 className="font-bold text-lg">Manager</h3>
-          <p>View dashboards, productivity insights, and risk analysis.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div onClick={() => handleCardClick('/coming-soon/ba')} className="cursor-pointer border rounded p-4 opacity-50 hover:shadow-md">
-          <h3 className="font-bold text-lg">Business Analyst</h3>
-          <p>Generate specs, acceptance criteria, and traceability.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div onClick={() => handleCardClick('/coming-soon/dba')} className="cursor-pointer border rounded p-4 opacity-50 hover:shadow-md">
-          <h3 className="font-bold text-lg">Database Admin</h3>
-          <p>Optimize queries and monitor schema changes with AI.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div onClick={() => handleCardClick('/coming-soon/saleslead')} className="cursor-pointer border rounded p-4 opacity-50 hover:shadow-md">
-          <h3 className="font-bold text-lg">Sales Lead</h3>
-          <p>Access AI-powered sales tools and lead insights.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div onClick={() => handleCardClick('/coming-soon/support')} className="cursor-pointer border rounded p-4 opacity-50 hover:shadow-md">
-          <h3 className="font-bold text-lg">Support</h3>
-          <p>Use AI tools for smarter, faster customer support.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
-        <div onClick={() => handleCardClick('/coming-soon/finance')} className="cursor-pointer border rounded p-4 opacity-50 hover:shadow-md">
-          <h3 className="font-bold text-lg">Finance</h3>
-          <p>Analyze budgets, costs, forecasts, and financial health.</p>
-          <span className="text-xs text-gray-400">Coming Soon</span>
-        </div>
         <div onClick={() => handleCardClick('/admin/writer')} className="cursor-pointer border rounded p-4 hover:shadow-md">
           <h3 className="font-bold text-lg">Writer</h3>
           <p>Generate email, blog, and document content with AI.</p>
+        </div>
+      </div>
+
+      {/* Dashboard Insights */}
+      <div className="mt-10">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">🔍 System Usage Summary</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-blue-100 rounded p-4">
+            <p className="font-medium">Departments</p>
+            <p className="text-2xl">7</p>
+          </div>
+          <div className="bg-green-100 rounded p-4">
+            <p className="font-medium">Roles</p>
+            <p className="text-2xl">10</p>
+          </div>
+          <div className="bg-purple-100 rounded p-4">
+            <p className="font-medium">Tools Available</p>
+            <p className="text-2xl">21</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Coming Soon Panels */}
+      <div className="mt-10">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">📌 Coming Soon</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            "Manager",
+            "Business Analyst",
+            "Database Admin",
+            "Sales Lead",
+            "Support",
+            "Finance"
+          ].map((role, idx) => (
+            <div
+              key={idx}
+              className="border rounded p-4 opacity-50 cursor-not-allowed hover:shadow-md"
+            >
+              <h3 className="font-bold text-lg">{role}</h3>
+              <p className="text-sm text-gray-600 mt-1">Dashboard coming soon.</p>
+            </div>
+          ))}
         </div>
       </div>
 

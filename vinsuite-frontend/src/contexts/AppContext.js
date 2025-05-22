@@ -13,10 +13,9 @@ export const AppProvider = ({ children }) => {
   const [activeProjectId, setActiveProjectId] = useState(localStorage.getItem("activeProjectId") || "");
   const [adminActingAs, setAdminActingAs] = useState(localStorage.getItem("adminActingAs") || "");
 
-  // ✅ Derived login state
   const isLoggedIn = !!userId;
 
-  // ✅ Helper to safely set only non-empty values
+  // Safely update localStorage based on value
   const setItemIfNotEmpty = (key, value) => {
     if (value !== "") {
       localStorage.setItem(key, value);
@@ -25,7 +24,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // ✅ Safe syncing to avoid infinite loops
+  // Sync values to localStorage on change
   useEffect(() => setItemIfNotEmpty("userId", userId), [userId]);
   useEffect(() => setItemIfNotEmpty("userName", userName), [userName]);
   useEffect(() => setItemIfNotEmpty("userRole", userRole), [userRole]);
@@ -33,7 +32,28 @@ export const AppProvider = ({ children }) => {
   useEffect(() => setItemIfNotEmpty("activeProjectId", activeProjectId), [activeProjectId]);
   useEffect(() => setItemIfNotEmpty("adminActingAs", adminActingAs), [adminActingAs]);
 
-  // Logout clears both context and storage
+  // Restore from localStorage on mount to support browser back/forward
+  useEffect(() => {
+    const stored = {
+      userId: localStorage.getItem("userId") || "",
+      userName: localStorage.getItem("userName") || "",
+      userRole: localStorage.getItem("userRole") || "",
+      userDepartment: localStorage.getItem("userDepartment") || "",
+      activeProjectId: localStorage.getItem("activeProjectId") || "",
+      adminActingAs: localStorage.getItem("adminActingAs") || "",
+    };
+
+    if (stored.userId !== userId) setUserId(stored.userId);
+    if (stored.userName !== userName) setUserName(stored.userName);
+    if (stored.userRole !== userRole) setUserRole(stored.userRole);
+    if (stored.userDepartment !== userDepartment) setUserDepartment(stored.userDepartment);
+    if (stored.activeProjectId !== activeProjectId) setActiveProjectId(stored.activeProjectId);
+    if (stored.adminActingAs !== adminActingAs) setAdminActingAs(stored.adminActingAs);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Logout clears everything
   const logout = () => {
     [
       "userId",
@@ -42,7 +62,7 @@ export const AppProvider = ({ children }) => {
       "userDepartment",
       "activeProjectId",
       "adminActingAs"
-    ].forEach((key) => localStorage.removeItem(key));
+    ].forEach(key => localStorage.removeItem(key));
 
     setUserId("");
     setUserName("");
