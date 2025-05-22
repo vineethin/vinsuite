@@ -19,6 +19,7 @@ import TestCoverageEstimator from './pages/qa/TestCoverageEstimator';
 import AutomatedTestGenerator from './pages/qa/AutomatedTestGenerator';
 import PerformanceScriptGenerator from './pages/qa/PerformanceScriptGenerator';
 
+
 // Dev Tools
 import JsonFormatter from './pages/dev/JsonFormatter';
 import UnitTestGenerator from './pages/dev/UnitTestGenerator';
@@ -62,6 +63,7 @@ import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
   const { isLoggedIn } = useApp();
+  console.log("🔐 isLoggedIn =", isLoggedIn);
 
   const PrivateRoute = ({ children }) => {
     return isLoggedIn ? children : <Navigate to="/login" />;

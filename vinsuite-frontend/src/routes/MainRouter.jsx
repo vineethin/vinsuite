@@ -27,27 +27,31 @@ import UnitTestGenerator from '../pages/dev/UnitTestGenerator';
 import PerformanceScriptGenerator from '../pages/qa/PerformanceScriptGenerator';
 import WebDefectScanner from '../pages/qa/WebDefectScanner'; 
 
-
 const MainRouter = () => {
   const { userId, userRole, userDepartment, adminActingAs } = useApp();
+  console.log("🧠 userRole:", userRole, "| adminActingAs:", adminActingAs);
+  console.log("🧠 userDepartment:", userDepartment);
+  console.log("🧠 userId:", userId);
 
   if (!userId || !userRole) {
     return <Navigate to="/login" replace />;
   }
 
-  const isQA = userRole === 'qa' || userRole === 'tester' || adminActingAs === 'tester';
+  const isQA = ["qa", "tester", "sdet", "admin"].includes(userRole?.toLowerCase()) || adminActingAs === "tester";
+
 
   return (
     <Routes>
       {/* QA */}
       {isQA && (
-  <>
-    <Route path="" element={<QADashboard />} />
-    <Route path="qa/performance-generator" element={<PerformanceScriptGenerator />} />
-    <Route path="qa/web-defect-scanner" element={<WebDefectScanner />} /> {/* ✅ New route */}
-  </>
-)}
+        <>
+          <Route path="" element={<QADashboard />} />
+          <Route path="qa/performance-generator" element={<PerformanceScriptGenerator />} />
+        </>
+      )}
 
+      {/* 🔥 Force render QA Web Defect Scanner temporarily */}
+      <Route path="qa/web-defect-scanner" element={<WebDefectScanner />} />
 
       {/* Developer */}
       {(userRole === 'developer' || userRole === 'dev') && (
