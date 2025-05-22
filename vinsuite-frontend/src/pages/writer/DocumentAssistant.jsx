@@ -3,7 +3,7 @@ import API from '../../apiConfig';
 import { saveAs } from 'file-saver';
 import htmlDocx from 'html-docx-js/dist/html-docx';
 import jsPDF from 'jspdf';
-import ToolHeader from '../../components/common/ToolHeader';
+import ToolLayout from '../../components/common/ToolLayout';
 
 const DocumentAssistant = () => {
   const [docType, setDocType] = useState('Report');
@@ -48,7 +48,6 @@ const DocumentAssistant = () => {
       const data = await response.text();
       setResult(data);
 
-      // Refresh quota
       const userId = localStorage.getItem('userId') || 'anonymous';
       const res = await fetch(`${API.WRITER}/quota`, {
         headers: { 'X-USER-ID': userId }
@@ -87,10 +86,8 @@ const DocumentAssistant = () => {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <ToolHeader title="📝 AI Document Assistant" backTo="/admin/writer" />
-
-      <div className="space-y-4">
+    <ToolLayout title="📝 AI Document Assistant" backTo="/dashboard/writer" showLogout={true}>
+      <div className="space-y-4 max-w-4xl mx-auto">
         {quota !== null && (
           <div className="text-sm text-gray-600">
             🧮 Remaining quota: {quota}/20
@@ -139,19 +136,19 @@ const DocumentAssistant = () => {
             <div className="flex flex-wrap gap-3 mt-3">
               <button
                 onClick={downloadAsDocx}
-                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow-md transition duration-200"
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow-md"
               >
                 📄 Export Word
               </button>
               <button
                 onClick={downloadAsPdf}
-                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow-md transition duration-200"
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow-md"
               >
                 🧾 Export PDF
               </button>
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded shadow-md transition duration-200"
+                className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded shadow-md"
               >
                 📋 Copy Text
               </button>
@@ -159,7 +156,7 @@ const DocumentAssistant = () => {
           </div>
         )}
       </div>
-    </div>
+    </ToolLayout>
   );
 };
 
