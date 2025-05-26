@@ -14,6 +14,9 @@ public class QueryOptimizerController {
     @Value("${groq.api.key}")
     private String groqApiKey;
 
+    @Value("${groq.model.name}")
+    private String groqModelName;
+
     private final RestTemplate restTemplate = new RestTemplate();
 
     @PostMapping("/optimize-query")
@@ -24,7 +27,7 @@ public class QueryOptimizerController {
 
         try {
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "llama3-70b-8192");
+            requestBody.put("model", groqModelName);
             requestBody.put("messages", List.of(
                 Map.of("role", "user", "content", prompt)
             ));

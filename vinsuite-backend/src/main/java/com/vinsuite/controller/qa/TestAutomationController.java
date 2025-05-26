@@ -19,6 +19,9 @@ public class TestAutomationController {
     @Value("${groq.api.key}")
     private String groqApiKey;
 
+    @Value("${groq.model.name}")
+    private String groqModelName;
+
     private final WebClient webClient;
 
     public TestAutomationController() {
@@ -36,7 +39,7 @@ public class TestAutomationController {
                 request.getLanguage(), request.getFramework(), request.getTestCase(), request.getHtmlCode());
 
         Map<String, Object> requestBody = Map.of(
-                "model", "llama3-70b-8192",
+                "model", groqModelName,
                 "messages", List.of(
                         Map.of("role", "user", "content", prompt)));
 

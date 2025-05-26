@@ -1,6 +1,7 @@
 package com.vinsuite.service.qa;
 
 import com.vinsuite.dto.qa.PerformanceRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -10,9 +11,9 @@ import java.util.stream.Collectors;
 @Service
 public class PerformanceScriptService {
 
-    /**
-     * This is still used for manual script generation (not test execution)
-     */
+    @Value("${k6.executable.path}")
+    private String k6Path;
+
     public String generateScript(PerformanceRequest request) {
         return String.format("""
             import http from 'k6/http';
@@ -33,27 +34,21 @@ public class PerformanceScriptService {
             """, request.getUsers(), request.getDuration(), request.getUrl());
     }
 
-    /**
-     * Runs a k6 test against the provided URL using generated script.
-     */
     public String runPerformanceTest(PerformanceRequest request) {
         try {
-            // Step 1: Generate script
             String script = generateScript(request);
             File tempScriptFile = File.createTempFile("k6-script-", ".js");
             Files.write(tempScriptFile.toPath(), script.getBytes());
 
-            // Step 2: Run k6
-            ProcessBuilder pb = new ProcessBuilder("k6", "run", "--quiet", tempScriptFile.getAbsolutePath());
+            ProcessBuilder pb = new ProcessBuilder(k6Path, "run", "--quiet", tempScriptFile.getAbsolutePath());
             pb.redirectErrorStream(true);
             Process process = pb.start();
 
-            // Step 3: Capture output
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String output = reader.lines().collect(Collectors.joining("\n"));
 
             process.waitFor();
-            tempScriptFile.delete(); // Clean up
+            tempScriptFile.delete();
 
             return output;
 
