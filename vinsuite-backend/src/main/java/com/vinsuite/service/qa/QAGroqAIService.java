@@ -18,6 +18,9 @@ public class QAGroqAIService {
     @Value("${groq.api.key}")
     private String groqApiKey;
 
+    @Value("${groq.model.name}")
+    private String groqModelName;
+
     private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
     public Map<String, Object> generateTestCases(String featureText) {
@@ -45,7 +48,7 @@ public class QAGroqAIService {
             headers.setBearerAuth(groqApiKey);
 
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "llama3-70b-8192");
+            requestBody.put("model", groqModelName);
             requestBody.put("messages", List.of(
                     Map.of("role", "system", "content", "You are a helpful QA assistant."),
                     Map.of("role", "user", "content", prompt)
@@ -100,7 +103,7 @@ public class QAGroqAIService {
             headers.setBearerAuth(groqApiKey);
 
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "llama3-70b-8192");
+            requestBody.put("model", groqModelName);
             requestBody.put("messages", List.of(
                     Map.of("role", "system", "content", "You are an assistant that maps user stories to test cases."),
                     Map.of("role", "user", "content", sb.toString())
@@ -170,7 +173,7 @@ public class QAGroqAIService {
             headers.setBearerAuth(groqApiKey);
 
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "llama3-70b-8192");
+            requestBody.put("model", groqModelName);
             requestBody.put("messages", List.of(
                     Map.of("role", "system", "content", "You are an expert QA analyst."),
                     Map.of("role", "user", "content", sb.toString())
@@ -283,7 +286,7 @@ public class QAGroqAIService {
                     Map.of("role", "user", "content", prompt)
             );
 
-            return sendChatCompletion("llama3-70b-8192", messages);
+            return sendChatCompletion(groqModelName, messages);
 
         } catch (Exception e) {
             e.printStackTrace();

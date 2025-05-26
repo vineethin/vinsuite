@@ -27,6 +27,9 @@ public class TestCaseGenerationService {
     @Value("${groq.api.key}")
     private String groqApiKey;
 
+    @Value("${groq.model.name}")
+    private String groqModelName;
+
     public ResponseEntity<?> generateTestCasesFromText(Map<String, String> request) {
         try {
             String extractedText = request.get("feature");
@@ -95,7 +98,7 @@ public class TestCaseGenerationService {
 
     private List<TestCase> callGroqToGenerateTestCases(String prompt) {
         Map<String, Object> payload = new HashMap<>();
-        payload.put("model", "llama3-70b-8192");
+        payload.put("model", groqModelName);
         payload.put("messages", List.of(Map.of("role", "user", "content", prompt)));
 
         HttpHeaders headers = new HttpHeaders();
