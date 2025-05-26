@@ -1,4 +1,5 @@
 {
+  "proxy": "http://localhost:8081",
   "dependencies": {
     "file-saver": "^2.0.5",
     "html-docx-js": "^0.3.1",

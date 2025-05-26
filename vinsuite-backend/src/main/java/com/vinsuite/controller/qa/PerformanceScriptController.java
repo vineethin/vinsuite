@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -21,29 +20,50 @@ public class PerformanceScriptController {
     private PerformanceScriptService performanceScriptService;
 
     @Value("${groq.api.key}")
-    private String groqApiKey; // ✅ Injected Groq key from application.properties
+    private String groqApiKey;
 
     @PostMapping("/generate")
-    public Map<String, String> generate(@RequestBody PerformanceRequest request) {
+    public ResponseEntity<Map<String, String>> generateScript(@RequestBody PerformanceRequest request) {
         String script = performanceScriptService.generateScript(request);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("script", script);
-        return response;
+        return ResponseEntity.ok(Map.of("script", script));
     }
 
     @PostMapping("/test")
     public ResponseEntity<?> testPerformance(@RequestBody PerformanceRequest request) {
-        if (!isUrlReachable(request.getUrl())) {
+        if (request.getUrl() == null || !isUrlReachable(request.getUrl())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("The provided URL is not reachable from the VinSuite server.");
+                    .body(Map.of("error", "❌ The provided URL is not reachable from the VinSuite server."));
         }
 
+        // Simulate performance summary
         String result = performanceScriptService.runPerformanceTest(request);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("summary", result);
-        return ResponseEntity.ok(response);
+        // Updated: Use only 'stages' instead of both 'vus' and 'duration'
+        String script = String.format("""
+            import http from 'k6/http';
+            import { sleep } from 'k6';
+
+            export let options = {
+              stages: [
+                { duration: '%ds', target: %d },
+                { duration: '%ds', target: %d }
+              ]
+            };
+
+            export default function () {
+              http.get('%s');
+              sleep(1);
+            }
+            """,
+            request.getRampUp(), request.getUsers(),
+            request.getDuration(), request.getUsers(),
+            request.getUrl()
+        );
+
+        return ResponseEntity.ok(Map.of(
+                "summary", result,
+                "script", script
+        ));
     }
 
     private boolean isUrlReachable(String urlStr) {
@@ -59,4 +79,4 @@ public class PerformanceScriptController {
             return false;
         }
     }
-}
+} 

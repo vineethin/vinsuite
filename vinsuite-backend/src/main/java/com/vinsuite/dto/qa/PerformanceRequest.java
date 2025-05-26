@@ -1,14 +1,14 @@
+// ✅ PerformanceRequest.java (Updated DTO)
 package com.vinsuite.dto.qa;
 
 public class PerformanceRequest {
     private String testCase;
     private String tool;
     private int users;
-    private int rampUp;
+    private int rampUp; // ✅ match frontend
     private int duration;
-    private String url; // ✅ Add this
+    private String url;
 
-    // Getters and Setters
     public String getTestCase() { return testCase; }
     public void setTestCase(String testCase) { this.testCase = testCase; }
 
@@ -24,6 +24,6 @@ public class PerformanceRequest {
     public int getDuration() { return duration; }
     public void setDuration(int duration) { this.duration = duration; }
 
-    public String getUrl() { return url; } // ✅ Add getter
-    public void setUrl(String url) { this.url = url; } // ✅ Add setter
+    public String getUrl() { return url; }
+    public void setUrl(String url) { this.url = url; }
 }

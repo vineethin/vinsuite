@@ -8,11 +8,10 @@ const ToolHeader = ({ title, showLogout = true, showBack = true, backTo = "/qa" 
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 bg-white/5 p-4 rounded-xl shadow border border-white/10">
-      {/* Title with animated AI icon */}
+      {/* Title with styled brain icon */}
       <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 flex items-center gap-3">
-        <span className="relative flex w-8 h-8 items-center justify-center">
-          <span className="absolute inline-flex h-full w-full rounded-full bg-pink-500 opacity-75 animate-ping" />
-          <span className="relative inline-flex rounded-full bg-pink-500 w-4 h-4" />
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-pink-100 text-pink-600 text-xl">
+          🧠
         </span>
         {title}
       </h1>

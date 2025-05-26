@@ -8,6 +8,7 @@ const AutomatedTestGenerator = () => {
   const [language, setLanguage] = useState('Java');
   const [framework, setFramework] = useState('TestNG');
   const [generatedCode, setGeneratedCode] = useState('');
+  const [error, setError] = useState('');
 
   const frameworkOptions = {
     Java: ['TestNG', 'JUnit'],
@@ -15,18 +16,31 @@ const AutomatedTestGenerator = () => {
   };
 
   const handleGenerate = async () => {
+    setGeneratedCode('');
+    setError('');
     try {
-      const response = await fetch(`${API.FRAMEWORK}/generate`, {
+      const response = await fetch(`${API.FRAMEWORK}/generate-script`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ testCase, htmlCode, language, framework }),
+        body: JSON.stringify({
+          manualSteps: testCase,
+          htmlCode,
+          language,
+          framework
+        }),
       });
 
-      const result = await response.text();
-      setGeneratedCode(result);
-    } catch (error) {
-      console.error('Error generating automation code:', error);
-      setGeneratedCode('// Error: Unable to generate automation code.');
+      if (!response.ok) {
+        const text = await response.text();
+        setError(text || 'Server returned an error.');
+        return;
+      }
+
+      const script = await response.text();
+      setGeneratedCode(script);
+    } catch (err) {
+      console.error('Error generating automation code:', err);
+      setError('❌ Error: Unable to connect to the script generator API.');
     }
   };
 
@@ -87,6 +101,12 @@ const AutomatedTestGenerator = () => {
         >
           Generate Automation Script
         </button>
+
+        {error && (
+          <div className="mt-4 text-red-600 border border-red-300 bg-red-50 p-4 rounded">
+            {error}
+          </div>
+        )}
 
         {generatedCode && (
           <div className="mt-6">

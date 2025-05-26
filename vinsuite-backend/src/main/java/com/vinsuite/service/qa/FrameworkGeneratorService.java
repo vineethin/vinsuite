@@ -1,10 +1,10 @@
 package com.vinsuite.service.qa;
 
+import com.vinsuite.dto.qa.FrameworkConfigRequest;
 import org.springframework.stereotype.Service;
 
-import com.vinsuite.dto.qa.FrameworkConfigRequest;
-
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -14,39 +14,59 @@ import java.util.zip.ZipOutputStream;
 public class FrameworkGeneratorService {
 
     public byte[] generateFramework(FrameworkConfigRequest config) throws IOException {
-        System.out.println("🟡 TEST: This is the latest build at " + System.currentTimeMillis());
         Path tempDir = Files.createTempDirectory("sample-framework");
         Path baseDir = tempDir.resolve("VinSuiteFramework");
 
-        // Create base structure
         Files.createDirectories(baseDir);
 
-        if ("java".equalsIgnoreCase(config.getLanguage())) {
-            generateJavaFramework(baseDir, config);
-        } else if ("python".equalsIgnoreCase(config.getLanguage())) {
-            generatePythonFramework(baseDir, config);
-        } else if ("csharp".equalsIgnoreCase(config.getLanguage()) || "c#".equalsIgnoreCase(config.getLanguage())) {
-            generateCsharpFramework(baseDir, config);
+        switch (config.getLanguage().toLowerCase()) {
+            case "java" -> generateJavaFramework(baseDir, config);
+            case "python" -> generatePythonFramework(baseDir, config);
+            case "csharp", "c#" -> generateCsharpFramework(baseDir, config);
+            default -> throw new IllegalArgumentException("Unsupported language: " + config.getLanguage());
         }
 
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (ZipOutputStream zos = new ZipOutputStream(byteArrayOutputStream)) {
-            Files.walk(baseDir).filter(Files::isRegularFile).forEach(filePath -> {
-                try {
-                    String zipEntryPath = baseDir.relativize(filePath).toString();
-                    zos.putNextEntry(new ZipEntry(zipEntryPath));
-                    Files.copy(filePath, zos);
-                    zos.closeEntry();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+        byte[] zipBytes;
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                ZipOutputStream zos = new ZipOutputStream(byteArrayOutputStream)) {
+
+            Files.walk(baseDir)
+                    .filter(Files::isRegularFile)
+                    .forEach(path -> {
+                        try {
+                            zos.putNextEntry(new ZipEntry(baseDir.relativize(path).toString()));
+                            Files.copy(path, zos);
+                            zos.closeEntry();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+
+            zipBytes = byteArrayOutputStream.toByteArray();
         }
 
         deleteDirectory(tempDir.toFile());
-        System.out.println("✅ Framework generated successfully. ZIP size: " + byteArrayOutputStream.size() + " bytes");
+        return zipBytes;
+    }
 
-        return byteArrayOutputStream.toByteArray();
+    public String generateTestScript(String manualSteps, String htmlCode, String language, String framework) {
+        // TODO: Enhance logic based on framework/language
+        return String.format("""
+                // Auto-generated Test Script
+                // Language: %s | Framework: %s
+
+                // Manual Steps:
+                /*
+                %s
+                */
+
+                // HTML Snippet:
+                /*
+                %s
+                */
+
+                // [Your automation logic will be generated here based on AI/model integration]
+                """, language, framework, manualSteps, htmlCode);
     }
 
     private void generateJavaFramework(Path baseDir, FrameworkConfigRequest config) throws IOException {
@@ -62,15 +82,16 @@ public class FrameworkGeneratorService {
         Files.createDirectories(testTests);
         Files.createDirectories(resources);
 
-        Files.writeString(baseDir.resolve("pom.xml"), getPomXml(config));
-        Files.writeString(baseDir.resolve("testng.xml"), getTestngXml());
-        Files.writeString(resources.resolve("logback.xml"), getLogbackXml());
-        Files.writeString(baseDir.resolve("README.md"), getReadme("Java + TestNG + " + config.getReportTool()));
+        Files.writeString(baseDir.resolve("pom.xml"), getPomXml(config), StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("testng.xml"), getTestngXml(), StandardCharsets.UTF_8);
+        Files.writeString(resources.resolve("logback.xml"), getLogbackXml(), StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("README.md"), getReadme("Java + TestNG + " + config.getReportTool()),
+                StandardCharsets.UTF_8);
 
-        Files.writeString(testTests.resolve("SampleTest.java"), getSampleTest());
-        Files.writeString(testBase.resolve("BaseTest.java"), "// Base test class");
-        Files.writeString(testPages.resolve("LoginPage.java"), "// Login Page");
-        Files.writeString(mainJava.resolve("DriverFactory.java"), "// WebDriver factory logic");
+        Files.writeString(testTests.resolve("SampleTest.java"), getSampleTest(), StandardCharsets.UTF_8);
+        Files.writeString(testBase.resolve("BaseTest.java"), "// Base test class", StandardCharsets.UTF_8);
+        Files.writeString(testPages.resolve("LoginPage.java"), "// Login Page", StandardCharsets.UTF_8);
+        Files.writeString(mainJava.resolve("DriverFactory.java"), "// WebDriver factory logic", StandardCharsets.UTF_8);
     }
 
     private void generatePythonFramework(Path baseDir, FrameworkConfigRequest config) throws IOException {
@@ -79,15 +100,19 @@ public class FrameworkGeneratorService {
             Files.createDirectories(baseDir.resolve(dir));
         }
 
-        Files.writeString(baseDir.resolve("requirements.txt"), "pytest\nallure-pytest\nselenium");
-        Files.writeString(baseDir.resolve("pytest.ini"), "[pytest]\naddopts = -v");
-        Files.writeString(baseDir.resolve("README.md"), getReadme("Python + PyTest + " + config.getReportTool()));
+        Files.writeString(baseDir.resolve("requirements.txt"), "pytest\nallure-pytest\nselenium",
+                StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("pytest.ini"), "[pytest]\naddopts = -v", StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("README.md"), getReadme("Python + PyTest + " + config.getReportTool()),
+                StandardCharsets.UTF_8);
         Files.writeString(baseDir.resolve("tests/test_sample.py"),
-                "def test_example():\n    print('✅ Running sample test')");
-        Files.writeString(baseDir.resolve("pages/login_page.py"), "# Login page object");
-        Files.writeString(baseDir.resolve("utils/driver_factory.py"), "# Selenium WebDriver factory");
-        Files.writeString(baseDir.resolve("base/base_test.py"), "# Common setup/teardown");
-        Files.writeString(baseDir.resolve("config/config.yaml"), "browser: chrome\nurl: https://example.com");
+                "def test_example():\n    print('✅ Running sample test')", StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("pages/login_page.py"), "# Login page object", StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("utils/driver_factory.py"), "# Selenium WebDriver factory",
+                StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("base/base_test.py"), "# Common setup/teardown", StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("config/config.yaml"), "browser: chrome\nurl: https://example.com",
+                StandardCharsets.UTF_8);
     }
 
     private void generateCsharpFramework(Path baseDir, FrameworkConfigRequest config) throws IOException {
@@ -96,25 +121,35 @@ public class FrameworkGeneratorService {
             Files.createDirectories(baseDir.resolve(dir));
         }
 
-        Files.writeString(baseDir.resolve("VinSuiteFramework.sln"), "");
+        Files.writeString(baseDir.resolve("VinSuiteFramework.sln"), "", StandardCharsets.UTF_8);
         Files.writeString(baseDir.resolve("VinSuiteFramework.csproj"),
-                "<Project Sdk=\"Microsoft.NET.Sdk\">\n</Project>");
-        Files.writeString(baseDir.resolve("README.md"), getReadme("C# + NUnit + " + config.getReportTool()));
+                "<Project Sdk=\"Microsoft.NET.Sdk\">\n</Project>", StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("README.md"), getReadme("C# + NUnit + " + config.getReportTool()),
+                StandardCharsets.UTF_8);
         Files.writeString(baseDir.resolve("Tests/SampleTest.cs"),
-                "using NUnit.Framework;\n[TestFixture]\npublic class SampleTest {\n  [Test] public void Example() => Assert.Pass();\n}");
-        Files.writeString(baseDir.resolve("Pages/LoginPage.cs"), "// Login Page Object");
-        Files.writeString(baseDir.resolve("Utils/DriverFactory.cs"), "// WebDriver Factory");
-        Files.writeString(baseDir.resolve("Base/BaseTest.cs"), "// Base Test Class");
+                "using NUnit.Framework;\n[TestFixture]\npublic class SampleTest {\n  [Test] public void Example() => Assert.Pass();\n}",
+                StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("Pages/LoginPage.cs"), "// Login Page Object", StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("Utils/DriverFactory.cs"), "// WebDriver Factory", StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("Base/BaseTest.cs"), "// Base Test Class", StandardCharsets.UTF_8);
         Files.writeString(baseDir.resolve("Config/config.json"),
-                "{ \"browser\": \"chrome\", \"url\": \"https://example.com\" }");
+                "{ \"browser\": \"chrome\", \"url\": \"https://example.com\" }", StandardCharsets.UTF_8);
     }
 
     private String getPomXml(FrameworkConfigRequest config) {
         String reporter = switch (config.getReportTool().toLowerCase()) {
-            case "allure" ->
-                "<dependency>\n<groupId>io.qameta.allure</groupId>\n<artifactId>allure-testng</artifactId>\n<version>2.20.1</version>\n</dependency>";
-            case "logback" ->
-                "<dependency>\n<groupId>ch.qos.logback</groupId>\n<artifactId>logback-classic</artifactId>\n<version>1.4.11</version>\n</dependency>";
+            case "allure" -> """
+                    <dependency>
+                        <groupId>io.qameta.allure</groupId>
+                        <artifactId>allure-testng</artifactId>
+                        <version>2.20.1</version>
+                    </dependency>""";
+            case "logback" -> """
+                    <dependency>
+                        <groupId>ch.qos.logback</groupId>
+                        <artifactId>logback-classic</artifactId>
+                        <version>1.4.11</version>
+                    </dependency>""";
             default -> "";
         };
 
@@ -139,31 +174,6 @@ public class FrameworkGeneratorService {
                             </project>
                         """,
                 reporter);
-    }
-
-    private String getGradleBuild(FrameworkConfigRequest config) {
-        String reporter = switch (config.getReportTool().toLowerCase()) {
-            case "allure" -> "implementation 'io.qameta.allure:allure-testng:2.20.1'";
-            case "logback" -> "implementation 'ch.qos.logback:logback-classic:1.4.11'";
-            default -> "";
-        };
-
-        return String.format("""
-                    plugins {
-                        id 'java'
-                    }
-
-                    group 'com.vinsuite'
-                    version '1.0-SNAPSHOT'
-
-                    repositories {
-                        mavenCentral()
-                    }
-
-                    dependencies {
-                        %s
-                    }
-                """, reporter);
     }
 
     private String getTestngXml() {
@@ -215,13 +225,13 @@ public class FrameworkGeneratorService {
                 """;
     }
 
-    private void deleteDirectory(File directoryToBeDeleted) {
-        File[] allContents = directoryToBeDeleted.listFiles();
-        if (allContents != null) {
-            for (File file : allContents) {
+    private void deleteDirectory(File dir) {
+        File[] contents = dir.listFiles();
+        if (contents != null) {
+            for (File file : contents) {
                 deleteDirectory(file);
             }
         }
-        directoryToBeDeleted.delete();
+        dir.delete();
     }
 }

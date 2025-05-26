@@ -55,7 +55,7 @@ const TestCaseGenerator = () => {
   };
 
   return (
-    <ToolLayout title="🧠 TestGenie by VinSuite">
+    <ToolLayout title="TestGenie by VinSuite">
       <TabSwitcher activeTab={tab} onSwitch={handleTabSwitch} />
 
       {tab === "text" && (
