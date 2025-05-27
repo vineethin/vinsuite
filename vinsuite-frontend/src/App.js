@@ -24,6 +24,7 @@ import PerformanceScriptGenerator from './pages/qa/PerformanceScriptGenerator';
 import JsonFormatter from './pages/dev/JsonFormatter';
 import UnitTestGenerator from './pages/dev/UnitTestGenerator';
 import AIReviewer from './pages/dev/AIReviewer';
+import CodeSummarizer from './pages/dev/CodeSummarizer';
 
 // Admin Pages
 import AdminITDashboard from './pages/admin/AdminITDashboard';
@@ -99,6 +100,8 @@ function App() {
         <Route path="/developer/json-formatter" element={<PrivateRoute><JsonFormatter /></PrivateRoute>} />
         <Route path="/dev/unit-test-generator" element={<PrivateRoute><UnitTestGenerator /></PrivateRoute>} />
         <Route path="/dev/ai-reviewer" element={<PrivateRoute><AIReviewer /></PrivateRoute>} />
+        <Route path="/dev/code-summarizer" element={<PrivateRoute><CodeSummarizer /></PrivateRoute>} />
+
 
         {/* Admin Dashboards */}
         <Route path="/admin/it" element={<PrivateRoute><AdminITDashboard /></PrivateRoute>} />
