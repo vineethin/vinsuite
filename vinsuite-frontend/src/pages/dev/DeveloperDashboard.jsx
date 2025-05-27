@@ -7,7 +7,7 @@ const tools = [
   { name: "Unit Test Generator", route: "/dev/unit-test-generator" },
   { name: "Code Summarizer & Explainer", route: "/dev/code-summarizer", description: "Get instant explanations for complex code." },
   { name: "Prompt Evaluator", route: "#", description: "Placeholder for future AI integration" },
-  { name: "AI Code Reviewer", route: "#", description: "Placeholder for future AI integration" },
+  { name: "AI Code Reviewer", route: "/dev/ai-reviewer", description: "Get code review with quality, performance, and best practices suggestions." },
   { name: "Secure Code Analyzer", route: "#", description: "Placeholder for future AI integration" },
   { name: "Refactor Assistant", route: "#", description: "Placeholder for future AI integration" },
   { name: "Regex Simplifier", route: "#", description: "Placeholder for future AI integration" },
