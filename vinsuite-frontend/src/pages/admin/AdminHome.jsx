@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from "../../contexts/AppContext";
 import AdminDeptSwitcher from '../../components/admin/AdminDeptSwitcher';
+import API from '../../apiConfig';
 
 const AdminHome = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const AdminHome = () => {
   };
 
   useEffect(() => {
-    fetch('/api/admin/user-count')
+    fetch(API.VIEW_USER_COUNT)
       .then((res) => res.json())
       .then((data) => setUserCount(data))
       .catch((err) => console.error("❌ Failed to fetch user count", err));
@@ -57,6 +58,10 @@ const AdminHome = () => {
           <h3 className="font-bold text-lg">Writer</h3>
           <p>Generate email, blog, and document content with AI.</p>
         </div>
+        <div onClick={() => handleCardClick('/admin/users')} className="cursor-pointer border rounded p-4 hover:shadow-md bg-white">
+          <h3 className="font-bold text-lg">View Users</h3>
+          <p>See a list of all registered users with details.</p>
+        </div>
       </div>
 
       {/* Dashboard Insights */}
@@ -86,14 +91,7 @@ const AdminHome = () => {
       <div className="mt-10">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">📌 Coming Soon</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
-            "Manager",
-            "Business Analyst",
-            "Database Admin",
-            "Sales Lead",
-            "Support",
-            "Finance"
-          ].map((role, idx) => (
+          {["Manager", "Business Analyst", "Database Admin", "Sales Lead", "Support", "Finance"].map((role, idx) => (
             <div
               key={idx}
               className="border rounded p-4 opacity-50 cursor-not-allowed hover:shadow-md"

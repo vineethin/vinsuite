@@ -22,6 +22,8 @@ const API = {
   PERFORMANCE: `${BASE_URL}/qa/performance`,
   WRITER: `${BASE_URL}/writer`,
   WEB_DEFECT_SCANNER: `${BASE_URL}/qa/defect-scan`,
+  VIEW_USER_COUNT: `${BASE_URL}/admin/users/count`,
+  VIEW_USERS: `${BASE_URL}/admin/users`, 
 };
 
 export default API;
