@@ -34,6 +34,7 @@ import AdminSalesDashboard from './pages/admin/AdminSalesDashboard';
 import AdminWriterDashboard from './pages/admin/AdminWriterDashboard'; // ✅ FIXED
 import AdminHome from './pages/admin/AdminHome';
 import ComingSoon from './pages/admin/ComingSoon';
+import ViewUsers from './pages/admin/ViewUsers';
 
 // Dashboards
 import QADashboard from './pages/qa/QADashboard';
@@ -105,9 +106,10 @@ function App() {
         <Route path="/admin/trader" element={<PrivateRoute><AdminTraderDashboard /></PrivateRoute>} />
         <Route path="/admin/support" element={<PrivateRoute><AdminSupportDashboard /></PrivateRoute>} />
         <Route path="/admin/sales" element={<PrivateRoute><AdminSalesDashboard /></PrivateRoute>} />
-        <Route path="/admin/writer" element={<PrivateRoute><AdminWriterDashboard /></PrivateRoute>} /> {/* ✅ FIXED */}
+        <Route path="/admin/writer" element={<PrivateRoute><AdminWriterDashboard /></PrivateRoute>} /> 
         <Route path="/admin" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
         <Route path="/coming-soon/:role" element={<PrivateRoute><ComingSoon /></PrivateRoute>} />
+        <Route path="/admin/users" element={<ViewUsers />} />
 
         {/* Department Dashboards */}
         <Route path="/qa" element={<PrivateRoute><QADashboard /></PrivateRoute>} />
