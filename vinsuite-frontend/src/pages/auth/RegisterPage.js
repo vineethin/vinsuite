@@ -3,6 +3,17 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import API from '../../apiConfig';
 
+const departmentRolesMap = {
+  IT: ['tester', 'developer', 'manager', 'ba', 'dba'],
+  Finance: ['finance', 'auditor'],
+  HR: ['recruiter', 'hrmanager'],
+  Sales: ['saleslead', 'salesrep'],
+  Support: ['support'],
+  Trading: ['trader', 'portfolioanalyst', 'riskmanager'],
+  Writer: ['writer'],
+  // 🚫 Do NOT include companyadmin here to hide from UI
+};
+
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,18 +23,27 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const handleDepartmentChange = (e) => {
+    const selectedDept = e.target.value;
+    setDepartment(selectedDept);
+    const roles = departmentRolesMap[selectedDept] || [];
+    setRole(roles.length === 1 ? roles[0] : '');
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const res = await axios.post(`${API.AUTH}/register`, {
-        email,
-        password,
-        name,
-        role,
-        department,
-      });
+      const payload = { email, password, name, role, department };
+
+      if (payload.role === 'companyadmin') {
+        alert("❌ You cannot register as Company Admin.");
+        setLoading(false);
+        return;
+      }
+
+      const res = await axios.post(`${API.AUTH}/register`, payload);
 
       if (res.status === 200) {
         alert('✅ Registered Successfully');
@@ -76,21 +96,14 @@ const RegisterPage = () => {
           {/* Department Dropdown */}
           <select
             value={department}
-            onChange={(e) => {
-              setDepartment(e.target.value);
-              setRole('');
-            }}
+            onChange={handleDepartmentChange}
             className="w-full px-4 py-2 border rounded"
             required
           >
             <option value="">Select Department</option>
-            <option value="IT">IT</option>
-            <option value="Finance">Finance</option>
-            <option value="HR">HR</option>
-            <option value="Sales">Sales</option>
-            <option value="Support">Support</option>
-            <option value="Trading">Trading</option>
-            <option value="Writer">Writer</option> {/* ✅ Added */}
+            {Object.keys(departmentRolesMap).map((dept) => (
+              <option key={dept} value={dept}>{dept}</option>
+            ))}
           </select>
 
           {/* Role Dropdown */}
@@ -102,81 +115,21 @@ const RegisterPage = () => {
             disabled={!department}
           >
             <option value="">Select Role</option>
-
-            {department === 'IT' && (
-              <>
-                <option value="tester">Tester</option>
-                <option value="developer">Developer</option>
-                <option value="manager">Manager</option>
-                <option value="ba">Business Analyst</option>
-                <option value="dba">DBA</option>
-              </>
-            )}
-
-            {department === 'Finance' && (
-              <>
-                <option value="finance">Finance Analyst</option>
-                <option value="auditor">Auditor</option>
-              </>
-            )}
-
-            {department === 'HR' && (
-              <>
-                <option value="recruiter">Recruiter</option>
-                <option value="hrmanager">HR Manager</option>
-              </>
-            )}
-
-            {department === 'Sales' && (
-              <>
-                <option value="saleslead">Sales Lead</option>
-                <option value="salesrep">Sales Representative</option>
-              </>
-            )}
-
-            {department === 'Support' && (
-              <option value="support">Support Engineer</option>
-            )}
-
-            {department === 'Trading' && (
-              <>
-                <option value="trader">Trader</option>
-                <option value="portfolioanalyst">Portfolio Analyst</option>
-                <option value="riskmanager">Risk Manager</option>
-              </>
-            )}
-
-            {department === 'Writer' && (
-              <>
-                <option value="writer">Writer</option>
-              </>
-            )}
+            {(departmentRolesMap[department] || []).map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
           </select>
 
           <button
             type="submit"
-            disabled={loading}
-            className={`w-full ${
-              loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-            } text-white py-2 rounded flex justify-center items-center`}
+            disabled={loading || !role}
+            className={`w-full ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white py-2 rounded flex justify-center items-center`}
           >
             {loading ? (
               <div className="flex items-center space-x-2">
                 <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                  />
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                 </svg>
                 <span>Registering...</span>
               </div>
@@ -185,6 +138,7 @@ const RegisterPage = () => {
             )}
           </button>
         </form>
+
         <p className="text-center text-sm mt-4">
           Already have an account?{' '}
           <Link to="/login" className="text-blue-600 hover:underline font-medium">

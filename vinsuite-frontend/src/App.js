@@ -1,6 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useApp } from "./contexts/AppContext";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Core Pages
 import HomePage from './pages/core/HomePage';
@@ -19,7 +21,6 @@ import TestCoverageEstimator from './pages/qa/TestCoverageEstimator';
 import AutomatedTestGenerator from './pages/qa/AutomatedTestGenerator';
 import PerformanceScriptGenerator from './pages/qa/PerformanceScriptGenerator';
 
-
 // Dev Tools
 import JsonFormatter from './pages/dev/JsonFormatter';
 import UnitTestGenerator from './pages/dev/UnitTestGenerator';
@@ -27,12 +28,14 @@ import AIReviewer from './pages/dev/AIReviewer';
 import CodeSummarizer from './pages/dev/CodeSummarizer';
 
 // Admin Pages
+import ProtectedRoute from './components/common/ProtectedRoute';
+import CreateCompanyAdmin from './pages/admin/CreateCompanyAdmin';
 import AdminITDashboard from './pages/admin/AdminITDashboard';
 import AdminFinanceDashboard from './pages/admin/AdminFinanceDashboard';
 import AdminTraderDashboard from './pages/admin/AdminTraderDashboard';
 import AdminSupportDashboard from './pages/admin/AdminSupportDashboard';
 import AdminSalesDashboard from './pages/admin/AdminSalesDashboard';
-import AdminWriterDashboard from './pages/admin/AdminWriterDashboard'; // ✅ FIXED
+import AdminWriterDashboard from './pages/admin/AdminWriterDashboard';
 import AdminHome from './pages/admin/AdminHome';
 import ComingSoon from './pages/admin/ComingSoon';
 import ViewUsers from './pages/admin/ViewUsers';
@@ -48,7 +51,7 @@ import SupportDashboard from './pages/support/SupportDashboard';
 import FinanceDashboard from './pages/finance/FinanceDashboard';
 import WriterDashboard from './pages/writer/WriterDashboard';
 
-// ✅ Writer Tools
+// Writer Tools
 import ContentGenerator from './pages/writer/ContentGenerator';
 import EmailWriter from './pages/writer/EmailWriter';
 import DocumentAssistant from './pages/writer/DocumentAssistant';
@@ -72,75 +75,86 @@ function App() {
   };
 
   return (
-    <Router>
-      <Routes>
-        {/* Home or Redirect to Dashboard */}
-        <Route path="/" element={isLoggedIn ? <Navigate to="/dashboard" /> : <HomePage />} />
+    <>
+      <Router>
+        <Routes>
+          <Route path="/" element={isLoggedIn ? <Navigate to="/dashboard" /> : <HomePage />} />
 
-        {/* Auth Routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+          {/* Auth */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-        {/* Protected Core Pages */}
-        <Route path="/project" element={<PrivateRoute><ProjectPage /></PrivateRoute>} />
-        <Route path="/results" element={<PrivateRoute><ResultsPage /></PrivateRoute>} />
+          {/* Admin: Create Company Admin (superadmin only) */}
+          <Route
+            path="/admin/create-company-admin"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <CreateCompanyAdmin />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* QA Tools */}
-        <Route path="/test-generator" element={<PrivateRoute><TestCaseGenerator /></PrivateRoute>} />
-        <Route path="/generate" element={<PrivateRoute><TestCaseGenerator /></PrivateRoute>} />
-        <Route path="/accessibility" element={<PrivateRoute><AccessibilityScanner /></PrivateRoute>} />
-        <Route path="/page-object" element={<PrivateRoute><PageObjectGenerator /></PrivateRoute>} />
-        <Route path="/qa/framework-generator" element={<PrivateRoute><FrameworkGenerator /></PrivateRoute>} />
-        <Route path="/qa/ai-response-validator" element={<PrivateRoute><AIResponseValidator /></PrivateRoute>} />
-        <Route path="/qa/test-coverage-estimator" element={<PrivateRoute><TestCoverageEstimator /></PrivateRoute>} />
-        <Route path="/qa/automated-test-generator" element={<PrivateRoute><AutomatedTestGenerator /></PrivateRoute>} />
-        <Route path="/qa/performance-generator" element={<PrivateRoute><PerformanceScriptGenerator /></PrivateRoute>} />
+          {/* Protected Core Pages */}
+          <Route path="/project" element={<PrivateRoute><ProjectPage /></PrivateRoute>} />
+          <Route path="/results" element={<PrivateRoute><ResultsPage /></PrivateRoute>} />
 
-        {/* Developer Tools */}
-        <Route path="/developer/json-formatter" element={<PrivateRoute><JsonFormatter /></PrivateRoute>} />
-        <Route path="/dev/unit-test-generator" element={<PrivateRoute><UnitTestGenerator /></PrivateRoute>} />
-        <Route path="/dev/ai-reviewer" element={<PrivateRoute><AIReviewer /></PrivateRoute>} />
-        <Route path="/dev/code-summarizer" element={<PrivateRoute><CodeSummarizer /></PrivateRoute>} />
+          {/* QA Tools */}
+          <Route path="/test-generator" element={<PrivateRoute><TestCaseGenerator /></PrivateRoute>} />
+          <Route path="/generate" element={<PrivateRoute><TestCaseGenerator /></PrivateRoute>} />
+          <Route path="/accessibility" element={<PrivateRoute><AccessibilityScanner /></PrivateRoute>} />
+          <Route path="/page-object" element={<PrivateRoute><PageObjectGenerator /></PrivateRoute>} />
+          <Route path="/qa/framework-generator" element={<PrivateRoute><FrameworkGenerator /></PrivateRoute>} />
+          <Route path="/qa/ai-response-validator" element={<PrivateRoute><AIResponseValidator /></PrivateRoute>} />
+          <Route path="/qa/test-coverage-estimator" element={<PrivateRoute><TestCoverageEstimator /></PrivateRoute>} />
+          <Route path="/qa/automated-test-generator" element={<PrivateRoute><AutomatedTestGenerator /></PrivateRoute>} />
+          <Route path="/qa/performance-generator" element={<PrivateRoute><PerformanceScriptGenerator /></PrivateRoute>} />
 
+          {/* Developer Tools */}
+          <Route path="/developer/json-formatter" element={<PrivateRoute><JsonFormatter /></PrivateRoute>} />
+          <Route path="/dev/unit-test-generator" element={<PrivateRoute><UnitTestGenerator /></PrivateRoute>} />
+          <Route path="/dev/ai-reviewer" element={<PrivateRoute><AIReviewer /></PrivateRoute>} />
+          <Route path="/dev/code-summarizer" element={<PrivateRoute><CodeSummarizer /></PrivateRoute>} />
 
-        {/* Admin Dashboards */}
-        <Route path="/admin/it" element={<PrivateRoute><AdminITDashboard /></PrivateRoute>} />
-        <Route path="/admin/finance" element={<PrivateRoute><AdminFinanceDashboard /></PrivateRoute>} />
-        <Route path="/admin/trader" element={<PrivateRoute><AdminTraderDashboard /></PrivateRoute>} />
-        <Route path="/admin/support" element={<PrivateRoute><AdminSupportDashboard /></PrivateRoute>} />
-        <Route path="/admin/sales" element={<PrivateRoute><AdminSalesDashboard /></PrivateRoute>} />
-        <Route path="/admin/writer" element={<PrivateRoute><AdminWriterDashboard /></PrivateRoute>} /> 
-        <Route path="/admin" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
-        <Route path="/coming-soon/:role" element={<PrivateRoute><ComingSoon /></PrivateRoute>} />
-        <Route path="/admin/users" element={<ViewUsers />} />
+          {/* Admin Dashboards */}
+          <Route path="/admin/it" element={<PrivateRoute><AdminITDashboard /></PrivateRoute>} />
+          <Route path="/admin/finance" element={<PrivateRoute><AdminFinanceDashboard /></PrivateRoute>} />
+          <Route path="/admin/trader" element={<PrivateRoute><AdminTraderDashboard /></PrivateRoute>} />
+          <Route path="/admin/support" element={<PrivateRoute><AdminSupportDashboard /></PrivateRoute>} />
+          <Route path="/admin/sales" element={<PrivateRoute><AdminSalesDashboard /></PrivateRoute>} />
+          <Route path="/admin/writer" element={<PrivateRoute><AdminWriterDashboard /></PrivateRoute>} />
+          <Route path="/admin" element={<PrivateRoute><AdminHome /></PrivateRoute>} />
+          <Route path="/coming-soon/:role" element={<PrivateRoute><ComingSoon /></PrivateRoute>} />
+          <Route path="/admin/users" element={<PrivateRoute><ViewUsers /></PrivateRoute>} />
 
-        {/* Department Dashboards */}
-        <Route path="/qa" element={<PrivateRoute><QADashboard /></PrivateRoute>} />
-        <Route path="/dev" element={<PrivateRoute><DeveloperDashboard /></PrivateRoute>} />
-        <Route path="/manager" element={<PrivateRoute><ManagerDashboard /></PrivateRoute>} />
-        <Route path="/ba" element={<PrivateRoute><BADashboard /></PrivateRoute>} />
-        <Route path="/dba" element={<PrivateRoute><DBADashboard /></PrivateRoute>} />
-        <Route path="/sales" element={<PrivateRoute><SalesDashboard /></PrivateRoute>} />
-        <Route path="/support" element={<PrivateRoute><SupportDashboard /></PrivateRoute>} />
-        <Route path="/finance" element={<PrivateRoute><FinanceDashboard /></PrivateRoute>} />
+          {/* Department Dashboards */}
+          <Route path="/qa" element={<PrivateRoute><QADashboard /></PrivateRoute>} />
+          <Route path="/dev" element={<PrivateRoute><DeveloperDashboard /></PrivateRoute>} />
+          <Route path="/manager" element={<PrivateRoute><ManagerDashboard /></PrivateRoute>} />
+          <Route path="/ba" element={<PrivateRoute><BADashboard /></PrivateRoute>} />
+          <Route path="/dba" element={<PrivateRoute><DBADashboard /></PrivateRoute>} />
+          <Route path="/sales" element={<PrivateRoute><SalesDashboard /></PrivateRoute>} />
+          <Route path="/support" element={<PrivateRoute><SupportDashboard /></PrivateRoute>} />
+          <Route path="/finance" element={<PrivateRoute><FinanceDashboard /></PrivateRoute>} />
 
-        {/* Writer Tools */}
-        <Route path="/writer/dashboard" element={<PrivateRoute><WriterDashboard /></PrivateRoute>} />
-        <Route path="/writer/content-generator" element={<PrivateRoute><ContentGenerator /></PrivateRoute>} />
-        <Route path="/writer/email-writer" element={<PrivateRoute><EmailWriter /></PrivateRoute>} />
-        <Route path="/writer/document-assistant" element={<PrivateRoute><DocumentAssistant /></PrivateRoute>} />
+          {/* Writer Tools */}
+          <Route path="/writer/dashboard" element={<PrivateRoute><WriterDashboard /></PrivateRoute>} />
+          <Route path="/writer/content-generator" element={<PrivateRoute><ContentGenerator /></PrivateRoute>} />
+          <Route path="/writer/email-writer" element={<PrivateRoute><EmailWriter /></PrivateRoute>} />
+          <Route path="/writer/document-assistant" element={<PrivateRoute><DocumentAssistant /></PrivateRoute>} />
 
-        {/* Other Tools */}
-        <Route path="/xpath-image" element={<PrivateRoute><ElementIdentifier /></PrivateRoute>} />
-        <Route path="/predict-defect" element={<PrivateRoute><DefectPredictor /></PrivateRoute>} />
+          {/* Other Tools */}
+          <Route path="/xpath-image" element={<PrivateRoute><ElementIdentifier /></PrivateRoute>} />
+          <Route path="/predict-defect" element={<PrivateRoute><DefectPredictor /></PrivateRoute>} />
 
-        {/* Smart Role-Based Routing */}
-        <Route path="/dashboard/*" element={<PrivateRoute><MainRouter /></PrivateRoute>} />
+          {/* Smart Role-Based Entry */}
+          <Route path="/dashboard/*" element={<PrivateRoute><MainRouter /></PrivateRoute>} />
 
-        {/* 404 Page */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </Router>
+          {/* 404 Fallback */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Router>
+      <ToastContainer position="top-right" autoClose={3000} />
+    </>
   );
 }
 

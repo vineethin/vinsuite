@@ -8,7 +8,15 @@ const ViewUsers = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(API.VIEW_USERS)
+    const tenantId = localStorage.getItem('tenantId');
+
+    if (!tenantId) {
+      setError('No tenant ID found. Please log in again.');
+      setLoading(false);
+      return;
+    }
+
+    fetch(`${API.VIEW_USERS}/by-tenant?tenantId=${tenantId}`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch users');
         return res.json();

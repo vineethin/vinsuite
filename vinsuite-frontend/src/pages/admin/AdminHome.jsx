@@ -58,9 +58,13 @@ const AdminHome = () => {
           <h3 className="font-bold text-lg">Writer</h3>
           <p>Generate email, blog, and document content with AI.</p>
         </div>
-        <div onClick={() => handleCardClick('/admin/users')} className="cursor-pointer border rounded p-4 hover:shadow-md bg-white">
+        <div onClick={() => handleCardClick('/admin/users')} className="cursor-pointer border rounded p-4 hover:shadow-md">
           <h3 className="font-bold text-lg">View Users</h3>
           <p>See a list of all registered users with details.</p>
+        </div>
+        <div onClick={() => handleCardClick('/admin/create-company-admin')} className="cursor-pointer border rounded p-4 hover:shadow-md bg-blue-50">
+          <h3 className="font-bold text-lg">➕ Create Company Admin</h3>
+          <p>Create a new tenant-specific administrator</p>
         </div>
       </div>
 

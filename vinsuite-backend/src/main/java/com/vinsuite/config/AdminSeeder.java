@@ -7,6 +7,8 @@ import com.vinsuite.model.User;
 import com.vinsuite.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.UUID;
+
 @Component
 public class AdminSeeder {
 
@@ -19,15 +21,17 @@ public class AdminSeeder {
     @PostConstruct
     public void insertAdminUser() {
         String adminEmail = "admin@vinsuite.com";
+
         if (!userRepository.existsByEmail(adminEmail)) {
             User admin = new User();
             admin.setName("Admin");
             admin.setEmail(adminEmail);
-            admin.setPassword(passwordEncoder.encode("admin123")); // secure in real apps
+            admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setRole("admin");
             admin.setDepartment("IT");
-            userRepository.save(admin);
+            admin.setTenantId(UUID.randomUUID()); // Set tenantId if needed
 
+            userRepository.save(admin);
             System.out.println("✅ Admin user created with email: " + adminEmail);
         } else {
             System.out.println("ℹ️ Admin user already exists.");
