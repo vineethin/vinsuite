@@ -11,6 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
+
 import static java.util.Map.entry;
 
 /**
@@ -29,7 +30,6 @@ public class AIReviewService {
     private String model;
 
     // Canonical language map to normalize frontend/backend mismatch
-
     private final Map<String, String> languageMap = Map.ofEntries(
             entry("javascript", "javascript"),
             entry("typescript", "typescript"),
@@ -41,13 +41,14 @@ public class AIReviewService {
             entry("php", "php"),
             entry("ruby", "ruby"),
             entry("kotlin", "kotlin"),
-            entry("swift", "swift"));
+            entry("swift", "swift")
+    );
 
     /**
      * Sends the provided code and language to an LLM API for detailed code review.
      *
      * @param code     the source code to review
-     * @param language the programming language selected by user
+     * @param language the programming language selected by the user
      * @return ResponseEntity with review or an error message
      */
     public ResponseEntity<String> reviewCode(String code, String language) {
@@ -58,14 +59,17 @@ public class AIReviewService {
             String canonicalInferred = languageMap.getOrDefault(inferred, inferred);
             String canonicalSelected = languageMap.getOrDefault(selected, selected);
 
-            if (!canonicalInferred.equals(canonicalSelected) && !canonicalInferred.equals("unknown")) {
+            // Language mismatch warning
+            if (!canonicalInferred.equals("unknown") && !canonicalInferred.equals(canonicalSelected)) {
                 String message = String.format(
-                        "The given code is likely %s, but the selected %s language is not matching. Please select %s from the option.",
-                        canonicalInferred, canonicalSelected, canonicalInferred);
+                        "The given code looks like %s, but you selected %s. Please select %s instead.",
+                        canonicalInferred, canonicalSelected, canonicalInferred
+                );
                 return ResponseEntity.badRequest().body("// Validation Error: " + message);
             }
 
-            String prompt = buildPrompt(code, language);
+            // Build prompt
+            String prompt = buildPrompt(code, canonicalSelected);
 
             JSONObject userMessage = new JSONObject()
                     .put("role", "user")
@@ -78,6 +82,7 @@ public class AIReviewService {
                     .put("messages", messages)
                     .put("temperature", 0.7);
 
+            // Send to LLM
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(apiUrl))
                     .header("Content-Type", "application/json")
@@ -91,29 +96,31 @@ public class AIReviewService {
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
                 return ResponseEntity.ok(response.body());
             } else {
-                return ResponseEntity.status(response.statusCode()).body("// Error from LLM: " + response.body());
+                return ResponseEntity.status(response.statusCode())
+                        .body("// Error from LLM: " + response.body());
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("// Error: " + e.getMessage());
+            return ResponseEntity.status(500)
+                    .body("// Internal Error: " + e.getClass().getSimpleName() + " - " + e.getMessage());
         }
     }
 
     /**
-     * Builds a natural language prompt for the LLM to perform a code review.
+     * Builds a prompt for the LLM to analyze and improve the code.
      */
     private String buildPrompt(String code, String language) {
         return String.format("""
-                You are a senior software engineer performing a detailed code review.
+                You are a senior software engineer performing a code review.
 
-                Review the following %s code for:
-                1. Major issues or bugs
-                2. Code quality and structure improvements
-                3. Performance optimization suggestions
-                4. Best practices that are not followed
-                5. Updated version of the code with fixes
-                6. Explanations for each suggestion made, including why it's important
+                Review the following %s code and:
+                - Identify any bugs or logical issues
+                - Suggest code quality or style improvements
+                - Recommend performance optimizations
+                - Note any missing best practices
+                - Propose a cleaner version if possible
+                - Explain why each change matters
 
                 Code:
                 ```%s```
@@ -121,32 +128,31 @@ public class AIReviewService {
     }
 
     /**
-     * Infers the programming language using heuristic string matching.
+     * Attempts to infer the programming language based on common patterns.
      */
     private String inferLanguage(String code) {
         code = code.toLowerCase();
 
-        if (code.contains("system.out.println") || code.contains("public class") || code.contains("void main")) {
+        if (code.contains("system.out.println") || code.contains("public class") || code.contains("void main"))
             return "java";
-        } else if (code.contains("console.log") || code.contains("let ") || code.contains("function ")) {
+        if (code.contains("console.log") || code.contains("let ") || code.contains("function "))
             return "javascript";
-        } else if (code.contains("def ") || code.contains("print(") || code.contains("import ")) {
+        if (code.contains("def ") || code.contains("print(") || code.contains("import "))
             return "python";
-        } else if (code.contains("using system") || code.contains("namespace") || code.contains("console.writeline")) {
+        if (code.contains("using system") || code.contains("namespace") || code.contains("console.writeline"))
             return "csharp";
-        } else if (code.contains("func ") || code.contains("package main")) {
+        if (code.contains("func ") || code.contains("package main"))
             return "go";
-        } else if (code.contains("<?php") || code.contains("echo ") || code.contains("$")) {
+        if (code.contains("<?php") || code.contains("echo ") || code.contains("$"))
             return "php";
-        } else if ((code.contains("puts ") || code.contains("def ")) && code.contains("end")) {
+        if ((code.contains("puts ") || code.contains("def ")) && code.contains("end"))
             return "ruby";
-        } else if (code.contains("fun main") || code.contains("val ") || code.contains("var ")) {
+        if (code.contains("fun main") || code.contains("val ") || code.contains("var "))
             return "kotlin";
-        } else if (code.contains("import swift") || code.contains("let ") || code.contains("func ")) {
+        if (code.contains("import swift") || code.contains("let ") || code.contains("func "))
             return "swift";
-        } else if (code.contains("type ") || code.contains("interface ") || code.contains("export ")) {
+        if (code.contains("type ") || code.contains("interface ") || code.contains("export "))
             return "typescript";
-        }
 
         return "unknown";
     }
