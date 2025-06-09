@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import API from '../../apiConfig';
+import { toast } from 'react-toastify'; // ✅ toast import
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
@@ -26,16 +27,16 @@ const RegisterPage = () => {
       });
 
       if (res.status === 200) {
-        alert('✅ Registered Successfully');
-        navigate('/login');
+        toast.success("✅ Registration successful. Please check your email to activate your account.");
+        navigate('/verify-email');
       }
     } catch (err) {
       if (err.response?.status === 409) {
-        alert('❌ Email already registered.');
+        toast.error('❌ Email already registered.');
       } else if (err.response?.data?.message) {
-        alert(`❌ ${err.response.data.message}`);
+        toast.error(`❌ ${err.response.data.message}`);
       } else {
-        alert('❌ Registration failed. Please try again.');
+        toast.error('❌ Registration failed. Please try again.');
       }
       console.error('Registration error:', err);
     } finally {
@@ -90,7 +91,7 @@ const RegisterPage = () => {
             <option value="Sales">Sales</option>
             <option value="Support">Support</option>
             <option value="Trading">Trading</option>
-            <option value="Writer">Writer</option> {/* ✅ Added */}
+            <option value="Writer">Writer</option>
           </select>
 
           {/* Role Dropdown */}
@@ -147,9 +148,7 @@ const RegisterPage = () => {
             )}
 
             {department === 'Writer' && (
-              <>
-                <option value="writer">Writer</option>
-              </>
+              <option value="writer">Writer</option>
             )}
           </select>
 

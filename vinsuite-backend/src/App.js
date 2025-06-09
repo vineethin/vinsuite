@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import './App.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-    setMessage('');
 
     const userId = 1; // TODO: Replace with real auth-integrated userId
 
@@ -22,15 +22,15 @@ function App() {
       });
 
       if (response.ok) {
-        setMessage('✅ Project created successfully!');
+        toast.success('✅ Project created successfully!');
         setName('');
         setDescription('');
       } else {
         const errorText = await response.text();
-        setMessage(`❌ Failed: ${errorText || 'Error creating project'}`);
+        toast.error(`❌ Failed: ${errorText || 'Error creating project'}`);
       }
     } catch (error) {
-      setMessage(`❌ Network error: ${error.message}`);
+      toast.error(`❌ Network error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -84,11 +84,10 @@ function App() {
             {loading ? 'Creating...' : 'Create Project'}
           </button>
         </form>
-
-        {message && (
-          <p className="text-sm mt-4 text-center text-gray-700">{message}</p>
-        )}
       </div>
+
+      {/* ✅ Global Toast Display */}
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }
