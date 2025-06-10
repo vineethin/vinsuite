@@ -31,6 +31,12 @@ public class User {
     @Column(name = "activation_token_expiry")
     private LocalDateTime activationTokenExpiry;
 
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "reset_token_expiry")
+    private LocalDateTime resetTokenExpiry;
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -58,4 +64,10 @@ public class User {
 
     public LocalDateTime getActivationTokenExpiry() { return activationTokenExpiry; }
     public void setActivationTokenExpiry(LocalDateTime activationTokenExpiry) { this.activationTokenExpiry = activationTokenExpiry; }
+
+    public String getResetToken() { return resetToken; }
+    public void setResetToken(String resetToken) { this.resetToken = resetToken; }
+
+    public LocalDateTime getResetTokenExpiry() { return resetTokenExpiry; }
+    public void setResetTokenExpiry(LocalDateTime resetTokenExpiry) { this.resetTokenExpiry = resetTokenExpiry; }
 }

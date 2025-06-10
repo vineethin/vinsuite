@@ -14,6 +14,8 @@ import VerifyEmail from "./pages/auth/VerifyEmail";
 import ActivateAccount from "./pages/auth/ActivateAccount";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 // Core Pages
 import HomePage from "./pages/core/HomePage";
@@ -87,6 +89,8 @@ function App() {
           <Route path="/" element={isLoggedIn ? <Navigate to="/dashboard" /> : <HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/activate" element={<ActivateAccount />} />
           <Route path="/project" element={<PrivateRoute><ProjectPage /></PrivateRoute>} />

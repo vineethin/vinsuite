@@ -3,6 +3,7 @@ package com.vinsuite.controller;
 import com.vinsuite.model.User;
 import com.vinsuite.dto.common.RegisterRequest;
 import com.vinsuite.dto.common.LoginRequest;
+import com.vinsuite.dto.common.ResetPasswordRequest;
 import com.vinsuite.repository.UserRepository;
 import com.vinsuite.service.MailService;
 
@@ -34,11 +35,9 @@ public class AuthController {
         User existingUser = userRepository.findByEmailIgnoreCase(normalizedEmail);
 
         if (existingUser != null) {
-            System.out.println("🟡 Existing user found: " + existingUser.getEmail() + " | Activated: " + existingUser.isActivated());
             if (existingUser.isActivated()) {
                 return ResponseEntity.status(409).body("Email already registered.");
             } else {
-                // 🔁 Resend activation
                 String token = UUID.randomUUID().toString();
                 existingUser.setActivationToken(token);
                 existingUser.setActivationTokenExpiry(LocalDateTime.now().plusHours(24));
@@ -49,10 +48,9 @@ public class AuthController {
             }
         }
 
-        // ✅ New user registration
         User user = new User();
         user.setName(request.getName());
-        user.setEmail(normalizedEmail); // Always store lowercase
+        user.setEmail(normalizedEmail);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
         user.setDepartment(request.getDepartment());
@@ -128,5 +126,39 @@ public class AuthController {
 
         mailService.sendActivationEmail(user);
         return ResponseEntity.ok("A new activation link has been sent to your email.");
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+        String normalizedEmail = email.toLowerCase();
+        User user = userRepository.findByEmailIgnoreCase(normalizedEmail);
+
+        if (user == null) {
+            return ResponseEntity.status(404).body("No account found for this email.");
+        }
+
+        String resetToken = UUID.randomUUID().toString();
+        user.setResetToken(resetToken);
+        user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+        userRepository.save(user);
+
+        mailService.sendResetPasswordEmail(user);
+        return ResponseEntity.ok("Password reset link sent to your email.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        User user = userRepository.findByResetToken(request.getToken());
+
+        if (user == null || user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(410).body("Invalid or expired reset token.");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Password updated successfully.");
     }
 }

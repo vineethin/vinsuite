@@ -27,4 +27,20 @@ public class MailService {
 
         mailSender.send(message);
     }
+
+    public void sendResetPasswordEmail(User user) {
+        String resetLink = "https://vinsuite360.com/reset-password?token=" + user.getResetToken();
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(user.getEmail());
+        message.setSubject("Reset Your VinSuite Password");
+        message.setText("Hi " + user.getName() + ",\n\n"
+                + "We received a request to reset your VinSuite password.\n"
+                + "You can reset your password by clicking the link below:\n"
+                + resetLink + "\n\n"
+                + "This link will expire in 1 hour. If you didn’t request a reset, you can safely ignore this message.\n\n"
+                + "Regards,\nVinSuite Team");
+
+        mailSender.send(message);
+    }
 }
