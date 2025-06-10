@@ -32,14 +32,38 @@ const RegisterPage = () => {
       }
     } catch (err) {
       if (err.response?.status === 409) {
-        toast.error('❌ Email already registered.');
+        const msg = err.response?.data?.toString();
+
+        if (msg?.includes("not activated")) {
+          toast.warning("⚠️ Account not activated. We've resent your activation link.", {
+            position: "bottom-center",
+            theme: "light",
+            autoClose: 6000,
+          });
+          navigate('/verify-email');
+        } else {
+          toast.error("❌ Email already registered.", {
+            position: "top-right",
+            theme: "dark",
+            autoClose: 5000,
+          });
+        }
+
       } else if (err.response?.data?.message) {
-        toast.error(`❌ ${err.response.data.message}`);
+        toast.error(`❌ ${err.response.data.message}`, {
+          position: "top-right",
+          theme: "colored",
+        });
       } else {
-        toast.error('❌ Registration failed. Please try again.');
+        toast.error("❌ Registration failed. Please try again.", {
+          position: "top-right",
+          theme: "colored",
+        });
       }
+
       console.error('Registration error:', err);
-    } finally {
+    }
+    finally {
       setLoading(false);
     }
   };
@@ -155,9 +179,8 @@ const RegisterPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full ${
-              loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-            } text-white py-2 rounded flex justify-center items-center`}
+            className={`w-full ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+              } text-white py-2 rounded flex justify-center items-center`}
           >
             {loading ? (
               <div className="flex items-center space-x-2">

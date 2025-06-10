@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -29,46 +30,55 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            return ResponseEntity.status(409).body("Email already registered");
+        String normalizedEmail = request.getEmail().toLowerCase();
+        User existingUser = userRepository.findByEmailIgnoreCase(normalizedEmail);
+
+        if (existingUser != null) {
+            System.out.println("🟡 Existing user found: " + existingUser.getEmail() + " | Activated: " + existingUser.isActivated());
+            if (existingUser.isActivated()) {
+                return ResponseEntity.status(409).body("Email already registered.");
+            } else {
+                // 🔁 Resend activation
+                String token = UUID.randomUUID().toString();
+                existingUser.setActivationToken(token);
+                existingUser.setActivationTokenExpiry(LocalDateTime.now().plusHours(24));
+                userRepository.save(existingUser);
+
+                mailService.sendActivationEmail(existingUser);
+                return ResponseEntity.status(409).body("Account not activated. We've resent your activation link.");
+            }
         }
 
+        // ✅ New user registration
         User user = new User();
         user.setName(request.getName());
-        user.setEmail(request.getEmail());
+        user.setEmail(normalizedEmail); // Always store lowercase
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
         user.setDepartment(request.getDepartment());
 
-        // ✅ Generate activation token and expiry
         String token = UUID.randomUUID().toString();
         user.setActivated(false);
         user.setActivationToken(token);
-        user.setActivationTokenExpiry(LocalDateTime.now().plusHours(24)); // expires in 24 hrs
+        user.setActivationTokenExpiry(LocalDateTime.now().plusHours(24));
 
         userRepository.save(user);
         mailService.sendActivationEmail(user);
 
-        // ⏳ We will add email sending here in the next step
         return ResponseEntity.ok("User registered successfully. Please check your email to activate your account.");
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail());
+        String normalizedEmail = request.getEmail().toLowerCase();
+        User user = userRepository.findByEmailIgnoreCase(normalizedEmail);
 
-        if (user == null) {
+        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
 
-        // ✅ Prevent login if not activated
         if (!user.isActivated()) {
             return ResponseEntity.status(403).body("Account not activated. Please check your email.");
-        }
-
-        boolean isMatch = passwordEncoder.matches(request.getPassword(), user.getPassword());
-        if (!isMatch) {
-            return ResponseEntity.status(401).body("Invalid email or password");
         }
 
         return ResponseEntity.ok(user);
@@ -91,8 +101,8 @@ public class AuthController {
         }
 
         user.setActivated(true);
-        user.setActivationToken(null); // Clear token
-        user.setActivationTokenExpiry(null); // Optional
+        user.setActivationToken(null);
+        user.setActivationTokenExpiry(null);
         userRepository.save(user);
 
         return ResponseEntity.ok("Account activated successfully! You may now log in.");
@@ -100,7 +110,8 @@ public class AuthController {
 
     @PostMapping("/resend-activation")
     public ResponseEntity<?> resendActivation(@RequestParam String email) {
-        User user = userRepository.findByEmail(email);
+        String normalizedEmail = email.toLowerCase();
+        User user = userRepository.findByEmailIgnoreCase(normalizedEmail);
 
         if (user == null) {
             return ResponseEntity.status(404).body("No user found with that email.");
@@ -110,16 +121,12 @@ public class AuthController {
             return ResponseEntity.ok("Account is already activated.");
         }
 
-        // Generate new token and expiry
         String newToken = UUID.randomUUID().toString();
         user.setActivationToken(newToken);
         user.setActivationTokenExpiry(LocalDateTime.now().plusHours(24));
         userRepository.save(user);
 
-        // Resend email
         mailService.sendActivationEmail(user);
-
         return ResponseEntity.ok("A new activation link has been sent to your email.");
     }
-
 }
