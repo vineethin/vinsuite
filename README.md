@@ -33,3 +33,5 @@ It provides smart tools for faster, better testing and development — built wit
 ```bash
 cd vinsuite-backend
 ./mvnw spring-boot:run
+cd vinsuite-frontend
+npm start
