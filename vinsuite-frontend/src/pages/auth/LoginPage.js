@@ -1,3 +1,5 @@
+// src/pages/auth/LoginPage.jsx
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
@@ -24,10 +26,7 @@ const LoginPage = () => {
 
       const res = await axios.post(
         `${API.AUTH}/login`,
-        {
-          email,
-          password,
-        },
+        { email, password },
         { cancelToken: source.token }
       );
 
@@ -42,9 +41,8 @@ const LoginPage = () => {
       setUserId(id);
       setUserDepartment(dept);
 
-      // ✅ Role-based redirection
       if (role === "admin") {
-        navigate("/admin"); // 🔄 FIXED: Always redirect to Admin Console
+        navigate("/admin");
       } else {
         switch (role) {
           case "developer":
@@ -84,17 +82,11 @@ const LoginPage = () => {
     } catch (err) {
       console.error("Login failed:", err);
       if (axios.isCancel(err)) {
-        alert(
-          "❌ Server is taking too long to respond. Please try again shortly."
-        );
+        alert("❌ Server is taking too long to respond. Please try again shortly.");
       } else if (err.response?.status === 401) {
         alert("❌ Incorrect email or password.");
       } else {
-        alert(
-          `❌ Login failed: ${
-            err.response?.data?.message || "Unexpected server error."
-          }`
-        );
+        alert(`❌ Login failed: ${err.response?.data?.message || "Unexpected server error."}`);
       }
     } finally {
       setLoading(false);
@@ -124,21 +116,24 @@ const LoginPage = () => {
             required
             disabled={loading}
           />
+
+          {/* 🔗 Forgot Password */}
+          <p className="text-right text-sm">
+            <Link to="/forgot-password" className="text-blue-600 hover:underline">
+              Forgot password?
+            </Link>
+          </p>
+
           <button
             type="submit"
             disabled={loading}
             className={`w-full ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
+              loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
             } text-white py-2 rounded flex items-center justify-center`}
           >
             {loading ? (
               <div className="flex items-center space-x-2">
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
                   <circle
                     className="opacity-25"
                     cx="12"
@@ -161,6 +156,7 @@ const LoginPage = () => {
             )}
           </button>
         </form>
+
         <p className="text-center text-sm mt-4">
           Don't have an account?{" "}
           <Link
