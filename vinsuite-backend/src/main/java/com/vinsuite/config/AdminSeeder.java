@@ -26,6 +26,7 @@ public class AdminSeeder {
             admin.setPassword(passwordEncoder.encode("admin123")); // secure in real apps
             admin.setRole("admin");
             admin.setDepartment("IT");
+            admin.setActivated(true); 
             userRepository.save(admin);
 
             System.out.println("✅ Admin user created with email: " + adminEmail);

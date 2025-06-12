@@ -56,6 +56,7 @@ public class AuthController {
         user.setDepartment(request.getDepartment());
 
         String token = UUID.randomUUID().toString();
+        System.out.println("🔑 Token received for activation: " + token);
         user.setActivated(false);
         user.setActivationToken(token);
         user.setActivationTokenExpiry(LocalDateTime.now().plusHours(24));
