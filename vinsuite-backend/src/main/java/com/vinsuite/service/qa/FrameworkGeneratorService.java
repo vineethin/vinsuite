@@ -28,7 +28,7 @@ public class FrameworkGeneratorService {
 
         byte[] zipBytes;
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                ZipOutputStream zos = new ZipOutputStream(byteArrayOutputStream)) {
+             ZipOutputStream zos = new ZipOutputStream(byteArrayOutputStream)) {
 
             Files.walk(baseDir)
                     .filter(Files::isRegularFile)
@@ -50,23 +50,74 @@ public class FrameworkGeneratorService {
     }
 
     public String generateTestScript(String manualSteps, String htmlCode, String language, String framework) {
-        // TODO: Enhance logic based on framework/language
+        if ("java".equalsIgnoreCase(language) && "testng".equalsIgnoreCase(framework)) {
+            return """
+                import org.openqa.selenium.By;
+                import org.openqa.selenium.WebDriver;
+                import org.openqa.selenium.chrome.ChromeDriver;
+                import org.testng.Assert;
+                import org.testng.annotations.*;
+
+                public class LoginTest {
+
+                    WebDriver driver;
+
+                    @BeforeMethod
+                    public void setup() {
+                        driver = new ChromeDriver();
+                        driver.get(\"https://your-app-url.com/login\");
+                    }
+
+                    @Test
+                    public void testLogin() {
+                        driver.findElement(By.id(\"email\")).sendKeys(\"admin@vinsuite.com\");
+                        driver.findElement(By.id(\"password\")).sendKeys(\"admin123\");
+                        driver.findElement(By.id(\"loginBtn\")).click();
+                        Assert.assertTrue(driver.getCurrentUrl().contains(\"dashboard\"));
+                    }
+
+                    @AfterMethod
+                    public void teardown() {
+                        driver.quit();
+                    }
+                }
+                """;
+        } else if ("python".equalsIgnoreCase(language) && "pytest".equalsIgnoreCase(framework)) {
+            return """
+                from selenium import webdriver
+                import pytest
+
+                @pytest.fixture
+                def driver():
+                    driver = webdriver.Chrome()
+                    driver.get("https://your-app-url.com/login")
+                    yield driver
+                    driver.quit()
+
+                def test_login(driver):
+                    driver.find_element("id", "email").send_keys("admin@vinsuite.com")
+                    driver.find_element("id", "password").send_keys("admin123")
+                    driver.find_element("id", "loginBtn").click()
+                    assert "dashboard" in driver.current_url
+                """;
+        }
+
         return String.format("""
-                // Auto-generated Test Script
-                // Language: %s | Framework: %s
+            // Auto-generated Test Script
+            // Language: %s | Framework: %s
 
-                // Manual Steps:
-                /*
-                %s
-                */
+            // Manual Steps:
+            /*
+            %s
+            */
 
-                // HTML Snippet:
-                /*
-                %s
-                */
+            // HTML Snippet:
+            /*
+            %s
+            */
 
-                // [Your automation logic will be generated here based on AI/model integration]
-                """, language, framework, manualSteps, htmlCode);
+            // ❌ Script generation not yet supported for this combination.
+            """, language, framework, manualSteps, htmlCode);
     }
 
     private void generateJavaFramework(Path baseDir, FrameworkConfigRequest config) throws IOException {
@@ -85,8 +136,7 @@ public class FrameworkGeneratorService {
         Files.writeString(baseDir.resolve("pom.xml"), getPomXml(config), StandardCharsets.UTF_8);
         Files.writeString(baseDir.resolve("testng.xml"), getTestngXml(), StandardCharsets.UTF_8);
         Files.writeString(resources.resolve("logback.xml"), getLogbackXml(), StandardCharsets.UTF_8);
-        Files.writeString(baseDir.resolve("README.md"), getReadme("Java + TestNG + " + config.getReportTool()),
-                StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("README.md"), getReadme("Java + TestNG + " + config.getReportTool()), StandardCharsets.UTF_8);
 
         Files.writeString(testTests.resolve("SampleTest.java"), getSampleTest(), StandardCharsets.UTF_8);
         Files.writeString(testBase.resolve("BaseTest.java"), "// Base test class", StandardCharsets.UTF_8);
@@ -100,19 +150,14 @@ public class FrameworkGeneratorService {
             Files.createDirectories(baseDir.resolve(dir));
         }
 
-        Files.writeString(baseDir.resolve("requirements.txt"), "pytest\nallure-pytest\nselenium",
-                StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("requirements.txt"), "pytest\nallure-pytest\nselenium", StandardCharsets.UTF_8);
         Files.writeString(baseDir.resolve("pytest.ini"), "[pytest]\naddopts = -v", StandardCharsets.UTF_8);
-        Files.writeString(baseDir.resolve("README.md"), getReadme("Python + PyTest + " + config.getReportTool()),
-                StandardCharsets.UTF_8);
-        Files.writeString(baseDir.resolve("tests/test_sample.py"),
-                "def test_example():\n    print('✅ Running sample test')", StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("README.md"), getReadme("Python + PyTest + " + config.getReportTool()), StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("tests/test_sample.py"), "def test_example():\n    print('✅ Running sample test')", StandardCharsets.UTF_8);
         Files.writeString(baseDir.resolve("pages/login_page.py"), "# Login page object", StandardCharsets.UTF_8);
-        Files.writeString(baseDir.resolve("utils/driver_factory.py"), "# Selenium WebDriver factory",
-                StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("utils/driver_factory.py"), "# Selenium WebDriver factory", StandardCharsets.UTF_8);
         Files.writeString(baseDir.resolve("base/base_test.py"), "# Common setup/teardown", StandardCharsets.UTF_8);
-        Files.writeString(baseDir.resolve("config/config.yaml"), "browser: chrome\nurl: https://example.com",
-                StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("config/config.yaml"), "browser: chrome\nurl: https://example.com", StandardCharsets.UTF_8);
     }
 
     private void generateCsharpFramework(Path baseDir, FrameworkConfigRequest config) throws IOException {
@@ -122,18 +167,14 @@ public class FrameworkGeneratorService {
         }
 
         Files.writeString(baseDir.resolve("VinSuiteFramework.sln"), "", StandardCharsets.UTF_8);
-        Files.writeString(baseDir.resolve("VinSuiteFramework.csproj"),
-                "<Project Sdk=\"Microsoft.NET.Sdk\">\n</Project>", StandardCharsets.UTF_8);
-        Files.writeString(baseDir.resolve("README.md"), getReadme("C# + NUnit + " + config.getReportTool()),
-                StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("VinSuiteFramework.csproj"), "<Project Sdk=\"Microsoft.NET.Sdk\">\n</Project>", StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("README.md"), getReadme("C# + NUnit + " + config.getReportTool()), StandardCharsets.UTF_8);
         Files.writeString(baseDir.resolve("Tests/SampleTest.cs"),
-                "using NUnit.Framework;\n[TestFixture]\npublic class SampleTest {\n  [Test] public void Example() => Assert.Pass();\n}",
-                StandardCharsets.UTF_8);
+                "using NUnit.Framework;\n[TestFixture]\npublic class SampleTest {\n  [Test] public void Example() => Assert.Pass();\n}", StandardCharsets.UTF_8);
         Files.writeString(baseDir.resolve("Pages/LoginPage.cs"), "// Login Page Object", StandardCharsets.UTF_8);
         Files.writeString(baseDir.resolve("Utils/DriverFactory.cs"), "// WebDriver Factory", StandardCharsets.UTF_8);
         Files.writeString(baseDir.resolve("Base/BaseTest.cs"), "// Base Test Class", StandardCharsets.UTF_8);
-        Files.writeString(baseDir.resolve("Config/config.json"),
-                "{ \"browser\": \"chrome\", \"url\": \"https://example.com\" }", StandardCharsets.UTF_8);
+        Files.writeString(baseDir.resolve("Config/config.json"), "{ \"browser\": \"chrome\", \"url\": \"https://example.com\" }", StandardCharsets.UTF_8);
     }
 
     private String getPomXml(FrameworkConfigRequest config) {
@@ -153,55 +194,53 @@ public class FrameworkGeneratorService {
             default -> "";
         };
 
-        return String.format(
-                """
-                            <project xmlns="http://maven.apache.org/POM/4.0.0"
-                                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-                                <modelVersion>4.0.0</modelVersion>
-                                <groupId>com.vinsuite</groupId>
-                                <artifactId>sample-framework</artifactId>
-                                <version>1.0-SNAPSHOT</version>
-                                <dependencies>
-                                    <dependency>
-                                        <groupId>org.testng</groupId>
-                                        <artifactId>testng</artifactId>
-                                        <version>7.9.0</version>
-                                        <scope>test</scope>
-                                    </dependency>
-                                    %s
-                                </dependencies>
-                            </project>
-                        """,
-                reporter);
+        return String.format("""
+                <project xmlns=\"http://maven.apache.org/POM/4.0.0\"
+                         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
+                         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">
+                    <modelVersion>4.0.0</modelVersion>
+                    <groupId>com.vinsuite</groupId>
+                    <artifactId>sample-framework</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.testng</groupId>
+                            <artifactId>testng</artifactId>
+                            <version>7.9.0</version>
+                            <scope>test</scope>
+                        </dependency>
+                        %s
+                    </dependencies>
+                </project>
+                """, reporter);
     }
 
     private String getTestngXml() {
         return """
-                    <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-                    <suite name="VinSuiteSuite">
-                        <test name="VinSuiteTests">
-                            <classes>
-                                <class name="SampleTest"/>
-                            </classes>
-                        </test>
-                    </suite>
-                """;
+                <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+                <suite name=\"VinSuiteSuite\">
+                    <test name=\"VinSuiteTests\">
+                        <classes>
+                            <class name=\"SampleTest\"/>
+                        </classes>
+                    </test>
+                </suite>
+            """;
     }
 
     private String getLogbackXml() {
         return """
-                    <configuration>
-                        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-                            <encoder>
-                                <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
-                            </encoder>
-                        </appender>
-                        <root level="debug">
-                            <appender-ref ref="STDOUT" />
-                        </root>
-                    </configuration>
-                """;
+                <configuration>
+                    <appender name=\"STDOUT\" class=\"ch.qos.logback.core.ConsoleAppender\">
+                        <encoder>
+                            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+                        </encoder>
+                    </appender>
+                    <root level=\"debug\">
+                        <appender-ref ref=\"STDOUT\" />
+                    </root>
+                </configuration>
+            """;
     }
 
     private String getReadme(String title) {
@@ -214,15 +253,15 @@ public class FrameworkGeneratorService {
 
     private String getSampleTest() {
         return """
-                    import org.testng.annotations.Test;
+                import org.testng.annotations.Test;
 
-                    public class SampleTest {
-                        @Test
-                        public void testExample() {
-                            System.out.println("✅ Running test in VinSuite sample framework.");
-                        }
+                public class SampleTest {
+                    @Test
+                    public void testExample() {
+                        System.out.println("✅ Running test in VinSuite sample framework.");
                     }
-                """;
+                }
+            """;
     }
 
     private void deleteDirectory(File dir) {
