@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
+const API_BASE = process.env.REACT_APP_API_BASE || "https://api.vinsuite360.com";
+
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0 },
@@ -24,20 +26,26 @@ const HomePage = () => {
 
   const handleContactSubmit = async (e) => {
     e.preventDefault();
-    setContactStatus("");
+    setContactStatus("Sending...");
+
     try {
-      const res = await fetch("https://your-backend-domain.com/api/contact/send", {
+      const res = await fetch(`${API_BASE}/api/contact/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       const text = await res.text();
-      setContactStatus(text);
-      setFormData({ name: "", email: "", message: "" });
+
+      if (res.ok) {
+        setContactStatus("✅ Message sent successfully!");
+        setFormData({ name: "", email: "", message: "" });
+      } else {
+        setContactStatus(`❌ Failed to send: ${text}`);
+      }
     } catch (err) {
-      console.error(err);
-      setContactStatus("❌ Error sending message. Please try again.");
+      console.error("Contact form error:", err);
+      setContactStatus("❌ Error connecting to server. Please try again later.");
     }
   };
 
@@ -46,18 +54,10 @@ const HomePage = () => {
       <header className="bg-white shadow p-6 flex justify-between items-center sticky top-0 z-10">
         <h1 className="text-2xl font-bold text-blue-700">VinSuite 360</h1>
         <div className="space-x-4">
-          <button
-            onClick={() => navigate('/login')}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            aria-label="Login"
-          >
+          <button onClick={() => navigate('/login')} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             Login
           </button>
-          <button
-            onClick={() => navigate('/register')}
-            className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300"
-            aria-label="Sign Up"
-          >
+          <button onClick={() => navigate('/register')} className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300">
             Sign Up
           </button>
         </div>
@@ -81,7 +81,6 @@ const HomePage = () => {
           <button
             onClick={() => navigate('/register')}
             className="bg-red-400 text-white px-6 py-3 rounded shadow-lg hover:bg-red-500 transition"
-            aria-label="Get Started"
           >
             Get Started
           </button>
@@ -106,15 +105,15 @@ const HomePage = () => {
           <div className="md:w-1/2">
             <h3 className="text-3xl font-bold mb-4">Our Mission</h3>
             <p className="text-lg leading-relaxed">
-              At VinSuite 360, we believe smart tools should work for everyone — not just tech experts. 
-              Our mission is to bring AI-powered simplicity to your everyday digital tasks, helping individuals 
+              At VinSuite 360, we believe smart tools should work for everyone — not just tech experts.
+              Our mission is to bring AI-powered simplicity to your everyday digital tasks, helping individuals
               and teams save time, stay organized, and get more done with less effort.
             </p>
           </div>
         </div>
       </motion.section>
 
-      {/* Customer Testimonials Section */}
+      {/* Testimonials */}
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -126,17 +125,17 @@ const HomePage = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h3 className="text-3xl font-semibold mb-4">What Our Customers Say</h3>
           <div className="flex flex-wrap justify-center gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-gray-200 text-gray-600 py-4 px-6 rounded shadow-lg max-w-xs mx-auto">
-                <blockquote className="italic">{testimonial.text}</blockquote>
-                <footer className="mt-2">- {testimonial.name}</footer>
+            {testimonials.map((t, i) => (
+              <div key={i} className="bg-gray-200 text-gray-600 py-4 px-6 rounded shadow-lg max-w-xs mx-auto">
+                <blockquote className="italic">{t.text}</blockquote>
+                <footer className="mt-2">- {t.name}</footer>
               </div>
             ))}
           </div>
         </div>
       </motion.section>
 
-      {/* Call to Action (CTA) Section */}
+      {/* CTA Section */}
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -155,7 +154,7 @@ const HomePage = () => {
         </button>
       </motion.section>
 
-      {/* Contact Us Section */}
+      {/* Contact Us */}
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -194,12 +193,12 @@ const HomePage = () => {
               className="border-b border-gray-400 p-2 outline-none"
               required
             ></textarea>
-            <button type="submit" className="bg-red-400 text-white px-6 py-2 rounded w-fit mx-auto">Send</button>
+            <button type="submit" className="bg-red-400 text-white px-6 py-2 rounded w-fit mx-auto">
+              Send
+            </button>
           </form>
           {contactStatus && (
-            <p className="text-sm text-center mt-4 text-gray-700">
-              {contactStatus}
-            </p>
+            <p className="text-sm text-center mt-4 text-gray-700">{contactStatus}</p>
           )}
           <p className="text-xs text-gray-400 mt-4">
             This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.
@@ -207,7 +206,7 @@ const HomePage = () => {
         </div>
       </motion.section>
 
-      {/* Footer Section */}
+      {/* Footer */}
       <motion.footer
         initial="hidden"
         whileInView="visible"

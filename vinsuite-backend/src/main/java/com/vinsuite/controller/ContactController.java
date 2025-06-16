@@ -19,6 +19,7 @@ public class ContactController {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo("vineethin@gmail.com"); 
+            message.setFrom("vineethvintaas@gmail.com");
             message.setSubject("New Contact Form Submission from " + request.getName());
             message.setText("Name: " + request.getName() + "\n"
                     + "Email: " + request.getEmail() + "\n\n"
