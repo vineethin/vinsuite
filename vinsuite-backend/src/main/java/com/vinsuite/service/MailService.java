@@ -43,4 +43,15 @@ public class MailService {
 
         mailSender.send(message);
     }
+
+    public void sendContactMessage(String name, String email, String messageBody) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo("vineethin@gmail.com");
+        message.setSubject("📩 New Contact Form Submission");
+        message.setText("Name: " + name + "\n"
+                + "Email: " + email + "\n\n"
+                + "Message:\n" + messageBody);
+
+        mailSender.send(message);
+    }
 }
