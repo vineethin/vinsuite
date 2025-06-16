@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -9,12 +9,37 @@ const fadeInUp = {
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [contactStatus, setContactStatus] = useState("");
 
-  // Sample testimonials for dynamic content
   const testimonials = [
     { text: "VinSuite 360 improved our team productivity!", name: "John Doe, CEO of Example Corp." },
     { text: "This tool has streamlined our project management.", name: "Jane Smith, Project Manager" },
   ];
+
+  const handleContactChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    setContactStatus("");
+    try {
+      const res = await fetch("https://your-backend-domain.com/api/contact/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const text = await res.text();
+      setContactStatus(text);
+      setFormData({ name: "", email: "", message: "" });
+    } catch (err) {
+      console.error(err);
+      setContactStatus("❌ Error sending message. Please try again.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-100 to-white text-gray-800">
@@ -141,24 +166,41 @@ const HomePage = () => {
       >
         <div className="max-w-3xl mx-auto text-center">
           <h3 className="text-3xl font-bold mb-6">Contact Us</h3>
-          <form className="grid gap-4">
+          <form className="grid gap-4" onSubmit={handleContactSubmit}>
             <input
               type="text"
+              name="name"
               placeholder="Name"
+              value={formData.name}
+              onChange={handleContactChange}
               className="border-b border-gray-400 p-2 outline-none"
+              required
             />
             <input
               type="email"
+              name="email"
               placeholder="Email*"
+              value={formData.email}
+              onChange={handleContactChange}
               className="border-b border-gray-400 p-2 outline-none"
+              required
             />
             <textarea
+              name="message"
               rows="4"
               placeholder="Tell us about your project"
+              value={formData.message}
+              onChange={handleContactChange}
               className="border-b border-gray-400 p-2 outline-none"
+              required
             ></textarea>
-            <button className="bg-red-400 text-white px-6 py-2 rounded w-fit mx-auto">Send</button>
+            <button type="submit" className="bg-red-400 text-white px-6 py-2 rounded w-fit mx-auto">Send</button>
           </form>
+          {contactStatus && (
+            <p className="text-sm text-center mt-4 text-gray-700">
+              {contactStatus}
+            </p>
+          )}
           <p className="text-xs text-gray-400 mt-4">
             This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.
           </p>
