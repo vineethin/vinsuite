@@ -29,7 +29,7 @@ const HomePage = () => {
     setContactStatus("Sending...");
 
     try {
-      const res = await fetch(`${API_BASE}/api/contact/send`, {
+      const res = await fetch(`${API_BASE}/contact/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
