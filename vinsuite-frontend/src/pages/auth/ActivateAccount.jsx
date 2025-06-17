@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
+const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8081/api";
+
 const ActivateAccount = () => {
   const [searchParams] = useSearchParams();
   const [message, setMessage] = useState("Activating...");
@@ -16,7 +18,7 @@ const ActivateAccount = () => {
       return;
     }
 
-    fetch(`/api/auth/activate?token=${token}`)
+    fetch(`${API_BASE}/auth/activate?token=${token}`)
       .then((res) => res.text())
       .then((msg) => {
         setMessage(msg);
