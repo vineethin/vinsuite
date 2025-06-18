@@ -7,9 +7,16 @@ const OCRInputSection = ({ image, setImage, imageBase64, setImageBase64, setTest
   const [featureDescription, setFeatureDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const MAX_FILE_SIZE_MB = 10;
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        alert(`File is too large. Maximum allowed size is ${MAX_FILE_SIZE_MB}MB.`);
+        return;
+      }
+
       setImage(file);
       const reader = new FileReader();
       reader.onloadend = () => setImageBase64(reader.result);
@@ -27,6 +34,11 @@ const OCRInputSection = ({ image, setImage, imageBase64, setImageBase64, setTest
     setDragOver(false);
     const file = e.dataTransfer.files[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        alert(`File is too large. Maximum allowed size is ${MAX_FILE_SIZE_MB}MB.`);
+        return;
+      }
+
       setImage(file);
       const reader = new FileReader();
       reader.onloadend = () => setImageBase64(reader.result);
@@ -69,6 +81,21 @@ const OCRInputSection = ({ image, setImage, imageBase64, setImageBase64, setTest
         method: "POST",
         body: formData,
       });
+
+      if (!response.ok) {
+        if (response.status === 413) {
+          alert("Uploaded image is too large. Please use a smaller file.");
+        } else {
+          alert(`Server error: ${response.status}`);
+        }
+        return;
+      }
+
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        alert("Unexpected server response. Please try again.");
+        return;
+      }
 
       const result = await response.json();
 
