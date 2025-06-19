@@ -23,7 +23,7 @@ public class User {
     private String department;
 
     @Column(name = "is_activated")
-    private boolean isActivated = false;
+    private Boolean isActivated = false;
 
     @Column(name = "activation_token")
     private String activationToken;

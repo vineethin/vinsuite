@@ -6,10 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class FrontendForwardController {
 
-    @RequestMapping(value = {
-        "/{path:[^\\.]*}", // handles /activate, /dashboard, etc. (ignores .js/.css)
-        "/{path:^(?!api).*$}/**"
-    })
+    @RequestMapping(value = { "/", "/{path:^(?!api|static|assets|favicon\\.ico|robots\\.txt).*$}" })
     public String forwardToIndex() {
         return "forward:/index.html";
     }

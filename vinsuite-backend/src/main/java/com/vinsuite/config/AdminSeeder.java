@@ -1,14 +1,22 @@
 package com.vinsuite.config;
 
-import jakarta.annotation.PostConstruct;
-import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.vinsuite.model.User;
 import com.vinsuite.repository.UserRepository;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.Optional;
+import java.util.logging.Logger;
 
+/**
+ * Seeds the initial admin user into the database if not already present.
+ */
 @Component
 public class AdminSeeder {
+
+    private static final Logger LOGGER = Logger.getLogger(AdminSeeder.class.getName());
 
     @Autowired
     private UserRepository userRepository;
@@ -16,22 +24,28 @@ public class AdminSeeder {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    /**
+     * Inserts a default admin user at startup if one doesn't exist.
+     */
     @PostConstruct
+    @Transactional
     public void insertAdminUser() {
         String adminEmail = "admin@vinsuite.com";
-        if (!userRepository.existsByEmail(adminEmail)) {
+
+        Optional<User> existing = Optional.ofNullable(userRepository.findByEmailIgnoreCase(adminEmail));
+        if (existing.isEmpty()) {
             User admin = new User();
             admin.setName("Admin");
             admin.setEmail(adminEmail);
-            admin.setPassword(passwordEncoder.encode("admin123")); // secure in real apps
+            admin.setPassword(passwordEncoder.encode("admin123")); // 🔐 Replace for production
             admin.setRole("admin");
             admin.setDepartment("IT");
-            admin.setActivated(true); 
+            admin.setActivated(true);
             userRepository.save(admin);
 
-            System.out.println("✅ Admin user created with email: " + adminEmail);
+            LOGGER.info("✅ Admin user created with email: " + adminEmail);
         } else {
-            System.out.println("ℹ️ Admin user already exists.");
+            LOGGER.info("ℹ️ Admin user already exists. Skipping seeding.");
         }
     }
 }

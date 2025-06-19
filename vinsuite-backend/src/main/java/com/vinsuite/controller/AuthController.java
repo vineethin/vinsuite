@@ -69,6 +69,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
+        System.out.println("🔐 Login request received for: " + request.getEmail());
         String normalizedEmail = request.getEmail().toLowerCase();
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail);
 
