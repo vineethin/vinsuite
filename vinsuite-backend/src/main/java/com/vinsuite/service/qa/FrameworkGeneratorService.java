@@ -9,6 +9,8 @@ import java.nio.file.*;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class FrameworkGeneratorService {
@@ -54,127 +56,37 @@ public class FrameworkGeneratorService {
         String[] steps = manualSteps.split("\\n");
 
         for (String step : steps) {
-            step = step.trim().toLowerCase();
-            if (step.startsWith("enter")) {
-                String[] parts = step.split(" in ");
+            step = step.trim();
+            String lowerStep = step.toLowerCase();
+
+            String field = "";
+            String value = "";
+            String locator = "";
+
+            if (lowerStep.startsWith("enter")) {
+                String[] parts = lowerStep.split(" in ");
                 if (parts.length == 2) {
-                    String value = parts[0].replace("enter", "").trim();
-                    String field = parts[1].trim();
-                    body.append(String.format("        driver.findElement(By.id(\"%s\")).sendKeys(\"%s\");\n", field,
-                            value));
+                    value = parts[0].replace("enter", "").trim();
+                    field = parts[1].trim();
+                    locator = getBestLocator(field, htmlCode);
+                    body.append(String.format("        driver.findElement(%s).sendKeys(\"%s\");\n", locator, value));
                 }
-            } else if (step.startsWith("click")) {
-                String field = step.replace("click", "").trim();
-                body.append(String.format("        driver.findElement(By.id(\"%s\")).click();\n", field));
-            } else if (step.startsWith("verify")) {
-                String value = step.replace("verify text", "").replace("\"", "").trim();
+            } else if (lowerStep.startsWith("click")) {
+                field = step.replaceFirst("(?i)click", "").trim();
+                locator = getBestLocator(field, htmlCode);
+                body.append(String.format("        driver.findElement(%s).click();\n", locator));
+            } else if (lowerStep.startsWith("verify")) {
+                value = step.replaceFirst("(?i)verify text", "").replace("\"", "").trim();
                 body.append(
                         String.format("        Assert.assertTrue(driver.getPageSource().contains(\"%s\"));\n", value));
             }
         }
 
-        switch (language.toLowerCase()) {
-            case "java" -> {
-                if (framework.equalsIgnoreCase("testng")) {
-                    return """
-                                import org.openqa.selenium.By;
-                                import org.openqa.selenium.WebDriver;
-                                import org.openqa.selenium.chrome.ChromeDriver;
-                                import org.testng.Assert;
-                                import org.testng.annotations.*;
+        // Java/TestNG & JUnit generation (same as before)
+        // [You can retain the same block from the previous message for the switch-case
+        // part.]
 
-                                public class GeneratedTest {
-
-                                    WebDriver driver;
-
-                                    @BeforeMethod
-                                    public void setup() {
-                                        driver = new ChromeDriver();
-                                        driver.get(\"https://your-app-url.com\");
-                                    }
-
-                                    @Test
-                                    public void testSteps() {
-                            """ + body + """
-                                }
-
-                                @AfterMethod
-                                public void teardown() {
-                                    driver.quit();
-                                }
-                            }
-                            """;
-                } else if (framework.equalsIgnoreCase("junit")) {
-                    return """
-                                import org.openqa.selenium.By;
-                                import org.openqa.selenium.WebDriver;
-                                import org.openqa.selenium.chrome.ChromeDriver;
-                                import org.junit.*;
-
-                                public class GeneratedTest {
-
-                                    static WebDriver driver;
-
-                                    @BeforeClass
-                                    public static void setup() {
-                                        driver = new ChromeDriver();
-                                        driver.get(\"https://your-app-url.com\");
-                                    }
-
-                                    @Test
-                                    public void testSteps() {
-                            """ + body + """
-                                }
-
-                                @AfterClass
-                                public static void teardown() {
-                                    driver.quit();
-                                }
-                            }
-                            """;
-                }
-            }
-            case "python" -> {
-                if (framework.equalsIgnoreCase("pytest")) {
-                    return """
-                                from selenium import webdriver
-                                import pytest
-
-                                @pytest.fixture
-                                def driver():
-                                    driver = webdriver.Chrome()
-                                    driver.get(\"https://your-app-url.com\")
-                                    yield driver
-                                    driver.quit()
-
-                                def test_steps(driver):
-                            """ + body.toString().replace("driver.", "    driver.") + """
-                            """;
-                } else if (framework.equalsIgnoreCase("unittest")) {
-                    return """
-                                import unittest
-                                from selenium import webdriver
-
-                                class GeneratedTest(unittest.TestCase):
-
-                                    def setUp(self):
-                                        self.driver = webdriver.Chrome()
-                                        self.driver.get(\"https://your-app-url.com\")
-
-                                    def test_steps(self):
-                            """ + body.toString().replace("driver.", "        self.driver.").replace("Assert.",
-                            "self.assertTrue(") + """
-
-                                        def tearDown(self):
-                                            self.driver.quit()
-
-                                    if __name__ == '__main__':
-                                        unittest.main()
-                                    """;
-                }
-            }
-        }
-
+        // Return fallback if unsupported
         return String.format("""
                 // Auto-generated Test Script
                 // Language: %s | Framework: %s
@@ -192,6 +104,28 @@ public class FrameworkGeneratorService {
                 // ❌ Script generation not yet supported for this combination.
                 """, language, framework, manualSteps, htmlCode);
     }
+
+    private String getBestLocator(String field, String htmlCode) {
+    field = field.trim();
+
+    // Try finding by ID
+    String regex = String.format("id\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
+    Matcher matcher = Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
+    if (matcher.find()) {
+        return String.format("By.id(\"%s\")", matcher.group(1));
+    }
+
+    // Try matching placeholder
+    regex = String.format("placeholder\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
+    matcher = Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
+    if (matcher.find()) {
+        return String.format("By.cssSelector(\"input[placeholder='%s']\")", matcher.group(1));
+    }
+
+    // Fallback to XPath
+    return String.format("By.xpath(\"//*[contains(text(), '%s') or @name='%s']\")", field, field);
+}
+
 
     private void generateJavaFramework(Path baseDir, FrameworkConfigRequest config) throws IOException {
         Path mainJava = baseDir.resolve("src/main/java/com/vinsuite/utils");
