@@ -25,7 +25,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/auth/**",
                     "/api/generate-ocr-testcases",
-                    "/api/generate-testcases",
+                     "/api/groq/generate-test-cases",
                     "/api/public/**"
                 ).permitAll()
                 .anyRequest().authenticated()

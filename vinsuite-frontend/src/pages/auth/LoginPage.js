@@ -33,9 +33,14 @@ const LoginPage = () => {
       clearTimeout(timeout);
 
       const user = res.data || {};
+
       const role = user.role || "admin";
       const id = user.id || "admin";
       const dept = user.department || "";
+
+      if (user.token) {
+        localStorage.setItem("token", user.token);
+      }
 
       setUserRole(role);
       setUserId(id);
@@ -127,9 +132,8 @@ const LoginPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full ${
-              loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-            } text-white py-2 rounded flex items-center justify-center`}
+            className={`w-full ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+              } text-white py-2 rounded flex items-center justify-center`}
           >
             {loading ? (
               <div className="flex items-center space-x-2">
