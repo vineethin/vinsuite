@@ -61,36 +61,45 @@ public class FrameworkGeneratorService {
                 continue;
 
             String lower = step.toLowerCase();
-            String field = "", value = "", locator = "";
 
-            if (lower.startsWith("enter")) {
-                // Example: Enter "secret123" in password
-                int inIndex = lower.indexOf(" in ");
-                if (inIndex > 0) {
-                    String before = step.substring(0, inIndex).trim(); // e.g., Enter "secret123"
-                    String after = step.substring(inIndex + 4).trim(); // e.g., password
+            // Handle: Enter "value" into the username field
+            Matcher enterMatcher = Pattern
+                    .compile("enter\\s+\"([^\"]+)\"\\s+into\\s+(?:the\\s+)?(.*?)\\s+field", Pattern.CASE_INSENSITIVE)
+                    .matcher(step);
+            if (enterMatcher.find()) {
+                String value = enterMatcher.group(1).trim();
+                String field = enterMatcher.group(2).trim();
+                String locator = getBestLocator(field, htmlCode);
+                body.append(
+                        String.format("        driver.findElement(%s).sendKeys(\"%s\");\n", locator, escape(value)));
+                continue;
+            }
 
-                    Matcher m = Pattern.compile("\"([^\"]+)\"").matcher(before);
-                    if (m.find())
-                        value = m.group(1);
-                    else
-                        value = before.replaceFirst("(?i)enter", "").trim();
-
-                    field = after;
-                    locator = getBestLocator(field, htmlCode);
-                    body.append(String.format("        driver.findElement(%s).sendKeys(\"%s\");\n", locator,
-                            escape(value)));
-                }
-            } else if (lower.startsWith("click")) {
-                Matcher m = Pattern.compile("\"([^\"]+)\"").matcher(step);
-                field = m.find() ? m.group(1) : step.replaceFirst("(?i)click", "").trim();
-                locator = getBestLocator(field, htmlCode);
+            // Handle: Click the Login button
+            Matcher clickMatcher = Pattern.compile("click\\s+(?:the\\s+)?(.*?)\\s+button", Pattern.CASE_INSENSITIVE)
+                    .matcher(step);
+            if (clickMatcher.find()) {
+                String field = clickMatcher.group(1).trim();
+                String locator = getBestLocator(field, htmlCode);
                 body.append(String.format("        driver.findElement(%s).click();\n", locator));
-            } else if (lower.startsWith("verify")) {
-                Matcher m = Pattern.compile("\"([^\"]+)\"").matcher(step);
-                value = m.find() ? m.group(1) : step.replaceFirst("(?i)verify", "").trim();
+                continue;
+            }
+
+            // Handle: Verify that the user is navigated to the dashboard
+            Matcher verifyMatcher = Pattern
+                    .compile("verify.*?(?:navigated to|see|text is|contains)?\\s*\"?([^\"]+?)\"?$",
+                            Pattern.CASE_INSENSITIVE)
+                    .matcher(step);
+            if (verifyMatcher.find()) {
+                String text = verifyMatcher.group(1).trim();
                 body.append(String.format("        Assert.assertTrue(driver.getPageSource().contains(\"%s\"));\n",
-                        escape(value)));
+                        escape(text)));
+                continue;
+            }
+
+            // Skip generic steps like "Open the login page"
+            if (lower.contains("open") && lower.contains("login page")) {
+                continue;
             }
         }
 
@@ -103,24 +112,24 @@ public class FrameworkGeneratorService {
 
         if (language.equals("java") && framework.equals("testng")) {
             return """
-                            import org.openqa.selenium.By;
-                            import org.openqa.selenium.WebDriver;
-                            import org.openqa.selenium.chrome.ChromeDriver;
-                            import org.testng.Assert;
-                            import org.testng.annotations.*;
+                    import org.openqa.selenium.By;
+                    import org.openqa.selenium.WebDriver;
+                    import org.openqa.selenium.chrome.ChromeDriver;
+                    import org.testng.Assert;
+                    import org.testng.annotations.*;
 
-                            public class GeneratedTest {
+                    public class GeneratedTest {
 
-                                WebDriver driver;
+                        WebDriver driver;
 
-                                @BeforeMethod
-                                public void setup() {
-                                    driver = new ChromeDriver();
-                                    driver.get("https://your-app-url.com");
-                                }
+                        @BeforeMethod
+                        public void setup() {
+                            driver = new ChromeDriver();
+                            driver.get("https://your-app-url.com");
+                        }
 
-                                @Test
-                                public void testSteps() {
+                        @Test
+                        public void testSteps() {
                     """ + body + """
                         }
 
@@ -157,36 +166,40 @@ public class FrameworkGeneratorService {
 
     private String getBestLocator(String field, String htmlCode) {
         field = field.trim();
+        String safeField = Pattern.quote(field);
+        Matcher matcher;
 
-        // Match ID attribute
-        String idRegex = String.format("id\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
-        Matcher matcher = Pattern.compile(idRegex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
-        if (matcher.find()) {
+        // Match by ID
+        matcher = Pattern.compile("id\\s*=\\s*\"([^\"]*" + safeField + "[^\"]*)\"", Pattern.CASE_INSENSITIVE)
+                .matcher(htmlCode);
+        if (matcher.find())
             return String.format("By.id(\"%s\")", matcher.group(1));
-        }
 
-        // Match name attribute
-        String nameRegex = String.format("name\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
-        matcher = Pattern.compile(nameRegex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
-        if (matcher.find()) {
+        // Match by name
+        matcher = Pattern.compile("name\\s*=\\s*\"([^\"]*" + safeField + "[^\"]*)\"", Pattern.CASE_INSENSITIVE)
+                .matcher(htmlCode);
+        if (matcher.find())
             return String.format("By.name(\"%s\")", matcher.group(1));
-        }
 
-        // Match placeholder (input only)
-        String placeholderRegex = String.format("placeholder\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
-        matcher = Pattern.compile(placeholderRegex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
-        if (matcher.find()) {
+        // Match by placeholder
+        matcher = Pattern.compile("placeholder\\s*=\\s*\"([^\"]*" + safeField + "[^\"]*)\"", Pattern.CASE_INSENSITIVE)
+                .matcher(htmlCode);
+        if (matcher.find())
             return String.format("By.cssSelector(\"input[placeholder='%s']\")", matcher.group(1));
-        }
 
-        // Match button text directly (click "Login" → <button>Login</button>)
-        String buttonRegex = String.format("<button[^>]*>(?i)%s</button>", Pattern.quote(field));
-        matcher = Pattern.compile(buttonRegex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
-        if (matcher.find()) {
+        // Match <button> text
+        matcher = Pattern.compile("<button[^>]*>(?i)" + safeField + "</button>", Pattern.CASE_INSENSITIVE)
+                .matcher(htmlCode);
+        if (matcher.find())
             return String.format("By.xpath(\"//button[text()='%s']\")", field);
-        }
 
-        // Fallback: generic XPath by name or visible text
+        // Match <label> text
+        matcher = Pattern.compile("<label[^>]*>(?i)" + safeField + "</label>", Pattern.CASE_INSENSITIVE)
+                .matcher(htmlCode);
+        if (matcher.find())
+            return String.format("By.xpath(\"//label[text()='%s']\")", field);
+
+        // Fallback to contains(text) or name attribute
         return String.format("By.xpath(\"//*[contains(text(), '%s') or @name='%s']\")", field, field);
     }
 
