@@ -18,13 +18,16 @@ public class VisionAIController {
     @Autowired
     private VisionAIService visionAIService;
 
-    @PostMapping("/generate-ocr-testcases")
+    @PostMapping(
+        value = "/generate-ocr-testcases",
+        consumes = "multipart/form-data"
+    )
     public ResponseEntity<?> generateTestCasesFromImage(
-        @RequestParam("image") MultipartFile image,
-        @RequestParam("feature") String feature
+        @RequestPart("image") MultipartFile image,
+        @RequestPart("feature") String feature
     ) {
         try {
-            System.out.println("\uD83C\uDFC2 Received OCR request with feature: " + feature + " and image size: " + image.getSize());
+            System.out.println("📥 Received OCR request with feature: " + feature + " and image size: " + image.getSize());
 
             byte[] imageBytes = image.getBytes();
             List<TestCase> testCases = visionAIService.generateTestCasesFromImageAndFeature(imageBytes, feature);
@@ -41,4 +44,4 @@ public class VisionAIController {
                 .body(Map.of("error", "Failed to generate test cases: " + e.getMessage()));
         }
     }
-} 
+}
