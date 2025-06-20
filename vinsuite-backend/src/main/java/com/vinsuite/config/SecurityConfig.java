@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 
 import java.util.Arrays;
 
@@ -22,12 +23,18 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                // Allow OPTIONS for CORS preflight
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // Allow public endpoints
                 .requestMatchers(
                     "/api/auth/**",
-                    "/api/generate-ocr-testcases",
-                     "/api/groq/generate-test-cases",
-                    "/api/public/**"
+                    "/api/groq/generate-test-cases",
+                    "/api/public/**",
+                    "/api/vision/generate-ocr-testcases"  // ✅ OCR endpoint explicitly allowed
                 ).permitAll()
+
+                // All other requests must be authenticated
                 .anyRequest().authenticated()
             );
 
