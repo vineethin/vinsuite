@@ -19,11 +19,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated());
+            .cors(Customizer.withDefaults())
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/api/auth/**",
+                    "/api/generate-ocr-testcases",
+                    "/api/generate-testcases",
+                    "/api/public/**"
+                ).permitAll()
+                .anyRequest().authenticated()
+            );
 
         return http.build();
     }
@@ -31,11 +37,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "https://vinsuite360.com",
-                "https://vinsuite-frontend.onrender.com"));
-
+        config.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:3000",
+            "https://vinsuite360.com",
+            "https://*.onrender.com"
+        ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);
