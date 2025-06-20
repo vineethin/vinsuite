@@ -26,7 +26,8 @@ public class SecurityConfig {
                     "/api/auth/**",
                     "/api/groq/generate-test-cases",
                     "/api/public/**",
-                    "/api/vision/generate-ocr-testcases" // ✅ Allow this endpoint
+                    "/api/vision/generate-ocr-testcases", // ✅ Allow this endpoint
+                    "/api/openai-xpath"  // ✅ Allow this XPath tool endpoint
                 ).permitAll()
                 .anyRequest().authenticated()
             );
