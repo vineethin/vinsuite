@@ -64,29 +64,103 @@ public class FrameworkGeneratorService {
             String locator = "";
 
             if (lowerStep.startsWith("enter")) {
-                String[] parts = lowerStep.split(" in ");
-                if (parts.length == 2) {
-                    value = parts[0].replace("enter", "").trim();
-                    field = parts[1].trim();
+                // Handle format: Enter password "abc123" in password field
+                int inIndex = lowerStep.indexOf(" in ");
+                if (inIndex > 0) {
+                    String before = step.substring(0, inIndex).trim();
+                    String after = step.substring(inIndex + 4).trim();
+
+                    // Extract quoted value if available
+                    Matcher valueMatcher = Pattern.compile("\"([^\"]+)\"").matcher(before);
+                    if (valueMatcher.find()) {
+                        value = valueMatcher.group(1);
+                    } else {
+                        value = before.replaceFirst("(?i)enter", "").trim();
+                    }
+
+                    field = after;
                     locator = getBestLocator(field, htmlCode);
-                    body.append(String.format("        driver.findElement(%s).sendKeys(\"%s\");\n", locator, value));
+                    body.append(String.format("        driver.findElement(%s).sendKeys(\"%s\");\n", locator,
+                            escape(value)));
                 }
             } else if (lowerStep.startsWith("click")) {
-                field = step.replaceFirst("(?i)click", "").trim();
+                field = step.replaceFirst("(?i)click", "").replaceAll("\"", "").trim();
                 locator = getBestLocator(field, htmlCode);
                 body.append(String.format("        driver.findElement(%s).click();\n", locator));
             } else if (lowerStep.startsWith("verify")) {
-                value = step.replaceFirst("(?i)verify text", "").replace("\"", "").trim();
-                body.append(
-                        String.format("        Assert.assertTrue(driver.getPageSource().contains(\"%s\"));\n", value));
+                value = step.replaceFirst("(?i)verify( that)?", "").replaceAll("\"", "").trim();
+                body.append(String.format("        Assert.assertTrue(driver.getPageSource().contains(\"%s\"));\n",
+                        escape(value)));
             }
         }
 
-        // Java/TestNG & JUnit generation (same as before)
-        // [You can retain the same block from the previous message for the switch-case
-        // part.]
+        language = language.trim().toLowerCase();
+        framework = framework.trim().toLowerCase();
 
-        // Return fallback if unsupported
+        switch (language) {
+            case "java" -> {
+                if (framework.equals("testng")) {
+                    return """
+                            import org.openqa.selenium.By;
+                            import org.openqa.selenium.WebDriver;
+                            import org.openqa.selenium.chrome.ChromeDriver;
+                            import org.testng.Assert;
+                            import org.testng.annotations.*;
+
+                            public class GeneratedTest {
+
+                                WebDriver driver;
+
+                                @BeforeMethod
+                                public void setup() {
+                                    driver = new ChromeDriver();
+                                    driver.get("https://your-app-url.com");
+                                }
+
+                                @Test
+                                public void testSteps() {
+                            """ + body + """
+                                }
+
+                                @AfterMethod
+                                public void teardown() {
+                                    driver.quit();
+                                }
+                            }
+                            """;
+                } else if (framework.equals("junit")) {
+                    return """
+                            import org.openqa.selenium.By;
+                            import org.openqa.selenium.WebDriver;
+                            import org.openqa.selenium.chrome.ChromeDriver;
+                            import org.junit.*;
+
+                            public class GeneratedTest {
+
+                                static WebDriver driver;
+
+                                @BeforeClass
+                                public static void setup() {
+                                    driver = new ChromeDriver();
+                                    driver.get("https://your-app-url.com");
+                                }
+
+                                @Test
+                                public void testSteps() {
+                            """ + body + """
+                                }
+
+                                @AfterClass
+                                public static void teardown() {
+                                    driver.quit();
+                                }
+                            }
+                            """;
+                }
+            }
+        }
+
+        // Fallback
         return String.format("""
                 // Auto-generated Test Script
                 // Language: %s | Framework: %s
@@ -106,26 +180,36 @@ public class FrameworkGeneratorService {
     }
 
     private String getBestLocator(String field, String htmlCode) {
-    field = field.trim();
+        field = field.trim();
 
-    // Try finding by ID
-    String regex = String.format("id\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
-    Matcher matcher = Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
-    if (matcher.find()) {
-        return String.format("By.id(\"%s\")", matcher.group(1));
+        // Try finding by ID
+        String idRegex = String.format("id\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
+        Matcher matcher = Pattern.compile(idRegex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
+        if (matcher.find()) {
+            return String.format("By.id(\"%s\")", matcher.group(1));
+        }
+
+        // Try matching placeholder
+        String placeholderRegex = String.format("placeholder\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
+        matcher = Pattern.compile(placeholderRegex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
+        if (matcher.find()) {
+            return String.format("By.cssSelector(\"input[placeholder='%s']\")", matcher.group(1));
+        }
+
+        // Try matching name attribute
+        String nameRegex = String.format("name\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
+        matcher = Pattern.compile(nameRegex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
+        if (matcher.find()) {
+            return String.format("By.name(\"%s\")", matcher.group(1));
+        }
+
+        // Fallback to XPath
+        return String.format("By.xpath(\"//*[contains(text(), '%s') or @name='%s']\")", field, field);
     }
 
-    // Try matching placeholder
-    regex = String.format("placeholder\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
-    matcher = Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
-    if (matcher.find()) {
-        return String.format("By.cssSelector(\"input[placeholder='%s']\")", matcher.group(1));
+    private String escape(String text) {
+        return text.replace("\\", "\\\\").replace("\"", "\\\"");
     }
-
-    // Fallback to XPath
-    return String.format("By.xpath(\"//*[contains(text(), '%s') or @name='%s']\")", field, field);
-}
-
 
     private void generateJavaFramework(Path baseDir, FrameworkConfigRequest config) throws IOException {
         Path mainJava = baseDir.resolve("src/main/java/com/vinsuite/utils");
