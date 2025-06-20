@@ -31,7 +31,8 @@ public class SecurityConfig {
                     "/api/auth/**",
                     "/api/groq/generate-test-cases",
                     "/api/public/**",
-                    "/api/vision/generate-ocr-testcases"  // ✅ OCR endpoint explicitly allowed
+                    "/api/vision/generate-ocr-testcases",  // ✅ OCR endpoint explicitly allowed
+                    "/api/openai-xpath"  // ✅ Allow this XPath tool endpoint
                 ).permitAll()
 
                 // All other requests must be authenticated
