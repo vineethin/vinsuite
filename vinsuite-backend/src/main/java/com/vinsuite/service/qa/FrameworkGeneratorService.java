@@ -57,50 +57,52 @@ public class FrameworkGeneratorService {
 
         for (String step : steps) {
             step = step.trim();
-            String lowerStep = step.toLowerCase();
+            if (step.isEmpty())
+                continue;
 
-            String field = "";
-            String value = "";
-            String locator = "";
+            String lower = step.toLowerCase();
+            String field = "", value = "", locator = "";
 
-            if (lowerStep.startsWith("enter")) {
-                // Handle format: Enter password "abc123" in password field
-                int inIndex = lowerStep.indexOf(" in ");
+            if (lower.startsWith("enter")) {
+                // Example: Enter "secret123" in password
+                int inIndex = lower.indexOf(" in ");
                 if (inIndex > 0) {
-                    String before = step.substring(0, inIndex).trim();
-                    String after = step.substring(inIndex + 4).trim();
+                    String before = step.substring(0, inIndex).trim(); // e.g., Enter "secret123"
+                    String after = step.substring(inIndex + 4).trim(); // e.g., password
 
-                    // Extract quoted value if available
-                    Matcher valueMatcher = Pattern.compile("\"([^\"]+)\"").matcher(before);
-                    if (valueMatcher.find()) {
-                        value = valueMatcher.group(1);
-                    } else {
+                    Matcher m = Pattern.compile("\"([^\"]+)\"").matcher(before);
+                    if (m.find())
+                        value = m.group(1);
+                    else
                         value = before.replaceFirst("(?i)enter", "").trim();
-                    }
 
                     field = after;
                     locator = getBestLocator(field, htmlCode);
                     body.append(String.format("        driver.findElement(%s).sendKeys(\"%s\");\n", locator,
                             escape(value)));
                 }
-            } else if (lowerStep.startsWith("click")) {
-                field = step.replaceFirst("(?i)click", "").replaceAll("\"", "").trim();
+            } else if (lower.startsWith("click")) {
+                Matcher m = Pattern.compile("\"([^\"]+)\"").matcher(step);
+                field = m.find() ? m.group(1) : step.replaceFirst("(?i)click", "").trim();
                 locator = getBestLocator(field, htmlCode);
                 body.append(String.format("        driver.findElement(%s).click();\n", locator));
-            } else if (lowerStep.startsWith("verify")) {
-                value = step.replaceFirst("(?i)verify( that)?", "").replaceAll("\"", "").trim();
+            } else if (lower.startsWith("verify")) {
+                Matcher m = Pattern.compile("\"([^\"]+)\"").matcher(step);
+                value = m.find() ? m.group(1) : step.replaceFirst("(?i)verify", "").trim();
                 body.append(String.format("        Assert.assertTrue(driver.getPageSource().contains(\"%s\"));\n",
                         escape(value)));
             }
         }
 
+        if (body.length() == 0) {
+            body.append("        // No valid steps found to automate.\n");
+        }
+
         language = language.trim().toLowerCase();
         framework = framework.trim().toLowerCase();
 
-        switch (language) {
-            case "java" -> {
-                if (framework.equals("testng")) {
-                    return """
+        if (language.equals("java") && framework.equals("testng")) {
+            return """
                             import org.openqa.selenium.By;
                             import org.openqa.selenium.WebDriver;
                             import org.openqa.selenium.chrome.ChromeDriver;
@@ -119,48 +121,18 @@ public class FrameworkGeneratorService {
 
                                 @Test
                                 public void testSteps() {
-                            """ + body + """
-                                }
+                    """ + body + """
+                        }
 
-                                @AfterMethod
-                                public void teardown() {
-                                    driver.quit();
-                                }
-                            }
-                            """;
-                } else if (framework.equals("junit")) {
-                    return """
-                            import org.openqa.selenium.By;
-                            import org.openqa.selenium.WebDriver;
-                            import org.openqa.selenium.chrome.ChromeDriver;
-                            import org.junit.*;
-
-                            public class GeneratedTest {
-
-                                static WebDriver driver;
-
-                                @BeforeClass
-                                public static void setup() {
-                                    driver = new ChromeDriver();
-                                    driver.get("https://your-app-url.com");
-                                }
-
-                                @Test
-                                public void testSteps() {
-                            """ + body + """
-                                }
-
-                                @AfterClass
-                                public static void teardown() {
-                                    driver.quit();
-                                }
-                            }
-                            """;
-                }
-            }
+                        @AfterMethod
+                        public void teardown() {
+                            driver.quit();
+                        }
+                    }
+                    """;
         }
 
-        // Fallback
+        // fallback
         return String.format("""
                 // Auto-generated Test Script
                 // Language: %s | Framework: %s
@@ -179,36 +151,43 @@ public class FrameworkGeneratorService {
                 """, language, framework, manualSteps, htmlCode);
     }
 
+    private String escape(String text) {
+        return text.replace("\"", "\\\"");
+    }
+
     private String getBestLocator(String field, String htmlCode) {
         field = field.trim();
 
-        // Try finding by ID
+        // Match ID attribute
         String idRegex = String.format("id\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
         Matcher matcher = Pattern.compile(idRegex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
         if (matcher.find()) {
             return String.format("By.id(\"%s\")", matcher.group(1));
         }
 
-        // Try matching placeholder
-        String placeholderRegex = String.format("placeholder\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
-        matcher = Pattern.compile(placeholderRegex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
-        if (matcher.find()) {
-            return String.format("By.cssSelector(\"input[placeholder='%s']\")", matcher.group(1));
-        }
-
-        // Try matching name attribute
+        // Match name attribute
         String nameRegex = String.format("name\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
         matcher = Pattern.compile(nameRegex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
         if (matcher.find()) {
             return String.format("By.name(\"%s\")", matcher.group(1));
         }
 
-        // Fallback to XPath
-        return String.format("By.xpath(\"//*[contains(text(), '%s') or @name='%s']\")", field, field);
-    }
+        // Match placeholder (input only)
+        String placeholderRegex = String.format("placeholder\\s*=\\s*\"([^\"]*%s[^\"]*)\"", Pattern.quote(field));
+        matcher = Pattern.compile(placeholderRegex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
+        if (matcher.find()) {
+            return String.format("By.cssSelector(\"input[placeholder='%s']\")", matcher.group(1));
+        }
 
-    private String escape(String text) {
-        return text.replace("\\", "\\\\").replace("\"", "\\\"");
+        // Match button text directly (click "Login" → <button>Login</button>)
+        String buttonRegex = String.format("<button[^>]*>(?i)%s</button>", Pattern.quote(field));
+        matcher = Pattern.compile(buttonRegex, Pattern.CASE_INSENSITIVE).matcher(htmlCode);
+        if (matcher.find()) {
+            return String.format("By.xpath(\"//button[text()='%s']\")", field);
+        }
+
+        // Fallback: generic XPath by name or visible text
+        return String.format("By.xpath(\"//*[contains(text(), '%s') or @name='%s']\")", field, field);
     }
 
     private void generateJavaFramework(Path baseDir, FrameworkConfigRequest config) throws IOException {
