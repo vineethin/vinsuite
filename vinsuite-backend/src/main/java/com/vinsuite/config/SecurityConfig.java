@@ -34,7 +34,8 @@ public class SecurityConfig {
                     "/api/vision/generate-ocr-testcases",  // ✅ OCR endpoint explicitly allowed
                     "/api/openai-xpath",  // ✅ Allow this XPath tool endpoint
                     "/api/qa/framework/generate-script",
-                    "/api/qa/performance/test" 
+                    "/api/qa/performance/test",
+                    "/api/qa/defect-scan"
                 ).permitAll()
 
                 // All other requests must be authenticated
