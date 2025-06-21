@@ -20,8 +20,7 @@ public class WebDefectScannerController {
     @PostMapping("/defect-scan")
     public ResponseEntity<?> analyzePage(
             @RequestParam("url") String url,
-            @RequestParam(value = "screenshot", required = false) MultipartFile screenshot
-    ) {
+            @RequestParam(value = "screenshot", required = false) MultipartFile screenshot) {
         try {
             // Step 1: Fetch HTML content from the provided URL
             Document doc = Jsoup.connect(url).get();
@@ -33,7 +32,8 @@ public class WebDefectScannerController {
             // Step 3: Build AI prompt for web defect analysis
             String prompt = "You are a senior QA engineer. Perform an AI-based defect scan on the following HTML. " +
                     "Return results in JSON format with fields: title, severity, suggestedFix. " +
-                    "Focus on UI alignment issues, missing labels, broken links, accessibility violations, and bad UX patterns.\n\n" +
+                    "Focus on UI alignment issues, missing labels, broken links, accessibility violations, and bad UX patterns.\n\n"
+                    +
                     compressedHtml;
 
             // Step 4: Call Groq/OpenAI service to analyze the page
@@ -49,16 +49,21 @@ public class WebDefectScannerController {
     }
 
     private String compressHtml(String html) {
-        return html
-            .replaceAll("(?s)<script.*?>.*?</script>", "")       // Remove <script> blocks
-            .replaceAll("(?s)<style.*?>.*?</style>", "")         // Remove <style> blocks
-            .replaceAll("(?s)<!--.*?-->", "")                    // Remove comments
-            .replaceAll("<(meta|link|noscript)[^>]*>", "")       // Remove metadata
-            .replaceAll("\\s{2,}", " ")                          // Collapse whitespace
-            .replaceAll(">\\s+<", "><")                          // Remove spaces between tags
-            .replaceAll(" style=\"[^\"]*\"", "")                 // Remove inline styles
-            .replaceAll(" class=\"[^\"]*\"", "")                 // Remove class attributes
-            .replaceAll(" id=\"[^\"]*\"", "")                    // Remove id attributes
-            .trim();
+        String compressed = html
+                .replaceAll("(?s)<script.*?>.*?</script>", "")
+                .replaceAll("(?s)<style.*?>.*?</style>", "")
+                .replaceAll("(?s)<!--.*?-->", "")
+                .replaceAll("<(meta|link|noscript)[^>]*>", "")
+                .replaceAll("\\s{2,}", " ")
+                .replaceAll(">\\s+<", "><")
+                .replaceAll(" style=\"[^\"]*\"", "")
+                .replaceAll(" class=\"[^\"]*\"", "")
+                .replaceAll(" id=\"[^\"]*\"", "")
+                .trim();
+
+        // Truncate to first N characters to stay under token limits
+        int maxLength = 8000; // You can tune this based on model/token budget
+        return compressed.length() > maxLength ? compressed.substring(0, maxLength) : compressed;
     }
+
 }
