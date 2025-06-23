@@ -1,5 +1,7 @@
 package com.vinsuite.controller.qa;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -18,22 +20,28 @@ public class TestAuraSuggestionController {
     private String groqModelName;
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping("/suggestions")
-    public ResponseEntity<?> getSuggestions(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<Map<String, Object>> getSuggestions(@RequestBody Map<String, Object> payload) {
         Object rawUrl = payload.get("url");
         if (!(rawUrl instanceof String) || ((String) rawUrl).isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Valid URL is required"));
+            return ResponseEntity.badRequest().body(Map.of(
+                "suggestions", Collections.emptyMap(),
+                "error", "Valid URL is required"
+            ));
         }
 
         String url = ((String) rawUrl).trim();
         String prompt = buildPrompt(url);
 
         Map<String, Object> requestBody = Map.of(
-                "model", groqModelName,
-                "messages", List.of(
-                        Map.of("role", "system", "content", "You're a test case suggestion assistant."),
-                        Map.of("role", "user", "content", prompt)));
+            "model", groqModelName,
+            "messages", List.of(
+                Map.of("role", "system", "content", "You're a test case suggestion assistant."),
+                Map.of("role", "user", "content", prompt)
+            )
+        );
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -43,52 +51,43 @@ public class TestAuraSuggestionController {
 
         try {
             ResponseEntity<Map> response = restTemplate.postForEntity(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    request,
-                    Map.class);
+                "https://api.groq.com/openai/v1/chat/completions",
+                request,
+                Map.class
+            );
 
             Map<?, ?> responseBody = response.getBody();
             if (responseBody == null || !responseBody.containsKey("choices")) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("message", "Groq response invalid or empty"));
+                return ResponseEntity.ok(Map.of(
+                    "suggestions", Collections.emptyMap(),
+                    "error", "Empty response from Groq"
+                ));
             }
 
-            List<?> choices = (List<?>) responseBody.get("choices");
-            if (choices.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("message", "No choices returned by Groq"));
-            }
-
-            Object first = choices.get(0);
-            if (!(first instanceof Map)) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("message", "Malformed choice in Groq response"));
-            }
-
-            Map<?, ?> firstChoice = (Map<?, ?>) first;
-            Map<?, ?> message = (Map<?, ?>) firstChoice.get("message");
+            Object first = ((List<?>) responseBody.get("choices")).get(0);
+            Map<?, ?> message = (Map<?, ?>) ((Map<?, ?>) first).get("message");
             String content = (String) message.get("content");
 
-            List<String> suggestions = Arrays.stream(content.split("\\n"))
-                    .map(String::trim)
-                    .filter(line -> !line.isBlank())
-                    .toList();
+            Map<String, List<String>> parsedSuggestions = objectMapper.readValue(
+                content,
+                new TypeReference<>() {}
+            );
 
-            return ResponseEntity.ok(Map.of("suggestions", suggestions));
+            return ResponseEntity.ok(Map.of("suggestions", parsedSuggestions));
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Groq API call failed", "error", e.getMessage()));
+            return ResponseEntity.ok(Map.of(
+                "suggestions", Collections.emptyMap(),
+                "error", "Groq API call failed: " + e.getMessage()
+            ));
         }
     }
 
     private String buildPrompt(String url) {
-        return "You are a QA assistant. Analyze the following URL and suggest possible test cases grouped by category. "
-                +
+        return "You are a QA assistant. Analyze the following URL and suggest possible test cases grouped by category. " +
                 "Categories can include Functional, Security, Accessibility, API, Responsiveness, etc. " +
                 "Respond ONLY in JSON format like: " +
                 "{ \"Functional\": [\"Test A\", \"Test B\"], \"Security\": [\"Test C\"] }.\n" +
                 "URL: " + url;
     }
-
 }
