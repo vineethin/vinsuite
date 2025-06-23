@@ -35,21 +35,31 @@ export default function TestAuraPanel() {
         body: JSON.stringify({ url }),
       });
 
-      if (!res.ok) throw new Error("Failed to fetch suggestions.");
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        toast.error("Failed to parse AI response (invalid JSON).");
+        return;
+      }
 
-      const data = await res.json();
-      if (typeof data.suggestions === "object") {
+      if (!res.ok || data.error) {
+        toast.error(`AI Error: ${data.error || "Unknown issue occurred."}`);
+        return;
+      }
+
+      if (typeof data.suggestions === "object" && data.suggestions !== null) {
         setSuggestions(data.suggestions);
         const [firstCategory] = Object.keys(data.suggestions);
         const firstFew = data.suggestions[firstCategory]?.slice(0, 3).join(". ");
         if (firstFew) speak(`Here are some test suggestions. ${firstFew}`);
+        toast.success("Suggestions generated!");
       } else {
-        toast.warn("Unexpected response format.");
+        toast.warn("Unexpected AI response format.");
+        setSuggestions({});
       }
-
-      toast.success("Suggestions generated!");
     } catch (err) {
-      toast.error("Error generating suggestions.");
+      toast.error("Network or server error occurred.");
       console.error(err);
     }
   };
@@ -71,6 +81,12 @@ export default function TestAuraPanel() {
 
       recognition.onresult = (event) => {
         const speech = event.results[0][0].transcript;
+        if (!speech.trim()) {
+          toast.warn("No voice input detected.");
+          setRecording(false);
+          return;
+        }
+
         setTranscript(speech);
         setUrl(speech);
         setRecording(false);
