@@ -8,7 +8,8 @@ const tools = [
   { name: "Test Coverage Estimator", route: "/qa/test-coverage-estimator" },
   { name: "Automated Test Generator", route: "/qa/automated-test-generator" },
   { name: "Performance Script Generator", route: "/qa/performance-generator" },
-  { name: "Web Defect Scanner", route: "/dashboard/qa/web-defect-scanner" } // ✅ Newly added
+  { name: "Web Defect Scanner", route: "/dashboard/qa/web-defect-scanner" },
+  { name: "TestAura", route: "/qa/testaura" } // ✅ Newly added
 ];
 
 

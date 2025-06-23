@@ -32,6 +32,7 @@ import AIResponseValidator from "./pages/qa/AIResponseValidator";
 import TestCoverageEstimator from "./pages/qa/TestCoverageEstimator";
 import AutomatedTestGenerator from "./pages/qa/AutomatedTestGenerator";
 import PerformanceScriptGenerator from "./pages/qa/PerformanceScriptGenerator";
+import TestAura from "./pages/qa/testaura";
 
 // Dev Tools
 import JsonFormatter from "./pages/dev/JsonFormatter";
@@ -119,6 +120,7 @@ function App() {
           <Route path="/coming-soon/:role" element={<PrivateRoute><ComingSoon /></PrivateRoute>} />
           <Route path="/admin/users" element={<ViewUsers />} />
           <Route path="/qa" element={<PrivateRoute><QADashboard /></PrivateRoute>} />
+          <Route path="/qa/testaura" element={<PrivateRoute><TestAura /></PrivateRoute>} />
           <Route path="/dev" element={<PrivateRoute><DeveloperDashboard /></PrivateRoute>} />
           <Route path="/manager" element={<PrivateRoute><ManagerDashboard /></PrivateRoute>} />
           <Route path="/ba" element={<PrivateRoute><BADashboard /></PrivateRoute>} />
