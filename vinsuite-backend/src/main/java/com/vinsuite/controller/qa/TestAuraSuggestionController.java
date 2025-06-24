@@ -58,7 +58,7 @@ public class TestAuraSuggestionController {
 
             Map<?, ?> responseBody = response.getBody();
             if (responseBody == null || !responseBody.containsKey("choices")) {
-                return ResponseEntity.ok(Map.of(
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "suggestions", Collections.emptyMap(),
                     "error", "Empty response from Groq"
                 ));
@@ -68,10 +68,13 @@ public class TestAuraSuggestionController {
             Map<?, ?> message = (Map<?, ?>) ((Map<?, ?>) first).get("message");
             String content = (String) message.get("content");
 
-            // 🧠 Extract JSON block from the content string
+            // 🧠 DEBUG: Print raw AI output (remove in production)
+            System.out.println("🧠 AI Raw Content:\n" + content);
+
+            // Extract valid JSON from raw response
             String jsonOnly = extractJson(content);
             if (jsonOnly.isBlank()) {
-                return ResponseEntity.ok(Map.of(
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "suggestions", Collections.emptyMap(),
                     "error", "AI response did not contain valid JSON"
                 ));
@@ -85,7 +88,8 @@ public class TestAuraSuggestionController {
             return ResponseEntity.ok(Map.of("suggestions", parsedSuggestions));
 
         } catch (Exception e) {
-            return ResponseEntity.ok(Map.of(
+            e.printStackTrace(); // Log for debugging
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                 "suggestions", Collections.emptyMap(),
                 "error", "Groq API call failed: " + e.getMessage()
             ));
@@ -100,7 +104,9 @@ public class TestAuraSuggestionController {
                 "URL: " + url;
     }
 
-    // ✅ This is what was missing earlier
+    /**
+     * Extracts JSON block from AI response text (first '{' to last '}')
+     */
     private String extractJson(String text) {
         int start = text.indexOf('{');
         int end = text.lastIndexOf('}');
