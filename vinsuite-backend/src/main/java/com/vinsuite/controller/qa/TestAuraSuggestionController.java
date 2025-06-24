@@ -68,8 +68,17 @@ public class TestAuraSuggestionController {
             Map<?, ?> message = (Map<?, ?>) ((Map<?, ?>) first).get("message");
             String content = (String) message.get("content");
 
+            // 🧠 Extract JSON block from the content string
+            String jsonOnly = extractJson(content);
+            if (jsonOnly.isBlank()) {
+                return ResponseEntity.ok(Map.of(
+                    "suggestions", Collections.emptyMap(),
+                    "error", "AI response did not contain valid JSON"
+                ));
+            }
+
             Map<String, List<String>> parsedSuggestions = objectMapper.readValue(
-                content,
+                jsonOnly,
                 new TypeReference<>() {}
             );
 
@@ -89,5 +98,15 @@ public class TestAuraSuggestionController {
                 "Respond ONLY in JSON format like: " +
                 "{ \"Functional\": [\"Test A\", \"Test B\"], \"Security\": [\"Test C\"] }.\n" +
                 "URL: " + url;
+    }
+
+    // ✅ This is what was missing earlier
+    private String extractJson(String text) {
+        int start = text.indexOf('{');
+        int end = text.lastIndexOf('}');
+        if (start != -1 && end != -1 && end > start) {
+            return text.substring(start, end + 1);
+        }
+        return "";
     }
 }
