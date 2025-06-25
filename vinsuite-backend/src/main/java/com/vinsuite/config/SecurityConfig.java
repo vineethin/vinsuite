@@ -35,7 +35,10 @@ public class SecurityConfig {
                     "/api/openai-xpath",  // ✅ Allow this XPath tool endpoint
                     "/api/qa/framework/generate-script",
                     "/api/qa/performance/test",
-                    "/api/qa/defect-scan"
+                    "/api/qa/defect-scan",
+                    "/api/testaura/suggestions",
+                    "/api/testaura/run",
+                    "/api/testaura/report/**" 
                 ).permitAll()
 
                 // All other requests must be authenticated
