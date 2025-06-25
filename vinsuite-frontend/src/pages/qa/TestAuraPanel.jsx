@@ -1,5 +1,5 @@
 // src/components/qa/TestAuraPanel.jsx
-import React from "react";
+import React, { useState } from "react";
 import ToolLayout from "../../components/common/ToolLayout";
 import UrlInputSection from "../../components/qa/TestAura/UrlInputSection";
 import SuggestionsPanel from "../../components/qa/TestAura/SuggestionsPanel";
@@ -9,11 +9,33 @@ import useTestAuraLogic from "../../components/qa/TestAura/useTestAuraLogic";
 const TestAuraPanel = () => {
   const testAura = useTestAuraLogic();
 
+  // ✅ Step 1: Add state for login credentials
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
   return (
     <ToolLayout title="🎙️ TestAura – Voice QA Assistant" showLogout showBack>
       <div className="max-w-3xl mx-auto mt-10 p-6 bg-white rounded shadow space-y-6">
         {/* URL Input with Voice, Submit, and Export options */}
         <UrlInputSection {...testAura} />
+
+        {/* ✅ Username/Password Inputs */}
+        <div className="grid grid-cols-2 gap-4">
+          <input
+            type="text"
+            placeholder="Username (optional)"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="border px-3 py-2 rounded w-full"
+          />
+          <input
+            type="password"
+            placeholder="Password (optional)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="border px-3 py-2 rounded w-full"
+          />
+        </div>
 
         {/* Transcript feedback */}
         {testAura.transcript && (
@@ -31,8 +53,7 @@ const TestAuraPanel = () => {
           isRunning={testAura.isRunning}
           screenshot={testAura.screenshot}
           reportUrl={testAura.reportUrl}
-          onRunTests={testAura.handleRunTests}
-          // ⬇️ To be implemented in step 2
+          onRunTests={() => testAura.handleRunTests({ username, password })}
           testResults={testAura.testResults || []}
         />
       </div>

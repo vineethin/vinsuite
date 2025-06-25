@@ -37,7 +37,7 @@ public class SecurityConfig {
                     "/api/qa/performance/test",
                     "/api/qa/defect-scan",
                     "/api/testaura/suggestions",
-                    "/api/testaura/run",
+                    "/api/testaura/run-smart",
                     "/api/testaura/report/**" 
                 ).permitAll()
 
