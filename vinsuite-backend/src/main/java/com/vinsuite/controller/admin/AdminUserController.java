@@ -1,7 +1,6 @@
 package com.vinsuite.controller.admin;
 
 import com.vinsuite.dto.common.UserDTO;
-import com.vinsuite.model.User;
 import com.vinsuite.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

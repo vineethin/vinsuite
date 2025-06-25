@@ -60,7 +60,6 @@ const WebDefectScanner = () => {
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white p-6 rounded-xl shadow">
       <ToolHeader title="AI Web Defect Scanner" backTo="/dashboard" />
-      
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block font-medium mb-1">Page URL</label>
