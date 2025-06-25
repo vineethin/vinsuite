@@ -4,6 +4,16 @@ import { toast } from "react-toastify";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "/api";
 
+// ✅ Exported for reuse in UI components
+export const isValidUrl = (val) => {
+  try {
+    const parsed = new URL(val);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 export default function useTestAuraLogic() {
   const [url, setUrl] = useState("");
   const [suggestions, setSuggestions] = useState({});
@@ -14,15 +24,6 @@ export default function useTestAuraLogic() {
   const [reportUrl, setReportUrl] = useState(null);
   const [recording, setRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
-
-  const isValidUrl = (val) => {
-    try {
-      const parsed = new URL(val);
-      return parsed.protocol === "http:" || parsed.protocol === "https:";
-    } catch {
-      return false;
-    }
-  };
 
   const speak = (text) => {
     try {
@@ -100,7 +101,10 @@ export default function useTestAuraLogic() {
         body: JSON.stringify({ url: inputUrl }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => {
+        throw new Error("Invalid JSON response");
+      });
+
       if (typeof data.suggestions === "object" && data.suggestions !== null) {
         setSuggestions(data.suggestions);
         const [firstCategory] = Object.keys(data.suggestions);
@@ -142,13 +146,21 @@ export default function useTestAuraLogic() {
     setReportUrl(null);
 
     try {
+      // ✅ Add this log
+      console.log("▶️ Running tests with payload:", {
+        url,
+        tests: selectedTests
+      });
       const res = await fetch(`${API_BASE}/testaura/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url, tests: selectedTests }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => {
+        throw new Error("Invalid JSON response");
+      });
+
       if (res.ok) {
         toast.success(data.message || "Tests executed.");
         if (data.screenshot) {
@@ -169,6 +181,28 @@ export default function useTestAuraLogic() {
     }
   };
 
+  const downloadAsTxt = () => {
+    if (!suggestions || Object.keys(suggestions).length === 0) {
+      toast.warn("No suggestions to export.");
+      return;
+    }
+
+    const content = Object.entries(suggestions)
+      .map(
+        ([category, tests]) =>
+          `\n== ${category.toUpperCase()} ==\n` +
+          tests.map((s, i) => `  ${i + 1}. ${s}`).join("\n")
+      )
+      .join("\n");
+
+    const blob = new Blob([content], { type: "text/plain" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "test-suggestions.txt";
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
   return {
     url,
     setUrl,
@@ -187,29 +221,9 @@ export default function useTestAuraLogic() {
     speak,
     handleSubmit,
     handleVoiceCommand,
-    downloadAsTxt: () => {
-      if (!suggestions || Object.keys(suggestions).length === 0) {
-        toast.warn("No suggestions to export.");
-        return;
-      }
-
-      const content = Object.entries(suggestions)
-        .map(
-          ([category, tests]) =>
-            `\n== ${category.toUpperCase()} ==\n` +
-            tests.map((s, i) => `  ${i + 1}. ${s}`).join("\n")
-        )
-        .join("\n");
-
-      const blob = new Blob([content], { type: "text/plain" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "test-suggestions.txt";
-      link.click();
-      URL.revokeObjectURL(link.href);
-    },
     toggleTest,
     handleRunTests,
-    isValidUrl,
+    downloadAsTxt,
+    isValidUrl, // included for use in Preview component or others
   };
 }
