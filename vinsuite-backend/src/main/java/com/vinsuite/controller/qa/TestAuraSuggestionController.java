@@ -22,14 +22,13 @@ public class TestAuraSuggestionController {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private static final boolean ENABLE_LOGGING = true;
+
     @PostMapping("/suggestions")
     public ResponseEntity<Map<String, Object>> getSuggestions(@RequestBody Map<String, Object> payload) {
         Object rawUrl = payload.get("url");
         if (!(rawUrl instanceof String) || ((String) rawUrl).isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "suggestions", Collections.emptyMap(),
-                "error", "Valid URL is required"
-            ));
+            return error("Valid URL is required");
         }
 
         String url = ((String) rawUrl).trim();
@@ -38,9 +37,10 @@ public class TestAuraSuggestionController {
         Map<String, Object> requestBody = Map.of(
             "model", groqModelName,
             "messages", List.of(
-                Map.of("role", "system", "content", "You're a test case suggestion assistant."),
+                Map.of("role", "system", "content", "You are a JSON-only QA assistant."),
                 Map.of("role", "user", "content", prompt)
-            )
+            ),
+            "temperature", 0.3
         );
 
         HttpHeaders headers = new HttpHeaders();
@@ -58,26 +58,20 @@ public class TestAuraSuggestionController {
 
             Map<?, ?> responseBody = response.getBody();
             if (responseBody == null || !responseBody.containsKey("choices")) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "suggestions", Collections.emptyMap(),
-                    "error", "Empty response from Groq"
-                ));
+                return error("Empty response from Groq");
             }
 
             Object first = ((List<?>) responseBody.get("choices")).get(0);
             Map<?, ?> message = (Map<?, ?>) ((Map<?, ?>) first).get("message");
             String content = (String) message.get("content");
 
-            // 🧠 DEBUG: Print raw AI output (remove in production)
-            System.out.println("🧠 AI Raw Content:\n" + content);
+            if (ENABLE_LOGGING) {
+                System.out.println("🧠 Raw AI Content:\n" + content);
+            }
 
-            // Extract valid JSON from raw response
             String jsonOnly = extractJson(content);
             if (jsonOnly.isBlank()) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "suggestions", Collections.emptyMap(),
-                    "error", "AI response did not contain valid JSON"
-                ));
+                return error("AI response did not contain valid JSON. Raw:\n" + content);
             }
 
             Map<String, List<String>> parsedSuggestions = objectMapper.readValue(
@@ -88,30 +82,57 @@ public class TestAuraSuggestionController {
             return ResponseEntity.ok(Map.of("suggestions", parsedSuggestions));
 
         } catch (Exception e) {
-            e.printStackTrace(); // Log for debugging
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "suggestions", Collections.emptyMap(),
-                "error", "Groq API call failed: " + e.getMessage()
-            ));
+            if (ENABLE_LOGGING) e.printStackTrace();
+            return error("Groq API call failed: " + e.getMessage());
         }
     }
 
+    private ResponseEntity<Map<String, Object>> error(String message) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+            "suggestions", Collections.emptyMap(),
+            "error", message
+        ));
+    }
+
     private String buildPrompt(String url) {
-        return "You are a QA assistant. Analyze the following URL and suggest possible test cases grouped by category. " +
-                "Categories can include Functional, Security, Accessibility, API, Responsiveness, etc. " +
-                "Respond ONLY in JSON format like: " +
-                "{ \"Functional\": [\"Test A\", \"Test B\"], \"Security\": [\"Test C\"] }.\n" +
-                "URL: " + url;
+        return """
+            Analyze the given website and suggest grouped QA test cases.
+
+            ⚠️ Respond ONLY with raw JSON — no text, explanation, or markdown. 
+            No code blocks like ```json — return just JSON.
+
+            Categories: Functional, Security, Accessibility, Responsiveness, API, SEO, UX, etc.
+
+            Example:
+            {
+              "Functional": ["Test login", "Verify search"],
+              "Accessibility": ["Check alt tags"]
+            }
+
+            URL: %s
+            """.formatted(url);
     }
 
     /**
-     * Extracts JSON block from AI response text (first '{' to last '}')
+     * Attempts to extract the clean JSON portion from the AI response.
      */
     private String extractJson(String text) {
+        if (text.contains("```json")) {
+            text = text.replaceAll("(?s)```json\\s*(\\{.*?\\})\\s*```", "$1");
+        } else if (text.contains("```")) {
+            text = text.replaceAll("(?s)```\\s*(\\{.*?\\})\\s*```", "$1");
+        }
+
         int start = text.indexOf('{');
         int end = text.lastIndexOf('}');
-        if (start != -1 && end != -1 && end > start) {
-            return text.substring(start, end + 1);
+        if (start >= 0 && end > start) {
+            String candidate = text.substring(start, end + 1);
+            try {
+                objectMapper.readTree(candidate); // ensure it's valid JSON
+                return candidate;
+            } catch (Exception e) {
+                System.out.println("❌ JSON validation failed: " + e.getMessage());
+            }
         }
         return "";
     }

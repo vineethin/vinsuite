@@ -6,6 +6,7 @@ export default function TestAuraPanel() {
   const [suggestions, setSuggestions] = useState({});
   const [recording, setRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
+  const [selectedTests, setSelectedTests] = useState([]);
 
   const speak = (text) => {
     try {
@@ -128,6 +129,32 @@ export default function TestAuraPanel() {
     URL.revokeObjectURL(link.href);
   };
 
+  const handleRunTests = async () => {
+    if (!url || selectedTests.length === 0) {
+      toast.warn("Please enter a valid URL and select at least one test.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/testaura/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, tests: selectedTests }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(`Run failed: ${data.message || "Server error."}`);
+      } else {
+        toast.success(data.message || "Test run started!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error communicating with backend.");
+    }
+  };
+
   const isValidPreviewUrl = (inputUrl) => {
     try {
       const parsed = new URL(inputUrl);
@@ -135,6 +162,14 @@ export default function TestAuraPanel() {
     } catch {
       return false;
     }
+  };
+
+  const toggleTestSelection = (testText) => {
+    setSelectedTests((prev) =>
+      prev.includes(testText)
+        ? prev.filter((t) => t !== testText)
+        : [...prev, testText]
+    );
   };
 
   return (
@@ -184,10 +219,17 @@ export default function TestAuraPanel() {
               <h4 className="text-md font-bold text-blue-800 mb-2">
                 🗂️ {category}
               </h4>
-              <ul className="list-disc list-inside bg-gray-50 p-4 rounded space-y-2">
+              <ul className="list-none bg-gray-50 p-4 rounded space-y-2">
                 {tests.map((s, i) => (
                   <li key={i} className="flex justify-between items-center">
-                    <span>{s}</span>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedTests.includes(s)}
+                        onChange={() => toggleTestSelection(s)}
+                      />
+                      <span>{s}</span>
+                    </label>
                     <button
                       className="text-sm text-blue-600 underline ml-2"
                       onClick={() => speak(s)}
@@ -203,14 +245,25 @@ export default function TestAuraPanel() {
       )}
 
       {isValidPreviewUrl(url) && (
-        <div className="mt-6 border rounded overflow-hidden">
-          <h4 className="font-medium mb-2">🔍 Webpage Preview</h4>
-          <iframe
-            src={url}
-            title="URL Preview"
-            className="w-full h-[400px] border"
-          />
-        </div>
+        <>
+          <div className="mt-6 border rounded overflow-hidden">
+            <h4 className="font-medium mb-2">🔍 Webpage Preview</h4>
+            <iframe
+              src={url}
+              title="URL Preview"
+              className="w-full h-[400px] border"
+            />
+          </div>
+
+          <div className="mt-4">
+            <button
+              onClick={handleRunTests}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            >
+              🧪 Run Selected Tests
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
