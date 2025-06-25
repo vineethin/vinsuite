@@ -32,7 +32,7 @@ import AIResponseValidator from "./pages/qa/AIResponseValidator";
 import TestCoverageEstimator from "./pages/qa/TestCoverageEstimator";
 import AutomatedTestGenerator from "./pages/qa/AutomatedTestGenerator";
 import PerformanceScriptGenerator from "./pages/qa/PerformanceScriptGenerator";
-import TestAura from "./pages/qa/testaura";
+import TestAura from "./pages/qa/TestAuraPanel";
 
 // Dev Tools
 import JsonFormatter from "./pages/dev/JsonFormatter";

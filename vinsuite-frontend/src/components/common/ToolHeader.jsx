@@ -1,33 +1,48 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import LogoutButton from "../LogoutButton";
 
-const ToolHeader = ({ title, showLogout = true, showBack = true, backTo = "/qa" }) => {
+const ToolHeader = ({
+  title = "VinSuite Tool",
+  showLogout = false,
+  showBack = false,
+  backTo = "/",
+}) => {
   const navigate = useNavigate();
 
-  return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 bg-white/5 p-4 rounded-xl shadow border border-white/10">
-      {/* Title with styled brain icon */}
-      <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 flex items-center gap-3">
-        <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-pink-100 text-pink-600 text-xl">
-          🧠
-        </span>
-        {title}
-      </h1>
+  const showBackBtn = showBack === true || showBack === "true";
+  const showLogoutBtn = showLogout === true || showLogout === "true";
 
-      {/* Buttons */}
-      <div className="flex gap-2 mt-4 sm:mt-0">
-        {showBack && (
+  return (
+    <div className="flex items-center justify-between px-4 py-3 border-b bg-white shadow">
+      {/* Left: Back Button */}
+      <div className="w-1/4">
+        {showBackBtn && (
           <button
             onClick={() => navigate(backTo)}
-            className="bg-white/20 hover:bg-white/30 text-gray-900 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm"
+            className="text-blue-600 hover:underline"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            ⬅ Back to Dashboard
           </button>
         )}
-        {showLogout && <LogoutButton />}
+      </div>
+
+      {/* Center: Title */}
+      <div className="w-1/2 text-center">
+        <h1 className="text-lg font-semibold">{title}</h1>
+      </div>
+
+      {/* Right: Logout */}
+      <div className="w-1/4 text-right">
+        {showLogoutBtn && (
+          <button
+            onClick={() => {
+              console.log("🔒 Logout clicked");
+            }}
+            className="text-red-500 hover:underline"
+          >
+            🔒 Logout
+          </button>
+        )}
       </div>
     </div>
   );
