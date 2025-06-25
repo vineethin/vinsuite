@@ -57,16 +57,6 @@ const WebPreviewAndRunner = ({
         </div>
       )}
 
-      {screenshot && (
-        <div>
-          <img
-            src={screenshot}
-            alt="Test screenshot"
-            className="w-full border rounded"
-          />
-        </div>
-      )}
-
       {reportUrl && (
         <div className="mt-4">
           <a
