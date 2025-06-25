@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -87,9 +89,20 @@ public class TestAuraController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            // 🔍 Print full stack trace to console
             e.printStackTrace();
-            return ResponseEntity.internalServerError()
-                    .body("{\"message\":\"Test execution failed.\"}");
+
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String fullStack = sw.toString();
+            System.err.println("🔴 Full stack trace:\n" + fullStack);
+
+            Map<String, Object> error = new HashMap<>();
+            error.put("message", "Test execution failed.");
+            error.put("error", e.getMessage());
+            error.put("stack", fullStack);
+
+            return ResponseEntity.internalServerError().body(error);
         }
     }
 
