@@ -130,7 +130,7 @@ export default function useTestAuraLogic() {
     );
   };
 
-  const handleRunTests = async () => {
+  const handleRunTests = async ({ username, password }) => {
     if (!isValidUrl(url)) {
       toast.error("Please enter a valid URL (http or https).", { autoClose: 3000 });
       return;
@@ -147,14 +147,17 @@ export default function useTestAuraLogic() {
 
     try {
       // ✅ Add this log
-      console.log("▶️ Running tests with payload:", {
+      console.log("▶️ Running tests with:", {
         url,
-        tests: selectedTests
+        tests: selectedTests,
+        username,
+        password,
       });
-      const res = await fetch(`${API_BASE}/testaura/run`, {
+
+      const res = await fetch(`${API_BASE}/testaura/run-smart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, tests: selectedTests }),
+        body: JSON.stringify({ url, tests: selectedTests, username, password }),
       });
 
       const data = await res.json().catch(() => {
