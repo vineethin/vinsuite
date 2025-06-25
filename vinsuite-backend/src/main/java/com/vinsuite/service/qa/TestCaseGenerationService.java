@@ -3,10 +3,14 @@
 package com.vinsuite.service.qa;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import com.vinsuite.dto.qa.SmartTestCaseRequest;
 import com.vinsuite.model.TestCase;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
+
+import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -16,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -67,25 +72,24 @@ public class TestCaseGenerationService {
             }
 
             String prompt = String.format("""
-                You are a senior QA engineer.
+                        You are a senior QA engineer.
 
-                %s
-                %s
+                        %s
+                        %s
 
-                Based on the available input, generate exactly 4 test cases ONLY.
-                [
-                  {
-                    "action": "User does something",
-                    "expectedResult": "Expected outcome",
-                    "actualResult": "",
-                    "comments": ""
-                  }
-                ]
-                Only return the JSON array — no extra explanation.
-            """,
-                !featureText.isEmpty() ? "User Story:\n" + featureText : "",
-                !extractedText.isEmpty() ? "UI OCR Extract:\n" + extractedText : ""
-            );
+                        Based on the available input, generate exactly 4 test cases ONLY.
+                        [
+                          {
+                            "action": "User does something",
+                            "expectedResult": "Expected outcome",
+                            "actualResult": "",
+                            "comments": ""
+                          }
+                        ]
+                        Only return the JSON array — no extra explanation.
+                    """,
+                    !featureText.isEmpty() ? "User Story:\n" + featureText : "",
+                    !extractedText.isEmpty() ? "UI OCR Extract:\n" + extractedText : "");
 
             List<TestCase> testCases = callGroqToGenerateTestCases(prompt);
             return ResponseEntity.ok(Map.of("testCases", testCases));
@@ -96,7 +100,7 @@ public class TestCaseGenerationService {
         }
     }
 
-    private List<TestCase> callGroqToGenerateTestCases(String prompt) {
+    public List<TestCase> callGroqToGenerateTestCases(String prompt) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", groqModelName);
         payload.put("messages", List.of(Map.of("role", "user", "content", prompt)));
@@ -112,8 +116,8 @@ public class TestCaseGenerationService {
                     "https://api.groq.com/openai/v1/chat/completions",
                     HttpMethod.POST,
                     entity,
-                    new ParameterizedTypeReference<>() {}
-            );
+                    new ParameterizedTypeReference<>() {
+                    });
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 Map<String, Object> responseBody = response.getBody();
@@ -140,24 +144,68 @@ public class TestCaseGenerationService {
 
     private String buildPrompt(String extractedText) {
         return """
-            You are a senior QA engineer.
+                    You are a senior QA engineer.
 
-            Here is the OCR text extracted from a login screen:
-            \"\"\" %s \"\"\"
+                    Here is the OCR text extracted from a login screen:
+                    \"\"\" %s \"\"\"
 
-            Please generate exactly 4 test cases ONLY based on the OCR text above.
-            DO NOT assume any features or buttons that are not clearly present in the OCR.
-            Each test case must follow this JSON structure strictly:
-            [
-              {
-                "action": "User performs an action visible in the OCR",
-                "expectedResult": "What the system should do",
-                "actualResult": "",
-                "comments": ""
-              }
-            ]
+                    Please generate exactly 4 test cases ONLY based on the OCR text above.
+                    DO NOT assume any features or buttons that are not clearly present in the OCR.
+                    Each test case must follow this JSON structure strictly:
+                    [
+                      {
+                        "action": "User performs an action visible in the OCR",
+                        "expectedResult": "What the system should do",
+                        "actualResult": "",
+                        "comments": ""
+                      }
+                    ]
 
-            Only respond with the JSON array — no headings, no explanation.
-        """.formatted(extractedText.trim());
+                    Only respond with the JSON array — no headings, no explanation.
+                """.formatted(extractedText.trim());
     }
+
+    public List<TestCase> generateCategorizedTests(String url, String functionality) throws IOException {
+        // 1. Fetch the HTML content of the given URL
+        String html = Jsoup.connect(url).get().html();
+
+        // 2. Build the prompt to generate categorized test cases from HTML
+        String prompt = """
+                You are a senior QA engineer.
+
+                Functionality: %s
+
+                Based on the HTML provided below, generate Selenium-style test cases categorized as positive, negative, or edge.
+
+                HTML:
+                %s
+
+                Each test case must strictly follow this JSON format:
+                {
+                  "action": "User action",
+                  "expectedResult": "Expected output",
+                  "actualResult": "",
+                  "comments": "positive | negative | edge"
+                }
+
+                Only return a JSON array of 6 to 9 test cases — no explanations, no extra text.
+                """
+                .formatted(functionality, html);
+
+        return callGroqToGenerateTestCases(prompt);
+    }
+
+    public String cleanAndCompressHtml(String html) {
+        if (html == null || html.isBlank()) return "";
+
+        // Remove scripts, styles, comments, and trim whitespace
+        html = html.replaceAll("(?s)<script.*?>.*?</script>", "");
+        html = html.replaceAll("(?s)<style.*?>.*?</style>", "");
+        html = html.replaceAll("(?s)<!--.*?-->", "");
+        html = html.replaceAll("\\s+", " ");
+
+        final int MAX_LENGTH = 8000;
+        return html.length() > MAX_LENGTH ? html.substring(0, MAX_LENGTH) : html;
+    }
+
 }
