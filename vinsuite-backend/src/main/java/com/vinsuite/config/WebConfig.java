@@ -19,6 +19,6 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/api/testaura/report/**")
-                .addResourceLocations("file:./test-reports/"); // relative to project root
+                .addResourceLocations("file:target/test-reports/"); // relative to project root
     }
 }
