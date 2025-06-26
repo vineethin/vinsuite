@@ -84,7 +84,9 @@ export default function useTestAuraLogic() {
 
   const handleSubmit = async (inputUrl = url) => {
     if (!isValidUrl(inputUrl)) {
-      toast.error("Please enter a valid URL (http or https).", { autoClose: 3000 });
+      toast.error("Please enter a valid URL (http or https).", {
+        autoClose: 3000,
+      });
       return;
     }
 
@@ -108,7 +110,9 @@ export default function useTestAuraLogic() {
       if (typeof data.suggestions === "object" && data.suggestions !== null) {
         setSuggestions(data.suggestions);
         const [firstCategory] = Object.keys(data.suggestions);
-        const firstFew = data.suggestions[firstCategory]?.slice(0, 3).join(". ");
+        const firstFew = data.suggestions[firstCategory]
+          ?.slice(0, 3)
+          .join(". ");
         if (firstFew) speak(`Here are some test suggestions. ${firstFew}`);
       } else {
         toast.warn("Unexpected AI response format.");
@@ -132,7 +136,9 @@ export default function useTestAuraLogic() {
 
   const handleRunTests = async ({ username, password }) => {
     if (!isValidUrl(url)) {
-      toast.error("Please enter a valid URL (http or https).", { autoClose: 3000 });
+      toast.error("Please enter a valid URL (http or https).", {
+        autoClose: 3000,
+      });
       return;
     }
 
@@ -146,7 +152,6 @@ export default function useTestAuraLogic() {
     setReportUrl(null);
 
     try {
-      // ✅ Add this log
       console.log("▶️ Running tests with:", {
         url,
         tests: selectedTests,
@@ -157,7 +162,12 @@ export default function useTestAuraLogic() {
       const res = await fetch(`${API_BASE}/testaura/run-smart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, tests: selectedTests, username, password }),
+        body: JSON.stringify({
+          url,
+          tests: selectedTests,
+          username,
+          password,
+        }),
       });
 
       const data = await res.json().catch(() => {
@@ -166,12 +176,15 @@ export default function useTestAuraLogic() {
 
       if (res.ok) {
         toast.success(data.message || "Tests executed.");
+
         if (data.screenshot) {
           setScreenshot(`data:image/png;base64,${data.screenshot}`);
         }
+
         if (data.reportUrl) {
-          const cleanedUrl = data.reportUrl.replace(/^\/+/, "");
-          setReportUrl(`${API_BASE}/${cleanedUrl}`);
+          // Ensure proper formatting, avoid duplicate slashes
+          const cleaned = data.reportUrl.replace(/^\/+/, "");
+          setReportUrl(`${API_BASE}/${cleaned}`);
         }
       } else {
         toast.error(data.message || "Test execution failed.");

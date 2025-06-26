@@ -15,18 +15,28 @@ import org.openqa.selenium.TakesScreenshot;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.Map;
+
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import com.vinsuite.service.qa.TestCaseGenerationService;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import java.util.List;
+import java.awt.Desktop;
 
 @RestController
 @RequestMapping("/api/testaura")
@@ -59,19 +69,21 @@ public class TestAuraController {
                 System.out.println("- " + test);
             }
 
-            // Capture screenshot as base64
-            String screenshotBase64 = ((TakesScreenshot) driver)
-                    .getScreenshotAs(OutputType.BASE64);
-            System.out.println("✅ Screenshot captured: base64 length = " + screenshotBase64.length());
-
+            String screenshotBase64 = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
             driver.quit();
-            String reportDir = "test-reports";
-            new File(reportDir).mkdirs(); // ensure directory exists
+
+            String reportDir = "target/test-reports";
+            new File(reportDir).mkdirs();
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-            String reportFilename = "report_" + timestamp + ".html";
-            String reportPath = Paths.get(reportDir, reportFilename).toString();
+            String baseName = "report_" + timestamp;
 
+            String htmlPath = Paths.get(reportDir, baseName + ".html").toString();
+            String jsonPath = Paths.get(reportDir, baseName + ".json").toString();
+            String csvPath = Paths.get(reportDir, baseName + ".csv").toString();
+            String zipPath = Paths.get(reportDir, baseName + ".zip").toString();
+
+            // HTML report
             StringBuilder html = new StringBuilder();
             html.append("<html><head><title>TestAura Report</title></head><body>");
             html.append("<h2>Test Report</h2>");
@@ -81,34 +93,66 @@ public class TestAuraController {
                 html.append("<li>").append(test).append("</li>");
             }
             html.append("</ul>");
-
             html.append("<p><strong>Screenshot:</strong></p>");
             html.append("<img src='data:image/png;base64,").append(screenshotBase64)
                     .append("' style='max-width:100%;border:1px solid #ccc;' />");
-
             html.append("<p><em>Generated at ").append(timestamp).append("</em></p>");
             html.append("</body></html>");
 
-            try (FileWriter writer = new FileWriter(reportPath)) {
+            try (FileWriter writer = new FileWriter(htmlPath, StandardCharsets.UTF_8)) {
                 writer.write(html.toString());
+            }
+
+            // Auto-open HTML in browser
+            try {
+                File htmlFile = new File(htmlPath);
+                if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().browse(htmlFile.toURI());
+                }
+            } catch (Exception ex) {
+                System.err.println("Could not open browser: " + ex.getMessage());
+            }
+
+            // Write JSON + CSV
+            try (FileWriter jsonOut = new FileWriter(jsonPath, StandardCharsets.UTF_8);
+                    FileWriter csvOut = new FileWriter(csvPath, StandardCharsets.UTF_8)) {
+
+                jsonOut.write("[\n" + tests.stream()
+                        .map(t -> "  \"" + t.replace("\"", "\\\"") + "\"")
+                        .collect(Collectors.joining(",\n")) + "\n]");
+
+                for (String t : tests) {
+                    csvOut.write("\"" + t.replace("\"", "\"\"") + "\"\n");
+                }
+            }
+
+            // Zip the report files
+            try (FileOutputStream fos = new FileOutputStream(zipPath);
+                    ZipOutputStream zos = new ZipOutputStream(fos)) {
+
+                for (String path : List.of(htmlPath, jsonPath, csvPath)) {
+                    File file = new File(path);
+                    if (file.exists()) {
+                        zos.putNextEntry(new ZipEntry(file.getName()));
+                        zos.write(java.nio.file.Files.readAllBytes(file.toPath()));
+                        zos.closeEntry();
+                    }
+                }
             }
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Tests executed in headless Chrome.");
             response.put("screenshot", screenshotBase64);
-
-            response.put("reportUrl", "/api/testaura/report/" + reportFilename);
+            response.put("reportUrl", "/api/testaura/report/" + baseName + ".html");
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            // 🔍 Print full stack trace to console
             e.printStackTrace();
 
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
             String fullStack = sw.toString();
-            System.err.println("🔴 Full stack trace:\n" + fullStack);
 
             Map<String, Object> error = new HashMap<>();
             error.put("message", "Test execution failed.");
@@ -122,7 +166,7 @@ public class TestAuraController {
     @GetMapping("/report/{filename}")
     public ResponseEntity<?> downloadReport(@PathVariable String filename) {
         try {
-            File file = Paths.get("test-reports", filename).toFile();
+            File file = Paths.get("target/test-reports", filename).toFile();
             if (!file.exists()) {
                 return ResponseEntity.notFound().build();
             }
@@ -139,29 +183,26 @@ public class TestAuraController {
     }
 
     @PostMapping("/run-smart")
-    public ResponseEntity<?> runSmartTests(@RequestBody RunTestRequest request) {
+    public ResponseEntity<?> runSmartTests(@RequestBody RunTestRequest request, HttpServletRequest servletRequest) {
         String url = request.getUrl();
         List<String> tests = request.getTests();
-        String username = request.getUsername(); // ✅ new
-        String password = request.getPassword(); // ✅ new
+        String username = request.getUsername();
+        String password = request.getPassword();
 
         if (url == null || url.isBlank() || tests == null || tests.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "URL and at least one test name required."));
         }
 
         try {
-            String selectedFunctionality = tests.get(0); // e.g., "Test login functionality"
+            String selectedFunctionality = tests.get(0);
             List<TestCase> categorized = testCaseService.generateCategorizedTests(url, selectedFunctionality);
 
             List<TestCase> positiveTests = categorized.stream()
-                    .filter(tc -> "positive".equalsIgnoreCase(tc.getComments()))
-                    .toList();
+                    .filter(tc -> "positive".equalsIgnoreCase(tc.getComments())).toList();
             List<TestCase> negativeTests = categorized.stream()
-                    .filter(tc -> "negative".equalsIgnoreCase(tc.getComments()))
-                    .toList();
+                    .filter(tc -> "negative".equalsIgnoreCase(tc.getComments())).toList();
             List<TestCase> edgeTests = categorized.stream()
-                    .filter(tc -> "edge".equalsIgnoreCase(tc.getComments()))
-                    .toList();
+                    .filter(tc -> "edge".equalsIgnoreCase(tc.getComments())).toList();
 
             ChromeOptions options = new ChromeOptions();
             options.addArguments("--headless=new", "--no-sandbox", "--disable-dev-shm-usage");
@@ -170,19 +211,24 @@ public class TestAuraController {
             driver.get(url);
 
             List<String> logs = new ArrayList<>();
-            logs.addAll(executeTestCases(driver, positiveTests, request.getUsername(), request.getPassword()));
-            logs.addAll(executeTestCases(driver, negativeTests, request.getUsername(), request.getPassword()));
-            logs.addAll(executeTestCases(driver, edgeTests, request.getUsername(), request.getPassword()));
+            logs.addAll(executeTestCases(driver, positiveTests, username, password));
+            logs.addAll(executeTestCases(driver, negativeTests, username, password));
+            logs.addAll(executeTestCases(driver, edgeTests, username, password));
 
             String screenshotBase64 = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
             driver.quit();
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-            String reportFilename = "report_" + timestamp + ".html";
-            String reportDir = "test-reports";
+            String baseName = "report_" + timestamp;
+            String reportDir = "target/test-reports";
             new File(reportDir).mkdirs();
-            String reportPath = Paths.get(reportDir, reportFilename).toString();
 
+            String htmlPath = Paths.get(reportDir, baseName + ".html").toString();
+            String jsonPath = Paths.get(reportDir, baseName + ".json").toString();
+            String csvPath = Paths.get(reportDir, baseName + ".csv").toString();
+            String zipPath = Paths.get(reportDir, baseName + ".zip").toString();
+
+            // HTML Report
             StringBuilder html = new StringBuilder();
             html.append("<html><head><title>TestAura Report</title></head><body>");
             html.append("<h2>TestAura Smart Report</h2>");
@@ -192,20 +238,65 @@ public class TestAuraController {
                     .append(screenshotBase64).append("' style='max-width:100%;border:1px solid #ccc;' /></p>");
             html.append("<h3>Execution Logs</h3><ul>");
             for (String log : logs) {
-                html.append("<li>").append(log).append("</li>");
+                String color = log.startsWith("✅") ? "green" : "red";
+                html.append("<li style='color:").append(color).append(";'>").append(log).append("</li>");
             }
             html.append("</ul>");
             html.append("<p><em>Generated at ").append(timestamp).append("</em></p>");
             html.append("</body></html>");
 
-            try (FileWriter writer = new FileWriter(reportPath)) {
+            try (FileWriter writer = new FileWriter(htmlPath, StandardCharsets.UTF_8)) {
                 writer.write(html.toString());
             }
 
+            // Auto-open in browser (only if local)
+            try {
+                if (Desktop.isDesktopSupported() && servletRequest.getServerName().equals("localhost")) {
+                    Desktop.getDesktop().browse(new File(htmlPath).toURI());
+                }
+            } catch (Exception ex) {
+                System.err.println("⚠️ Could not open browser: " + ex.getMessage());
+            }
+
+            // JSON + CSV logs
+            try (FileWriter jsonOut = new FileWriter(jsonPath, StandardCharsets.UTF_8);
+                    FileWriter csvOut = new FileWriter(csvPath, StandardCharsets.UTF_8)) {
+
+                jsonOut.write("[\n" + logs.stream()
+                        .map(log -> "  \"" + log.replace("\"", "\\\"") + "\"")
+                        .collect(Collectors.joining(",\n")) + "\n]");
+
+                for (String log : logs) {
+                    csvOut.write("\"" + log.replace("\"", "\"\"") + "\"\n");
+                }
+            }
+
+            // ZIP everything
+            try (FileOutputStream fos = new FileOutputStream(zipPath);
+                    ZipOutputStream zos = new ZipOutputStream(fos)) {
+                for (String path : List.of(htmlPath, jsonPath, csvPath)) {
+                    File file = new File(path);
+                    if (file.exists()) {
+                        zos.putNextEntry(new ZipEntry(file.getName()));
+                        zos.write(Files.readAllBytes(file.toPath()));
+                        zos.closeEntry();
+                    }
+                }
+            }
+
+            // ✅ Construct report URL dynamically (for localhost or prod)
+            String fileName = baseName + ".html";
+            String baseUrl = servletRequest.getScheme() + "://" + servletRequest.getServerName()
+                    + (servletRequest.getServerPort() == 80 || servletRequest.getServerPort() == 443 ? ""
+                            : ":" + servletRequest.getServerPort());
+
+            String reportUrl = baseUrl + "/api/testaura/report/" + fileName;
+
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Smart tests executed.");
-            response.put("reportUrl", "/api/testaura/report/" + reportFilename);
+            response.put("reportUrl", reportUrl);
             response.put("screenshot", screenshotBase64);
+
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -279,6 +370,26 @@ public class TestAuraController {
         String text = action.substring(valStart + 1, valEnd);
         String id = action.substring(idStart + 4, idEnd);
         return new String[] { text, id };
+    }
+
+    @GetMapping("/report/download/{baseName}")
+    public ResponseEntity<?> downloadReportZip(@PathVariable String baseName) {
+        try {
+            File zipFile = Paths.get("target/test-reports", baseName + ".zip").toFile();
+            if (!zipFile.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            byte[] data = java.nio.file.Files.readAllBytes(zipFile.toPath());
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=" + zipFile.getName())
+                    .header("Content-Type", "application/zip")
+                    .body(data);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Failed to download report ZIP.");
+        }
     }
 
 }

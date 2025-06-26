@@ -129,7 +129,19 @@ public class TestCaseGenerationService {
                         if (messageObj instanceof Map<?, ?> messageMap) {
                             Object contentObj = messageMap.get("content");
                             if (contentObj instanceof String content) {
-                                return Arrays.asList(objectMapper.readValue(content, TestCase[].class));
+
+                                int jsonStart = Math.max(content.indexOf("["), content.indexOf("{"));
+                                if (jsonStart >= 0) {
+                                    String jsonOnly = content.substring(jsonStart).trim();
+
+                                    if (jsonOnly.startsWith("{")) {
+                                        Map<String, List<TestCase>> wrapped = objectMapper.readValue(jsonOnly, new TypeReference<>() {});
+                                        if (wrapped.containsKey("tests")) return wrapped.get("tests");
+                                        else return List.of(objectMapper.readValue(jsonOnly, TestCase.class));
+                                    } else if (jsonOnly.startsWith("[")) {
+                                        return Arrays.asList(objectMapper.readValue(jsonOnly, TestCase[].class));
+                                    }
+                                }
                             }
                         }
                     }
@@ -166,10 +178,8 @@ public class TestCaseGenerationService {
     }
 
     public List<TestCase> generateCategorizedTests(String url, String functionality) throws IOException {
-        // 1. Fetch the HTML content of the given URL
         String html = Jsoup.connect(url).get().html();
 
-        // 2. Build the prompt to generate categorized test cases from HTML
         String prompt = """
                 You are a senior QA engineer.
 
@@ -196,9 +206,9 @@ public class TestCaseGenerationService {
     }
 
     public String cleanAndCompressHtml(String html) {
-        if (html == null || html.isBlank()) return "";
+        if (html == null || html.isBlank())
+            return "";
 
-        // Remove scripts, styles, comments, and trim whitespace
         html = html.replaceAll("(?s)<script.*?>.*?</script>", "");
         html = html.replaceAll("(?s)<style.*?>.*?</style>", "");
         html = html.replaceAll("(?s)<!--.*?-->", "");
