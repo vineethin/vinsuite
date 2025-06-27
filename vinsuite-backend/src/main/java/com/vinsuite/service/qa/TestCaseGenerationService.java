@@ -101,6 +101,12 @@ public class TestCaseGenerationService {
     }
 
     public List<TestCase> callGroqToGenerateTestCases(String prompt) {
+        // Step 2a: Prevent prompt from being too large (Groq limit is ~8K tokens, safe
+        // ~16K chars)
+        if (prompt.length() > 15000) {
+            prompt = prompt.substring(0, 14950) + "\n\n(Note: prompt truncated due to size limit)";
+        }
+
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", groqModelName);
         payload.put("messages", List.of(Map.of("role", "user", "content", prompt)));
@@ -129,15 +135,18 @@ public class TestCaseGenerationService {
                         if (messageObj instanceof Map<?, ?> messageMap) {
                             Object contentObj = messageMap.get("content");
                             if (contentObj instanceof String content) {
-
                                 int jsonStart = Math.max(content.indexOf("["), content.indexOf("{"));
                                 if (jsonStart >= 0) {
                                     String jsonOnly = content.substring(jsonStart).trim();
 
                                     if (jsonOnly.startsWith("{")) {
-                                        Map<String, List<TestCase>> wrapped = objectMapper.readValue(jsonOnly, new TypeReference<>() {});
-                                        if (wrapped.containsKey("tests")) return wrapped.get("tests");
-                                        else return List.of(objectMapper.readValue(jsonOnly, TestCase.class));
+                                        Map<String, List<TestCase>> wrapped = objectMapper.readValue(jsonOnly,
+                                                new TypeReference<>() {
+                                                });
+                                        if (wrapped.containsKey("tests"))
+                                            return wrapped.get("tests");
+                                        else
+                                            return List.of(objectMapper.readValue(jsonOnly, TestCase.class));
                                     } else if (jsonOnly.startsWith("[")) {
                                         return Arrays.asList(objectMapper.readValue(jsonOnly, TestCase[].class));
                                     }

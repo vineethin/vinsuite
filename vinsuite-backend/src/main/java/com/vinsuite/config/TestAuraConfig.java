@@ -12,6 +12,13 @@ public class TestAuraConfig {
     @Value("${testaura.chrome.headless}")
     private boolean headless;
 
+    @Value("${testaura.report-url-prefix:/testaura/report/}")
+    private String reportUrlPrefix;
+
+    public String getReportUrlPrefix() {
+        return reportUrlPrefix;
+    }
+
     public String getReportDir() {
         return reportDir;
     }

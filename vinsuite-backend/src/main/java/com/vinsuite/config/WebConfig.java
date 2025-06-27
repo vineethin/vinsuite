@@ -17,7 +17,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000", "https://vinsuite360.com")
+                .allowedOriginPatterns("http://localhost:3000", "https://vinsuite360.com")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
@@ -25,7 +25,6 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Use the reportDir value from application.properties
         registry.addResourceHandler("/api/testaura/report/**")
                 .addResourceLocations("file:" + config.getReportDir() + "/");
     }

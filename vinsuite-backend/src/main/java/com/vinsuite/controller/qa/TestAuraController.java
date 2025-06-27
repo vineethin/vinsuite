@@ -287,7 +287,7 @@ public class TestAuraController {
                     + (servletRequest.getServerPort() == 80 || servletRequest.getServerPort() == 443 ? ""
                             : ":" + servletRequest.getServerPort());
 
-            String reportUrl = baseUrl + "/api/testaura/report/" + fileName;
+            String reportUrl = config.getReportUrlPrefix() + fileName;
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Smart tests executed.");
