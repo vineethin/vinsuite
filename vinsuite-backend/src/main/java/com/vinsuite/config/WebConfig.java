@@ -7,18 +7,26 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    private final TestAuraConfig config;
+
+    public WebConfig(TestAuraConfig config) {
+        this.config = config;
+    }
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**") // or "/api/**" if your endpoints are under /api/
+        registry.addMapping("/**")
                 .allowedOrigins("http://localhost:3000", "https://vinsuite360.com")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true); // only if you're using cookies/session auth
+                .allowCredentials(true);
     }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Use the reportDir value from application.properties
         registry.addResourceHandler("/api/testaura/report/**")
-                .addResourceLocations("file:target/test-reports/"); // relative to project root
+                .addResourceLocations("file:" + config.getReportDir() + "/");
     }
 }
