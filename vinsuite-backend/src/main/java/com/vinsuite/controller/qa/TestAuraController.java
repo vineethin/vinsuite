@@ -1,5 +1,6 @@
 package com.vinsuite.controller.qa;
 
+import com.vinsuite.config.TestAuraConfig;
 import com.vinsuite.dto.qa.RunTestRequest;
 import com.vinsuite.model.TestCase;
 
@@ -43,9 +44,11 @@ import java.awt.Desktop;
 public class TestAuraController {
 
     private final TestCaseGenerationService testCaseService;
+    private final TestAuraConfig config;
 
-    public TestAuraController(TestCaseGenerationService testCaseService) {
+    public TestAuraController(TestCaseGenerationService testCaseService, TestAuraConfig config) {
         this.testCaseService = testCaseService;
+        this.config = config;
     }
 
     @PostMapping("/run")
@@ -58,10 +61,7 @@ public class TestAuraController {
         }
 
         try {
-            ChromeOptions options = new ChromeOptions();
-            options.addArguments("--headless=new", "--no-sandbox", "--disable-dev-shm-usage");
-
-            WebDriver driver = new ChromeDriver(options);
+            WebDriver driver = createWebDriver();
             driver.get(url);
 
             System.out.println("🧪 TestAura is running the following tests on: " + url);
@@ -72,7 +72,7 @@ public class TestAuraController {
             String screenshotBase64 = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
             driver.quit();
 
-            String reportDir = "target/test-reports";
+            String reportDir = config.getReportDir();
             new File(reportDir).mkdirs();
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
@@ -166,7 +166,7 @@ public class TestAuraController {
     @GetMapping("/report/{filename}")
     public ResponseEntity<?> downloadReport(@PathVariable String filename) {
         try {
-            File file = Paths.get("target/test-reports", filename).toFile();
+            File file = Paths.get(config.getReportDir(), filename).toFile();
             if (!file.exists()) {
                 return ResponseEntity.notFound().build();
             }
@@ -204,10 +204,7 @@ public class TestAuraController {
             List<TestCase> edgeTests = categorized.stream()
                     .filter(tc -> "edge".equalsIgnoreCase(tc.getComments())).toList();
 
-            ChromeOptions options = new ChromeOptions();
-            options.addArguments("--headless=new", "--no-sandbox", "--disable-dev-shm-usage");
-
-            WebDriver driver = new ChromeDriver(options);
+            WebDriver driver = createWebDriver();
             driver.get(url);
 
             List<String> logs = new ArrayList<>();
@@ -220,7 +217,7 @@ public class TestAuraController {
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             String baseName = "report_" + timestamp;
-            String reportDir = "target/test-reports";
+            String reportDir = config.getReportDir();
             new File(reportDir).mkdirs();
 
             String htmlPath = Paths.get(reportDir, baseName + ".html").toString();
@@ -375,7 +372,7 @@ public class TestAuraController {
     @GetMapping("/report/download/{baseName}")
     public ResponseEntity<?> downloadReportZip(@PathVariable String baseName) {
         try {
-            File zipFile = Paths.get("target/test-reports", baseName + ".zip").toFile();
+            File zipFile = Paths.get(config.getReportDir(), baseName + ".zip").toFile();
             if (!zipFile.exists()) {
                 return ResponseEntity.notFound().build();
             }
@@ -390,6 +387,15 @@ public class TestAuraController {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Failed to download report ZIP.");
         }
+    }
+
+    private WebDriver createWebDriver() {
+        ChromeOptions options = new ChromeOptions();
+        if (config.isChromeHeadless()) {
+            options.addArguments("--headless=new");
+        }
+        options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
+        return new ChromeDriver(options);
     }
 
 }
