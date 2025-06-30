@@ -1,12 +1,10 @@
-# Dockerfile for Vinsuite Backend with k6 support
+# Dockerfile for VinSuite Backend with JVM memory caps and k6 load testing
 
-# Use official lightweight OpenJDK image
 FROM openjdk:17-jdk-slim
 
-# Set working directory
 WORKDIR /app
 
-# Install wget + tar and download k6
+# Install wget, tar, and download k6 binary
 RUN apt-get update && \
     apt-get install -y wget tar && \
     wget https://github.com/grafana/k6/releases/download/v0.47.0/k6-v0.47.0-linux-amd64.tar.gz && \
@@ -15,22 +13,23 @@ RUN apt-get update && \
     chmod +x /usr/bin/k6 && \
     rm -rf k6-v0.47.0-linux-amd64*
 
-# Copy Maven wrapper and Maven related files first
-COPY vinsuite-backend/mvnw .
-COPY vinsuite-backend/mvnw.cmd .
+# Copy Maven wrapper and Maven project files
+COPY vinsuite-backend/mvnw ./
+COPY vinsuite-backend/mvnw.cmd ./
 COPY vinsuite-backend/.mvn .mvn
-
-# Copy the full project files
 COPY vinsuite-backend .
 
-# Give execute permissions to mvnw
+# Grant execute permissions to mvnw
 RUN chmod +x mvnw
 
 # Build the application
 RUN ./mvnw clean install -DskipTests
 
+# Set JVM memory limits to avoid Render OOM kills
+ENV JAVA_OPTS="-Xms256m -Xmx768m"
+
 # Expose port used by Spring Boot
 EXPOSE 8081
 
-# Run the built JAR
-CMD ["java", "-jar", "target/vinsuite-0.0.1-SNAPSHOT.jar"]
+# Run the app with memory limits
+CMD ["sh", "-c", "java $JAVA_OPTS -jar target/vinsuite-0.0.1-SNAPSHOT.jar"]

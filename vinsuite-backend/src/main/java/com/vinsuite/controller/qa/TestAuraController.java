@@ -7,6 +7,7 @@ import com.vinsuite.model.TestCase;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.openqa.selenium.By;
@@ -46,6 +47,9 @@ public class TestAuraController {
 
     private final TestCaseGenerationService testCaseService;
     private final TestAuraConfig config;
+
+    @Value("${report.cleanup.days:3}")
+    private int cleanupDays;
 
     public TestAuraController(TestCaseGenerationService testCaseService, TestAuraConfig config) {
         this.testCaseService = testCaseService;
@@ -398,21 +402,17 @@ public class TestAuraController {
     }
 
     private void cleanupOldReports() {
-    File dir = new File(config.getReportDir());
-    if (!dir.exists() || !dir.isDirectory()) return;
+        File dir = new File(config.getReportDir());
+        if (!dir.exists() || !dir.isDirectory())
+            return;
 
-    File[] files = dir.listFiles();
-    if (files == null) return;
-
-    long cutoff = System.currentTimeMillis() - (3L * 24 * 60 * 60 * 1000); // 3 days
-
-    for (File file : files) {
-        if (file.isFile() && file.lastModified() < cutoff) {
-            System.out.println("🧹 Deleting old report file: " + file.getName());
-            file.delete();
+        long cutoff = System.currentTimeMillis() - (cleanupDays * 24L * 60 * 60 * 1000);
+        for (File file : dir.listFiles()) {
+            if (file.isFile() && file.lastModified() < cutoff) {
+                System.out.println("🧹 Deleting old report file: " + file.getName());
+                file.delete();
+            }
         }
     }
-}
-
 
 }
