@@ -54,6 +54,7 @@ public class TestAuraController {
 
     @PostMapping("/run")
     public ResponseEntity<?> runSelectedTests(@RequestBody RunTestRequest request) {
+        cleanupOldReports();
         String url = request.getUrl();
         List<String> tests = request.getTests();
 
