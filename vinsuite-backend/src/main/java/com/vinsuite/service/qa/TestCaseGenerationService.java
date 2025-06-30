@@ -35,6 +35,9 @@ public class TestCaseGenerationService {
     @Value("${groq.model.name}")
     private String groqModelName;
 
+    @Value("${groq.api.url}")
+    private String groqApiUrl;
+
     public ResponseEntity<?> generateTestCasesFromText(Map<String, String> request) {
         try {
             String extractedText = request.get("feature");
@@ -101,8 +104,6 @@ public class TestCaseGenerationService {
     }
 
     public List<TestCase> callGroqToGenerateTestCases(String prompt) {
-        // Step 2a: Prevent prompt from being too large (Groq limit is ~8K tokens, safe
-        // ~16K chars)
         if (prompt.length() > 15000) {
             prompt = prompt.substring(0, 14950) + "\n\n(Note: prompt truncated due to size limit)";
         }
@@ -119,7 +120,7 @@ public class TestCaseGenerationService {
 
         try {
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                    "https://api.groq.com/openai/v1/chat/completions",
+                    groqApiUrl,
                     HttpMethod.POST,
                     entity,
                     new ParameterizedTypeReference<>() {
@@ -139,16 +140,59 @@ public class TestCaseGenerationService {
                                 if (jsonStart >= 0) {
                                     String jsonOnly = content.substring(jsonStart).trim();
 
+                                    // Case 1: JSON array of TestCase objects
+                                    if (jsonOnly.startsWith("[")) {
+                                        try {
+                                            return Arrays.asList(objectMapper.readValue(jsonOnly, TestCase[].class));
+                                        } catch (Exception inner) {
+                                            List<String> titles = objectMapper.readValue(jsonOnly,
+                                                    new TypeReference<>() {
+                                                    });
+                                            return titles.stream().map(t -> {
+                                                TestCase tc = new TestCase();
+                                                tc.setAction(t);
+                                                tc.setExpectedResult("");
+                                                tc.setActualResult("");
+                                                tc.setComments("");
+                                                return tc;
+                                            }).toList();
+                                        }
+                                    }
+
+                                    // Case 2: Categorized map
                                     if (jsonOnly.startsWith("{")) {
-                                        Map<String, List<TestCase>> wrapped = objectMapper.readValue(jsonOnly,
+                                        Map<String, Object> raw = objectMapper.readValue(jsonOnly,
                                                 new TypeReference<>() {
                                                 });
-                                        if (wrapped.containsKey("tests"))
-                                            return wrapped.get("tests");
-                                        else
-                                            return List.of(objectMapper.readValue(jsonOnly, TestCase.class));
-                                    } else if (jsonOnly.startsWith("[")) {
-                                        return Arrays.asList(objectMapper.readValue(jsonOnly, TestCase[].class));
+                                        List<TestCase> result = new ArrayList<>();
+
+                                        for (Map.Entry<String, Object> entry : raw.entrySet()) {
+                                            String category = entry.getKey();
+                                            Object value = entry.getValue();
+
+                                            if (value instanceof List<?> list) {
+                                                for (Object item : list) {
+                                                    TestCase tc = new TestCase();
+
+                                                    if (item instanceof String s) {
+                                                        tc.setAction(s);
+                                                        tc.setExpectedResult("");
+                                                        tc.setActualResult("");
+                                                        tc.setComments(category);
+                                                    } else if (item instanceof Map<?, ?> rawMap) {
+                                                        Map<String, Object> m = (Map<String, Object>) rawMap;
+                                                        tc.setAction(Objects.toString(m.get("action"), ""));
+                                                        tc.setExpectedResult(
+                                                                Objects.toString(m.get("expectedResult"), ""));
+                                                        tc.setActualResult(Objects.toString(m.get("actualResult"), ""));
+                                                        tc.setComments(Objects.toString(m.get("comments"), category));
+                                                    }
+
+                                                    result.add(tc);
+                                                }
+                                            }
+                                        }
+                                        return result;
                                     }
                                 }
                             }
