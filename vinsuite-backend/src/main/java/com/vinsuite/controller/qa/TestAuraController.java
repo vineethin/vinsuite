@@ -185,6 +185,7 @@ public class TestAuraController {
 
     @PostMapping("/run-smart")
     public ResponseEntity<?> runSmartTests(@RequestBody RunTestRequest request, HttpServletRequest servletRequest) {
+        cleanupOldReports();
         String url = request.getUrl();
         List<String> tests = request.getTests();
         String username = request.getUsername();
@@ -394,5 +395,23 @@ public class TestAuraController {
         options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
         return new ChromeDriver(options);
     }
+
+    private void cleanupOldReports() {
+    File dir = new File(config.getReportDir());
+    if (!dir.exists() || !dir.isDirectory()) return;
+
+    File[] files = dir.listFiles();
+    if (files == null) return;
+
+    long cutoff = System.currentTimeMillis() - (3L * 24 * 60 * 60 * 1000); // 3 days
+
+    for (File file : files) {
+        if (file.isFile() && file.lastModified() < cutoff) {
+            System.out.println("🧹 Deleting old report file: " + file.getName());
+            file.delete();
+        }
+    }
+}
+
 
 }
