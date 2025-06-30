@@ -16,8 +16,9 @@ import org.openqa.selenium.TakesScreenshot;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
-
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -193,6 +194,7 @@ public class TestAuraController {
             return ResponseEntity.badRequest().body(Map.of("error", "URL and at least one test name required."));
         }
 
+        WebDriver driver = createWebDriver();
         try {
             String selectedFunctionality = tests.get(0);
             List<TestCase> categorized = testCaseService.generateCategorizedTests(url, selectedFunctionality);
@@ -201,10 +203,9 @@ public class TestAuraController {
                     .filter(tc -> "positive".equalsIgnoreCase(tc.getComments())).toList();
             List<TestCase> negativeTests = categorized.stream()
                     .filter(tc -> "negative".equalsIgnoreCase(tc.getComments())).toList();
-            List<TestCase> edgeTests = categorized.stream()
-                    .filter(tc -> "edge".equalsIgnoreCase(tc.getComments())).toList();
+            List<TestCase> edgeTests = categorized.stream().filter(tc -> "edge".equalsIgnoreCase(tc.getComments()))
+                    .toList();
 
-            WebDriver driver = createWebDriver();
             driver.get(url);
 
             List<String> logs = new ArrayList<>();
@@ -212,8 +213,12 @@ public class TestAuraController {
             logs.addAll(executeTestCases(driver, negativeTests, username, password));
             logs.addAll(executeTestCases(driver, edgeTests, username, password));
 
-            String screenshotBase64 = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
-            driver.quit();
+            if (logs.size() > 500) {
+                logs = logs.subList(0, 500);
+                logs.add("⚠️ Log limit exceeded. Truncated to 500 entries.");
+            }
+
+            File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             String baseName = "report_" + timestamp;
@@ -224,15 +229,17 @@ public class TestAuraController {
             String jsonPath = Paths.get(reportDir, baseName + ".json").toString();
             String csvPath = Paths.get(reportDir, baseName + ".csv").toString();
             String zipPath = Paths.get(reportDir, baseName + ".zip").toString();
+            String screenshotPath = Paths.get(reportDir, baseName + "_screenshot.png").toString();
+            Files.copy(screenshot.toPath(), Paths.get(screenshotPath));
 
-            // HTML Report
+            // HTML
             StringBuilder html = new StringBuilder();
             html.append("<html><head><title>TestAura Report</title></head><body>");
             html.append("<h2>TestAura Smart Report</h2>");
             html.append("<p><strong>URL:</strong> ").append(url).append("</p>");
             html.append("<p><strong>Functionality:</strong> ").append(selectedFunctionality).append("</p>");
-            html.append("<p><strong>Screenshot:</strong><br/><img src='data:image/png;base64,")
-                    .append(screenshotBase64).append("' style='max-width:100%;border:1px solid #ccc;' /></p>");
+            html.append("<p><strong>Screenshot:</strong><br/><img src='").append(baseName)
+                    .append("_screenshot.png' style='max-width:100%;border:1px solid #ccc;' /></p>");
             html.append("<h3>Execution Logs</h3><ul>");
             for (String log : logs) {
                 String color = log.startsWith("✅") ? "green" : "red";
@@ -246,59 +253,49 @@ public class TestAuraController {
                 writer.write(html.toString());
             }
 
-            // Auto-open in browser (only if local)
-            try {
-                if (Desktop.isDesktopSupported() && servletRequest.getServerName().equals("localhost")) {
-                    Desktop.getDesktop().browse(new File(htmlPath).toURI());
-                }
-            } catch (Exception ex) {
-                System.err.println("⚠️ Could not open browser: " + ex.getMessage());
-            }
-
-            // JSON + CSV logs
+            // JSON + CSV
             try (FileWriter jsonOut = new FileWriter(jsonPath, StandardCharsets.UTF_8);
                     FileWriter csvOut = new FileWriter(csvPath, StandardCharsets.UTF_8)) {
-
-                jsonOut.write("[\n" + logs.stream()
-                        .map(log -> "  \"" + log.replace("\"", "\\\"") + "\"")
+                jsonOut.write("[\n" + logs.stream().map(l -> "  \"" + l.replace("\"", "\\\"") + "\"")
                         .collect(Collectors.joining(",\n")) + "\n]");
-
-                for (String log : logs) {
-                    csvOut.write("\"" + log.replace("\"", "\"\"") + "\"\n");
+                for (String l : logs) {
+                    csvOut.write("\"" + l.replace("\"", "\"\"") + "\"\n");
                 }
             }
 
-            // ZIP everything
+            // ZIP files
             try (FileOutputStream fos = new FileOutputStream(zipPath);
                     ZipOutputStream zos = new ZipOutputStream(fos)) {
-                for (String path : List.of(htmlPath, jsonPath, csvPath)) {
+                for (String path : List.of(htmlPath, jsonPath, csvPath, screenshotPath)) {
                     File file = new File(path);
                     if (file.exists()) {
                         zos.putNextEntry(new ZipEntry(file.getName()));
-                        zos.write(Files.readAllBytes(file.toPath()));
+                        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+                            byte[] buffer = new byte[1024];
+                            int len;
+                            while ((len = bis.read(buffer)) > 0) {
+                                zos.write(buffer, 0, len);
+                            }
+                        }
                         zos.closeEntry();
                     }
                 }
             }
 
-            // ✅ Construct report URL dynamically (for localhost or prod)
-            String fileName = baseName + ".html";
-            String baseUrl = servletRequest.getScheme() + "://" + servletRequest.getServerName()
-                    + (servletRequest.getServerPort() == 80 || servletRequest.getServerPort() == 443 ? ""
-                            : ":" + servletRequest.getServerPort());
-
-            String reportUrl = config.getReportUrlPrefix() + fileName;
-
+            // Final response
+            String reportUrl = config.getReportUrlPrefix() + baseName + ".html";
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Smart tests executed.");
             response.put("reportUrl", reportUrl);
-            response.put("screenshot", screenshotBase64);
+            response.put("screenshotFile", baseName + "_screenshot.png");
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("error", "Execution failed", "details", e.getMessage()));
+        } finally {
+            driver.quit(); // ✅ Ensures cleanup even on failure
         }
     }
 
