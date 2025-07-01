@@ -1,6 +1,0 @@
-# Allow all bots to crawl everything
-User-agent: *
-Allow: /
-
-# Help search engines find your sitemap
-Sitemap: https://vinsuite360.com/sitemap.xml
