@@ -1,1 +1,4 @@
 .vscode/settings.json
+node_modules/
+vinsuite-backend/target
+vinsuite-frontend/node_modules
