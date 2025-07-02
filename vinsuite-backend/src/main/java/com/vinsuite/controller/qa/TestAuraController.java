@@ -6,12 +6,17 @@ import com.vinsuite.dto.qa.RunTestRequest;
 import com.vinsuite.model.TestCase;
 
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 
@@ -29,6 +34,7 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import com.vinsuite.service.qa.TestCaseGenerationService;
@@ -395,6 +401,9 @@ public class TestAuraController {
             String reportDir, String baseName) {
         List<LogEntry> logs = new ArrayList<>();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // explicit wait
+
+        JavascriptExecutor js = (JavascriptExecutor) driver;
 
         for (TestCase tc : tests) {
             String action = tc.getAction();
@@ -403,22 +412,50 @@ public class TestAuraController {
             String timestamp = LocalDateTime.now().format(dtf);
 
             try {
-                // Inject username/password if placeholders exist
+                // Inject username/password placeholders if any
                 if (action.contains("'USERNAME'"))
                     action = action.replace("'USERNAME'", "'" + (username != null ? username : "") + "'");
                 if (action.contains("'PASSWORD'"))
                     action = action.replace("'PASSWORD'", "'" + (password != null ? password : "") + "'");
 
-                // Perform basic action (click, enter text)
-                if (action.toLowerCase().contains("click")) {
-                    String id = extractIdFromAction(action);
-                    driver.findElement(By.id(id)).click();
-                } else if (action.toLowerCase().contains("enter") || action.toLowerCase().contains("type")) {
-                    String[] parts = extractTextAndIdFromAction(action);
-                    driver.findElement(By.id(parts[1])).sendKeys(parts[0]);
+                String selector = extractSelectorFromAction(action);
+                if (selector == null) {
+                    throw new RuntimeException("No selector found in action: " + action);
                 }
 
-                // Screenshot capture
+                // Handle checkbox check/select
+                if (action.toLowerCase().contains("check") || action.toLowerCase().contains("select")) {
+                    WebElement el = findElementWithWait(wait, selector);
+                    el.click();
+
+                    // Handle click action
+                } else if (action.toLowerCase().contains("click")) {
+                    WebElement el = findElementWithWait(wait, selector);
+                    el.click();
+
+                    // Handle enter/type text action
+                } else if (action.toLowerCase().contains("enter") || action.toLowerCase().contains("type")) {
+                    String text = extractTextFromAction(action);
+                    if (text == null) {
+                        throw new RuntimeException("No text found in action: " + action);
+                    }
+                    WebElement el = findElementWithWait(wait, selector);
+                    el.clear(); // clear before sendKeys
+                    el.sendKeys(text);
+
+                    // Fallback JS set value if input still empty (very common for SPA/react/etc)
+                    String currentValue = el.getAttribute("value");
+                    if (currentValue == null || !currentValue.equals(text)) {
+                        js.executeScript(
+                                "arguments[0].value = arguments[1]; arguments[0].dispatchEvent(new Event('input'));",
+                                el, text);
+                    }
+
+                } else {
+                    throw new RuntimeException("Unsupported action: " + action);
+                }
+
+                // Take screenshot
                 String screenshotFile = baseName + "_" + System.nanoTime() + ".png";
                 File snap = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
                 Files.copy(snap.toPath(), Paths.get(reportDir, screenshotFile));
@@ -428,6 +465,14 @@ public class TestAuraController {
                         "PASS",
                         "✅ [" + comment + "] " + action + " → Expected: " + expected,
                         screenshotFile));
+
+            } catch (NoSuchElementException nse) {
+                logs.add(new LogEntry(
+                        timestamp,
+                        "FAIL",
+                        "❌ [" + comment + "] " + action + " → Failed: Element not found - " + nse.getMessage(),
+                        null));
+                // continue executing other tests despite failure
 
             } catch (Exception e) {
                 logs.add(new LogEntry(
@@ -441,25 +486,43 @@ public class TestAuraController {
         return logs;
     }
 
-    private String extractIdFromAction(String action) {
-        int idx = action.indexOf("id='");
-        if (idx == -1)
-            return null;
-        return action.substring(idx + 4, action.indexOf("'", idx + 4));
+    private WebElement findElementWithWait(WebDriverWait wait, String selector) {
+        if (selector.startsWith("id=")) {
+            return wait.until(ExpectedConditions.elementToBeClickable(By.id(selector.substring(3))));
+        } else if (selector.startsWith("xpath=")) {
+            return wait.until(ExpectedConditions.elementToBeClickable(By.xpath(selector.substring(6))));
+        } else if (selector.startsWith("css=")) {
+            return wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(selector.substring(4))));
+        } else {
+            throw new RuntimeException("Unsupported selector type: " + selector);
+        }
     }
 
-    private String[] extractTextAndIdFromAction(String action) {
-        // Example: "Enter 'admin' into input with id='username'"
+    private String extractSelectorFromAction(String action) {
+        if (action.contains("id='")) {
+            int start = action.indexOf("id='") + 4;
+            int end = action.indexOf("'", start);
+            return "id=" + action.substring(start, end);
+        }
+        if (action.contains("xpath='")) {
+            int start = action.indexOf("xpath='") + 7;
+            int end = action.indexOf("'", start);
+            return "xpath=" + action.substring(start, end);
+        }
+        if (action.contains("css='")) {
+            int start = action.indexOf("css='") + 5;
+            int end = action.indexOf("'", start);
+            return "css=" + action.substring(start, end);
+        }
+        return null;
+    }
+
+    private String extractTextFromAction(String action) {
         int valStart = action.indexOf("'");
         int valEnd = action.indexOf("'", valStart + 1);
-        int idStart = action.indexOf("id='", valEnd);
-        int idEnd = action.indexOf("'", idStart + 4);
-
-        if (valStart == -1 || valEnd == -1 || idStart == -1 || idEnd == -1)
+        if (valStart == -1 || valEnd == -1)
             return null;
-        String text = action.substring(valStart + 1, valEnd);
-        String id = action.substring(idStart + 4, idEnd);
-        return new String[] { text, id };
+        return action.substring(valStart + 1, valEnd);
     }
 
     @GetMapping("/report/download/{baseName}")
@@ -489,6 +552,8 @@ public class TestAuraController {
             options.addArguments("--headless=new");
         }
         options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
+        WebDriver driver = new ChromeDriver(options);
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
         return new ChromeDriver(options);
     }
 

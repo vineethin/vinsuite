@@ -119,6 +119,7 @@ public class TestCaseGenerationService {
 
     public List<TestCase> parseGroqJsonToTestCases(String content) {
         try {
+            // Find the earliest start of JSON array or object
             int startBracket = content.indexOf("[");
             int startBrace = content.indexOf("{");
             int jsonStart = (startBracket >= 0 && (startBracket < startBrace || startBrace == -1)) ? startBracket
@@ -126,38 +127,32 @@ public class TestCaseGenerationService {
 
             if (jsonStart < 0) {
                 System.out.println("⚠️ No JSON start found.");
+                System.out.println("Raw content: " + content);
                 return List.of();
             }
 
+            // Extract substring from first JSON token found
             String jsonOnly = content.substring(jsonStart).trim();
-            System.out.println("📦 JSON Only Extracted:\n" + jsonOnly);
 
-            if (jsonOnly.startsWith("[")) {
-                try {
-                    List<TestCase> parsed = Arrays.asList(objectMapper.readValue(jsonOnly, TestCase[].class));
-                    System.out.println("✅ Successfully parsed TestCase[]: " + parsed.size());
-                    return parsed;
-                } catch (Exception inner) {
-                    System.out.println("❌ Failed to parse as TestCase[]. Falling back to string titles.");
-                    inner.printStackTrace();
-
-                    List<String> titles = objectMapper.readValue(jsonOnly, new TypeReference<List<String>>() {
-                    });
-                    return titles.stream().map(t -> {
-                        TestCase tc = new TestCase();
-                        tc.setAction(t);
-                        tc.setExpectedResult("");
-                        tc.setActualResult("");
-                        tc.setComments("");
-                        return tc;
-                    }).toList();
+            // Fix if content looks like single object instead of array
+            if (!jsonOnly.startsWith("[") && jsonOnly.startsWith("{")) {
+                jsonOnly = "[" + jsonOnly;
+                if (!jsonOnly.endsWith("]")) {
+                    jsonOnly = jsonOnly + "]";
                 }
+                System.out.println("ℹ️ Adjusted JSON by wrapping in array brackets.");
             }
 
-            // other branch omitted for brevity...
+            System.out.println("📦 JSON Only Extracted:\n" + jsonOnly);
+
+            // Attempt to parse as array of TestCase
+            List<TestCase> parsed = Arrays.asList(objectMapper.readValue(jsonOnly, TestCase[].class));
+            System.out.println("✅ Successfully parsed TestCase[]: " + parsed.size());
+            return parsed;
 
         } catch (Exception e) {
-            System.out.println("❌ Final fallback: parsing error.");
+            System.out.println("❌ Parsing failed in parseGroqJsonToTestCases.");
+            System.out.println("Raw content was: " + content);
             e.printStackTrace();
         }
 
@@ -254,7 +249,7 @@ public class TestCaseGenerationService {
 
                         Each test case must strictly follow this JSON format:
                         {
-                          "action": "User action",
+                          "action": "Use id='elementId' or xpath='xpath' or css='cssSelector' in the action to specify the element",
                           "expectedResult": "Expected output",
                           "actualResult": "",
                           "comments": "positive | negative | edge"
