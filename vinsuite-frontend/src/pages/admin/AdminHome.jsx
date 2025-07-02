@@ -1,36 +1,61 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../../contexts/AppContext";
-import AdminDeptSwitcher from '../../components/admin/AdminDeptSwitcher';
-import API from '../../apiConfig';
+import AdminDeptSwitcher from "../../components/admin/AdminDeptSwitcher";
+import API from "../../apiConfig";
 
 const AdminHome = () => {
   const navigate = useNavigate();
   const { setUserRole, setUserDepartment } = useApp();
   const [userCount, setUserCount] = useState(0);
+  const [loading, setLoading] = useState(true); // ✅ Loading state
 
   const handleCardClick = (path) => {
     navigate(path);
   };
 
   const handleLogout = () => {
-    setUserRole('');
-    setUserDepartment('');
-    navigate('/');
+    setUserRole("");
+    setUserDepartment("");
+    navigate("/");
   };
 
+  // ✅ Safe fetch with fallback and loader
   useEffect(() => {
     fetch(API.VIEW_USER_COUNT)
-      .then((res) => res.json())
-      .then((data) => setUserCount(data))
-      .catch((err) => console.error("❌ Failed to fetch user count", err));
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const text = await res.text();
+        return text ? JSON.parse(text) : {};
+      })
+      .then((data) => {
+        if (typeof data === "number") {
+          setUserCount(data);
+        } else if (typeof data.count === "number") {
+          setUserCount(data.count); // if backend returns { count: 123 }
+        } else {
+          console.warn("⚠️ Unexpected user count format:", data);
+          setUserCount(0);
+        }
+      })
+      .catch((err) => {
+        console.error("❌ Failed to fetch user count", err);
+        setUserCount(0);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   return (
     <div className="p-8">
       {/* Header */}
       <div className="flex justify-between items-center mb-2">
-        <h1 className="text-3xl font-bold text-blue-800">🚀 VinSuite Admin Console</h1>
+        <h1 className="text-3xl font-bold text-blue-800">
+          🚀 VinSuite Admin Console
+        </h1>
         <button
           onClick={handleLogout}
           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
@@ -39,26 +64,40 @@ const AdminHome = () => {
         </button>
       </div>
 
-      <p className="text-gray-600 mb-6">Select a role below to simulate login and explore tools.</p>
+      <p className="text-gray-600 mb-6">
+        Select a role below to simulate login and explore tools.
+      </p>
 
       {/* Department Switcher */}
       <AdminDeptSwitcher />
 
       {/* Role Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-        <div onClick={() => handleCardClick('/qa')} className="cursor-pointer border rounded p-4 hover:shadow-md">
+        <div
+          onClick={() => handleCardClick("/qa")}
+          className="cursor-pointer border rounded p-4 hover:shadow-md"
+        >
           <h3 className="font-bold text-lg">QA Tester</h3>
           <p>Access test case tools and automation generators.</p>
         </div>
-        <div onClick={() => handleCardClick('/dev')} className="cursor-pointer border rounded p-4 hover:shadow-md">
+        <div
+          onClick={() => handleCardClick("/dev")}
+          className="cursor-pointer border rounded p-4 hover:shadow-md"
+        >
           <h3 className="font-bold text-lg">Developer</h3>
           <p>Access AI code tools and productivity boosters.</p>
         </div>
-        <div onClick={() => handleCardClick('/admin/writer')} className="cursor-pointer border rounded p-4 hover:shadow-md">
+        <div
+          onClick={() => handleCardClick("/admin/writer")}
+          className="cursor-pointer border rounded p-4 hover:shadow-md"
+        >
           <h3 className="font-bold text-lg">Writer</h3>
           <p>Generate email, blog, and document content with AI.</p>
         </div>
-        <div onClick={() => handleCardClick('/admin/users')} className="cursor-pointer border rounded p-4 hover:shadow-md bg-white">
+        <div
+          onClick={() => handleCardClick("/admin/users")}
+          className="cursor-pointer border rounded p-4 hover:shadow-md bg-white"
+        >
           <h3 className="font-bold text-lg">View Users</h3>
           <p>See a list of all registered users with details.</p>
         </div>
@@ -66,7 +105,9 @@ const AdminHome = () => {
 
       {/* Dashboard Insights */}
       <div className="mt-10">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">🔍 System Usage Summary</h2>
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+          🔍 System Usage Summary
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-blue-100 rounded p-4">
             <p className="font-medium">Departments</p>
@@ -82,22 +123,35 @@ const AdminHome = () => {
           </div>
           <div className="bg-yellow-100 rounded p-4">
             <p className="font-medium">Users Registered</p>
-            <p className="text-2xl">{userCount}</p>
+            <p className="text-2xl">
+              {loading ? "Loading..." : userCount}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Coming Soon Panels */}
       <div className="mt-10">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">📌 Coming Soon</h2>
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">
+          📌 Coming Soon
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {["Manager", "Business Analyst", "Database Admin", "Sales Lead", "Support", "Finance"].map((role, idx) => (
+          {[
+            "Manager",
+            "Business Analyst",
+            "Database Admin",
+            "Sales Lead",
+            "Support",
+            "Finance",
+          ].map((role, idx) => (
             <div
               key={idx}
               className="border rounded p-4 opacity-50 cursor-not-allowed hover:shadow-md"
             >
               <h3 className="font-bold text-lg">{role}</h3>
-              <p className="text-sm text-gray-600 mt-1">Dashboard coming soon.</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Dashboard coming soon.
+              </p>
             </div>
           ))}
         </div>
