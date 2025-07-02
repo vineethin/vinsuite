@@ -7,10 +7,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import com.vinsuite.dto.qa.SmartTestCaseRequest;
 import com.vinsuite.model.TestCase;
+
+import io.github.bonigarcia.wdm.WebDriverManager;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -230,32 +236,57 @@ public class TestCaseGenerationService {
                 """.formatted(extractedText.trim());
     }
 
-    public List<TestCase> generateCategorizedTests(String url, String functionality) throws IOException {
-        String html = Jsoup.connect(url).get().html();
+    public List<TestCase> generateCategorizedTests(String url, String functionality) {
+        WebDriver driver = null;
+        try {
+            // Setup ChromeDriver using WebDriverManager
+            WebDriverManager.chromedriver().setup();
 
-        String prompt = """
-                You are a senior QA engineer.
+            ChromeOptions options = new ChromeOptions();
+            options.addArguments("--headless=new"); // newer headless mode
+            options.addArguments("--disable-gpu");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
 
-                Functionality: %s
+            driver = new ChromeDriver(options);
+            driver.get(url);
+            Thread.sleep(3000); // wait for full load
 
-                Based on the HTML provided below, generate Selenium-style test cases categorized as positive, negative, or edge.
+            String html = driver.getPageSource();
+            html = cleanAndCompressHtml(html); // compress/truncate if needed
 
-                HTML:
-                %s
+            String prompt = """
+                        You are a senior QA engineer.
 
-                Each test case must strictly follow this JSON format:
-                {
-                  "action": "User action",
-                  "expectedResult": "Expected output",
-                  "actualResult": "",
-                  "comments": "positive | negative | edge"
-                }
+                        Functionality: %s
 
-                Only return a JSON array of 6 to 9 test cases — no explanations, no extra text.
-                """
-                .formatted(functionality, html);
+                        Based on the HTML provided below, generate Selenium-style test cases categorized as positive, negative, or edge.
 
-        return callGroqToGenerateTestCases(prompt);
+                        HTML:
+                        %s
+
+                        Each test case must strictly follow this JSON format:
+                        {
+                          "action": "User action",
+                          "expectedResult": "Expected output",
+                          "actualResult": "",
+                          "comments": "positive | negative | edge"
+                        }
+
+                        Only return a JSON array of 6 to 9 test cases — no explanations, no extra text.
+                    """
+                    .formatted(functionality, html);
+
+            return callGroqToGenerateTestCases(prompt);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        } finally {
+            if (driver != null) {
+                driver.quit();
+            }
+        }
     }
 
     public String cleanAndCompressHtml(String html) {

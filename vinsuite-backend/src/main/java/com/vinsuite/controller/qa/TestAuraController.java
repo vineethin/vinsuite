@@ -1,6 +1,7 @@
 package com.vinsuite.controller.qa;
 
 import com.vinsuite.config.TestAuraConfig;
+import com.vinsuite.dto.qa.LogEntry;
 import com.vinsuite.dto.qa.RunTestRequest;
 import com.vinsuite.model.TestCase;
 
@@ -22,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +33,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import com.vinsuite.service.qa.TestCaseGenerationService;
 
+import io.github.bonigarcia.wdm.WebDriverManager;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
@@ -40,6 +43,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import java.util.List;
 import java.awt.Desktop;
+import com.vinsuite.dto.qa.LogEntry;
 
 @RestController
 @RequestMapping("/api/testaura")
@@ -202,54 +206,90 @@ public class TestAuraController {
 
         WebDriver driver = createWebDriver();
         try {
-            String selectedFunctionality = tests.get(0);
-            List<TestCase> categorized = testCaseService.generateCategorizedTests(url, selectedFunctionality);
-
-            List<TestCase> positiveTests = categorized.stream()
-                    .filter(tc -> "positive".equalsIgnoreCase(tc.getComments())).toList();
-            List<TestCase> negativeTests = categorized.stream()
-                    .filter(tc -> "negative".equalsIgnoreCase(tc.getComments())).toList();
-            List<TestCase> edgeTests = categorized.stream().filter(tc -> "edge".equalsIgnoreCase(tc.getComments()))
-                    .toList();
-
             driver.get(url);
 
-            List<String> logs = new ArrayList<>();
-            logs.addAll(executeTestCases(driver, positiveTests, username, password));
-            logs.addAll(executeTestCases(driver, negativeTests, username, password));
-            logs.addAll(executeTestCases(driver, edgeTests, username, password));
-
-            if (logs.size() > 500) {
-                logs = logs.subList(0, 500);
-                logs.add("⚠️ Log limit exceeded. Truncated to 500 entries.");
-            }
-
-            File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+            List<LogEntry> allLogs = new ArrayList<>();
+            List<String> functionalityLogLinks = new ArrayList<>();
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             String baseName = "report_" + timestamp;
             String reportDir = config.getReportDir();
             new File(reportDir).mkdirs();
 
+            for (String functionality : tests) {
+                List<LogEntry> logsForFunctionality = new ArrayList<>();
+                logsForFunctionality.add(new LogEntry(
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                        "STEP",
+                        "🧪 Functionality: " + functionality,
+                        null));
+
+                List<TestCase> categorized = testCaseService.generateCategorizedTests(url, functionality);
+                List<TestCase> positiveTests = categorized.stream()
+                        .filter(tc -> "positive".equalsIgnoreCase(tc.getComments())).toList();
+                List<TestCase> negativeTests = categorized.stream()
+                        .filter(tc -> "negative".equalsIgnoreCase(tc.getComments())).toList();
+                List<TestCase> edgeTests = categorized.stream().filter(tc -> "edge".equalsIgnoreCase(tc.getComments()))
+                        .toList();
+
+                logsForFunctionality
+                        .addAll(executeAndCapture(driver, positiveTests, username, password, reportDir, baseName));
+                logsForFunctionality
+                        .addAll(executeAndCapture(driver, negativeTests, username, password, reportDir, baseName));
+                logsForFunctionality
+                        .addAll(executeAndCapture(driver, edgeTests, username, password, reportDir, baseName));
+
+                allLogs.addAll(logsForFunctionality);
+
+                String sanitizedName = functionality.trim().replaceAll("[^a-zA-Z0-9]+", "_");
+                String logFileName = baseName + "_log_" + sanitizedName + ".html";
+                String logFilePath = Paths.get(reportDir, logFileName).toString();
+
+                try (FileWriter logWriter = new FileWriter(logFilePath, StandardCharsets.UTF_8)) {
+                    StringBuilder logHtml = new StringBuilder();
+                    logHtml.append("<html><head><meta charset='UTF-8'><title>").append(functionality)
+                            .append(" Logs</title></head><body>");
+                    logHtml.append("<h3>Execution Log for: ").append(functionality).append("</h3><ul>");
+                    for (LogEntry le : logsForFunctionality) {
+                        logHtml.append("<li>").append("[").append(le.getTimestamp()).append("] ").append(le.getStatus())
+                                .append(" - ").append(le.getMessage());
+                        if (le.getScreenshotFile() != null) {
+                            logHtml.append(" - <a href='/api/testaura/report/screenshots/")
+                                    .append(le.getScreenshotFile()).append("' target='_blank'>View Screenshot</a>");
+                        }
+                        logHtml.append("</li>");
+                    }
+                    logHtml.append("</ul></body></html>");
+                    logWriter.write(logHtml.toString());
+                }
+
+                functionalityLogLinks
+                        .add("<li><a href='" + logFileName + "' target='_blank'>🧪 " + functionality + "</a></li>");
+            }
+
+            if (allLogs.size() > 500) {
+                List<LogEntry> truncated = new ArrayList<>(allLogs.subList(0, 500));
+                truncated.add(new LogEntry(
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                        "WARN",
+                        "⚠️ Log limit exceeded. Truncated to 500 entries.",
+                        null));
+                allLogs = truncated;
+            }
+
             String htmlPath = Paths.get(reportDir, baseName + ".html").toString();
             String jsonPath = Paths.get(reportDir, baseName + ".json").toString();
             String csvPath = Paths.get(reportDir, baseName + ".csv").toString();
             String zipPath = Paths.get(reportDir, baseName + ".zip").toString();
-            String screenshotPath = Paths.get(reportDir, baseName + "_screenshot.png").toString();
-            Files.copy(screenshot.toPath(), Paths.get(screenshotPath));
 
-            // HTML
             StringBuilder html = new StringBuilder();
-            html.append("<html><head><title>TestAura Report</title></head><body>");
+            html.append("<html><head><meta charset='UTF-8'><title>TestAura Report</title></head><body>");
             html.append("<h2>TestAura Smart Report</h2>");
             html.append("<p><strong>URL:</strong> ").append(url).append("</p>");
-            html.append("<p><strong>Functionality:</strong> ").append(selectedFunctionality).append("</p>");
-            html.append("<p><strong>Screenshot:</strong><br/><img src='").append(baseName)
-                    .append("_screenshot.png' style='max-width:100%;border:1px solid #ccc;' /></p>");
+            html.append("<p><strong>Functionality:</strong> ").append(String.join(", ", tests)).append("</p>");
             html.append("<h3>Execution Logs</h3><ul>");
-            for (String log : logs) {
-                String color = log.startsWith("✅") ? "green" : "red";
-                html.append("<li style='color:").append(color).append(";'>").append(log).append("</li>");
+            for (String link : functionalityLogLinks) {
+                html.append(link);
             }
             html.append("</ul>");
             html.append("<p><em>Generated at ").append(timestamp).append("</em></p>");
@@ -259,41 +299,41 @@ public class TestAuraController {
                 writer.write(html.toString());
             }
 
-            // JSON + CSV
             try (FileWriter jsonOut = new FileWriter(jsonPath, StandardCharsets.UTF_8);
                     FileWriter csvOut = new FileWriter(csvPath, StandardCharsets.UTF_8)) {
-                jsonOut.write("[\n" + logs.stream().map(l -> "  \"" + l.replace("\"", "\\\"") + "\"")
+                jsonOut.write("[\n" + allLogs.stream().map(l -> "  \"" + l.getMessage().replace("\"", "\\\"") + "\"")
                         .collect(Collectors.joining(",\n")) + "\n]");
-                for (String l : logs) {
-                    csvOut.write("\"" + l.replace("\"", "\"\"") + "\"\n");
+                for (LogEntry l : allLogs) {
+                    csvOut.write("\"" + l.getMessage().replace("\"", "\"\"") + "\"\n");
                 }
             }
 
-            // ZIP files
+            List<String> allReportFiles = Files.walk(Paths.get(reportDir))
+                    .filter(path -> path.getFileName().toString().startsWith(baseName))
+                    .map(path -> path.toFile().getAbsolutePath())
+                    .toList();
+
             try (FileOutputStream fos = new FileOutputStream(zipPath);
                     ZipOutputStream zos = new ZipOutputStream(fos)) {
-                for (String path : List.of(htmlPath, jsonPath, csvPath, screenshotPath)) {
+                for (String path : allReportFiles) {
                     File file = new File(path);
-                    if (file.exists()) {
-                        zos.putNextEntry(new ZipEntry(file.getName()));
-                        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
-                            byte[] buffer = new byte[1024];
-                            int len;
-                            while ((len = bis.read(buffer)) > 0) {
-                                zos.write(buffer, 0, len);
-                            }
+                    zos.putNextEntry(new ZipEntry(file.getName()));
+                    try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+                        byte[] buffer = new byte[1024];
+                        int len;
+                        while ((len = bis.read(buffer)) > 0) {
+                            zos.write(buffer, 0, len);
                         }
-                        zos.closeEntry();
                     }
+                    zos.closeEntry();
                 }
             }
 
-            // Final response
             String reportUrl = config.getReportUrlPrefix() + baseName + ".html";
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Smart tests executed.");
             response.put("reportUrl", reportUrl);
-            response.put("screenshotFile", baseName + "_screenshot.png");
+            response.put("reportZip", config.getReportUrlPrefix() + baseName + ".zip");
 
             return ResponseEntity.ok(response);
 
@@ -301,50 +341,72 @@ public class TestAuraController {
             e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("error", "Execution failed", "details", e.getMessage()));
         } finally {
-            driver.quit(); // ✅ Ensures cleanup even on failure
+            driver.quit();
         }
     }
 
-    private List<String> executeTestCases(WebDriver driver, List<TestCase> tests, String username, String password) {
-        List<String> logs = new ArrayList<>();
+    @GetMapping("/report/screenshots/{filename:.+}")
+    public ResponseEntity<?> serveScreenshot(@PathVariable String filename) {
+        try {
+            File file = new File(config.getReportDir(), filename);
+            if (!file.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            byte[] content = Files.readAllBytes(file.toPath());
+            return ResponseEntity.ok()
+                    .header("Content-Type", "image/png")
+                    .header("Content-Disposition", "inline; filename=" + filename)
+                    .body(content);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to load screenshot.");
+        }
+    }
+
+    private List<LogEntry> executeAndCapture(WebDriver driver, List<TestCase> tests, String username, String password,
+            String reportDir, String baseName) {
+        List<LogEntry> logs = new ArrayList<>();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         for (TestCase tc : tests) {
             String action = tc.getAction();
             String expected = tc.getExpectedResult();
             String comment = tc.getComments();
+            String timestamp = LocalDateTime.now().format(dtf);
 
             try {
-                // ✅ Inject username/password if placeholders are used
-                if (action.contains("'USERNAME'")) {
+                // Inject username/password if placeholders exist
+                if (action.contains("'USERNAME'"))
                     action = action.replace("'USERNAME'", "'" + (username != null ? username : "") + "'");
-                }
-                if (action.contains("'PASSWORD'")) {
+                if (action.contains("'PASSWORD'"))
                     action = action.replace("'PASSWORD'", "'" + (password != null ? password : "") + "'");
-                }
 
+                // Perform basic action (click, enter text)
                 if (action.toLowerCase().contains("click")) {
-                    // e.g., "Click button with id='submit'"
                     String id = extractIdFromAction(action);
-                    if (id != null) {
-                        driver.findElement(By.id(id)).click();
-                    } else {
-                        throw new IllegalArgumentException("No valid element ID found in action: " + action);
-                    }
-
+                    driver.findElement(By.id(id)).click();
                 } else if (action.toLowerCase().contains("enter") || action.toLowerCase().contains("type")) {
-                    // e.g., "Enter 'admin' into input with id='username'"
                     String[] parts = extractTextAndIdFromAction(action);
-                    if (parts != null) {
-                        driver.findElement(By.id(parts[1])).sendKeys(parts[0]);
-                    } else {
-                        throw new IllegalArgumentException("Failed to extract text and ID from action: " + action);
-                    }
+                    driver.findElement(By.id(parts[1])).sendKeys(parts[0]);
                 }
 
-                logs.add("✅ [" + comment + "] " + action + " → Expected: " + expected);
+                // Screenshot capture
+                String screenshotFile = baseName + "_" + System.nanoTime() + ".png";
+                File snap = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+                Files.copy(snap.toPath(), Paths.get(reportDir, screenshotFile));
+
+                logs.add(new LogEntry(
+                        timestamp,
+                        "PASS",
+                        "✅ [" + comment + "] " + action + " → Expected: " + expected,
+                        screenshotFile));
 
             } catch (Exception e) {
-                logs.add("❌ [" + comment + "] " + action + " → Failed: " + e.getMessage());
+                logs.add(new LogEntry(
+                        timestamp,
+                        "FAIL",
+                        "❌ [" + comment + "] " + action + " → Failed: " + e.getMessage(),
+                        null));
             }
         }
 
@@ -393,6 +455,7 @@ public class TestAuraController {
     }
 
     private WebDriver createWebDriver() {
+        WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         if (config.isChromeHeadless()) {
             options.addArguments("--headless=new");
