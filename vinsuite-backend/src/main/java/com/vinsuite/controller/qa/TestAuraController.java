@@ -225,6 +225,10 @@ public class TestAuraController {
                         null));
 
                 List<TestCase> categorized = testCaseService.generateCategorizedTests(url, functionality);
+                System.out.println("Categorized size for " + functionality + ": " + categorized.size());
+                for (TestCase tc : categorized) {
+                    System.out.println("→ " + tc.getAction() + " | " + tc.getComments());
+                }
                 List<TestCase> positiveTests = categorized.stream()
                         .filter(tc -> "positive".equalsIgnoreCase(tc.getComments())).toList();
                 List<TestCase> negativeTests = categorized.stream()
@@ -240,6 +244,11 @@ public class TestAuraController {
                         .addAll(executeAndCapture(driver, edgeTests, username, password, reportDir, baseName));
 
                 allLogs.addAll(logsForFunctionality);
+                System.out.println(
+                        "Returned logs for functionality " + functionality + ": " + logsForFunctionality.size());
+                for (LogEntry log : logsForFunctionality) {
+                    System.out.println(log.getStatus() + " | " + log.getMessage() + " | " + log.getScreenshotFile());
+                }
 
                 String sanitizedName = functionality.trim().replaceAll("[^a-zA-Z0-9]+", "_");
                 String logFileName = baseName + "_log_" + sanitizedName + ".html";
@@ -249,17 +258,36 @@ public class TestAuraController {
                     StringBuilder logHtml = new StringBuilder();
                     logHtml.append("<html><head><meta charset='UTF-8'><title>").append(functionality)
                             .append(" Logs</title></head><body>");
-                    logHtml.append("<h3>Execution Log for: ").append(functionality).append("</h3><ul>");
+                    logHtml.append("<h3>Execution Log for: " + functionality + "</h3>");
+                    logHtml.append("<table border='1' cellpadding='5' cellspacing='0'>");
+                    logHtml.append("<tr><th>Timestamp</th><th>Status</th><th>Message</th><th>Screenshot</th></tr>");
+
                     for (LogEntry le : logsForFunctionality) {
-                        logHtml.append("<li>").append("[").append(le.getTimestamp()).append("] ").append(le.getStatus())
-                                .append(" - ").append(le.getMessage());
-                        if (le.getScreenshotFile() != null) {
-                            logHtml.append(" - <a href='/api/testaura/report/screenshots/")
-                                    .append(le.getScreenshotFile()).append("' target='_blank'>View Screenshot</a>");
+                        String rowColor;
+                        switch (le.getStatus().toUpperCase()) {
+                            case "PASS" -> rowColor = "#e6ffe6"; // light green
+                            case "FAIL" -> rowColor = "#ffe6e6"; // light red
+                            case "WARN" -> rowColor = "#fffbe6"; // light yellow
+                            case "STEP" -> rowColor = "#e6f0ff"; // light blue
+                            default -> rowColor = "#ffffff"; // white
                         }
-                        logHtml.append("</li>");
+
+                        logHtml.append("<tr style='background-color:").append(rowColor).append(";'>");
+                        logHtml.append("<td>").append(le.getTimestamp()).append("</td>");
+                        logHtml.append("<td>").append(le.getStatus()).append("</td>");
+                        logHtml.append("<td>").append(le.getMessage()).append("</td>");
+                        if (le.getScreenshotFile() != null && !le.getScreenshotFile().isBlank()) {
+                            String imgPath = "/api/testaura/report/screenshots/" + le.getScreenshotFile();
+                            logHtml.append("<td><a href='").append(imgPath).append("' target='_blank'>")
+                                    .append("<img src='").append(imgPath)
+                                    .append("' width='120' style='border:1px solid #ccc;'/>")
+                                    .append("</a></td>");
+                        } else {
+                            logHtml.append("<td>-</td>");
+                        }
+                        logHtml.append("</tr>");
                     }
-                    logHtml.append("</ul></body></html>");
+                    logHtml.append("</table></body></html>");
                     logWriter.write(logHtml.toString());
                 }
 
