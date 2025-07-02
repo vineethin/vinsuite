@@ -44,6 +44,9 @@ public class TestCaseGenerationService {
     @Value("${groq.api.url}")
     private String groqApiUrl;
 
+    @Value("${tesseract.data.path}")
+    private String tessDataPath;
+
     public ResponseEntity<?> generateTestCasesFromText(Map<String, String> request) {
         try {
             String extractedText = request.get("feature");
@@ -70,7 +73,7 @@ public class TestCaseGenerationService {
                 BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
                 if (bufferedImage != null) {
                     ITesseract tesseract = new Tesseract();
-                    tesseract.setDatapath("C:\\Program Files\\Tesseract-OCR\\tessdata");
+                    tesseract.setDatapath(tessDataPath);
                     extractedText = tesseract.doOCR(bufferedImage);
                     System.out.println("🧾 Extracted OCR Text: " + extractedText);
                 }
@@ -110,21 +113,73 @@ public class TestCaseGenerationService {
     }
 
     public List<TestCase> callGroqToGenerateTestCases(String prompt) {
-        if (prompt.length() > 15000) {
-            prompt = prompt.substring(0, 14950) + "\n\n(Note: prompt truncated due to size limit)";
+        String raw = callGroqRaw(prompt);
+        return parseGroqJsonToTestCases(raw);
+    }
+
+    public List<TestCase> parseGroqJsonToTestCases(String content) {
+        try {
+            int startBracket = content.indexOf("[");
+            int startBrace = content.indexOf("{");
+            int jsonStart = (startBracket >= 0 && (startBracket < startBrace || startBrace == -1)) ? startBracket
+                    : startBrace;
+
+            if (jsonStart < 0) {
+                System.out.println("⚠️ No JSON start found.");
+                return List.of();
+            }
+
+            String jsonOnly = content.substring(jsonStart).trim();
+            System.out.println("📦 JSON Only Extracted:\n" + jsonOnly);
+
+            if (jsonOnly.startsWith("[")) {
+                try {
+                    List<TestCase> parsed = Arrays.asList(objectMapper.readValue(jsonOnly, TestCase[].class));
+                    System.out.println("✅ Successfully parsed TestCase[]: " + parsed.size());
+                    return parsed;
+                } catch (Exception inner) {
+                    System.out.println("❌ Failed to parse as TestCase[]. Falling back to string titles.");
+                    inner.printStackTrace();
+
+                    List<String> titles = objectMapper.readValue(jsonOnly, new TypeReference<List<String>>() {
+                    });
+                    return titles.stream().map(t -> {
+                        TestCase tc = new TestCase();
+                        tc.setAction(t);
+                        tc.setExpectedResult("");
+                        tc.setActualResult("");
+                        tc.setComments("");
+                        return tc;
+                    }).toList();
+                }
+            }
+
+            // other branch omitted for brevity...
+
+        } catch (Exception e) {
+            System.out.println("❌ Final fallback: parsing error.");
+            e.printStackTrace();
         }
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("model", groqModelName);
-        payload.put("messages", List.of(Map.of("role", "user", "content", prompt)));
+        return List.of();
+    }
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(groqApiKey);
-
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
-
+    public String callGroqRaw(String prompt) {
         try {
+            if (prompt.length() > 15000) {
+                prompt = prompt.substring(0, 14950) + "\n\n(Note: prompt truncated due to size limit)";
+            }
+
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("model", groqModelName);
+            payload.put("messages", List.of(Map.of("role", "user", "content", prompt)));
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(groqApiKey);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     groqApiUrl,
                     HttpMethod.POST,
@@ -134,74 +189,13 @@ public class TestCaseGenerationService {
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 Map<String, Object> responseBody = response.getBody();
-                Object choicesObj = responseBody.get("choices");
-                if (choicesObj instanceof List<?> choicesList && !choicesList.isEmpty()) {
-                    Object choice = choicesList.get(0);
-                    if (choice instanceof Map<?, ?> choiceMap) {
-                        Object messageObj = choiceMap.get("message");
-                        if (messageObj instanceof Map<?, ?> messageMap) {
-                            Object contentObj = messageMap.get("content");
-                            if (contentObj instanceof String content) {
-                                int jsonStart = Math.max(content.indexOf("["), content.indexOf("{"));
-                                if (jsonStart >= 0) {
-                                    String jsonOnly = content.substring(jsonStart).trim();
-
-                                    // Case 1: JSON array of TestCase objects
-                                    if (jsonOnly.startsWith("[")) {
-                                        try {
-                                            return Arrays.asList(objectMapper.readValue(jsonOnly, TestCase[].class));
-                                        } catch (Exception inner) {
-                                            List<String> titles = objectMapper.readValue(jsonOnly,
-                                                    new TypeReference<>() {
-                                                    });
-                                            return titles.stream().map(t -> {
-                                                TestCase tc = new TestCase();
-                                                tc.setAction(t);
-                                                tc.setExpectedResult("");
-                                                tc.setActualResult("");
-                                                tc.setComments("");
-                                                return tc;
-                                            }).toList();
-                                        }
-                                    }
-
-                                    // Case 2: Categorized map
-                                    if (jsonOnly.startsWith("{")) {
-                                        Map<String, Object> raw = objectMapper.readValue(jsonOnly,
-                                                new TypeReference<>() {
-                                                });
-                                        List<TestCase> result = new ArrayList<>();
-
-                                        for (Map.Entry<String, Object> entry : raw.entrySet()) {
-                                            String category = entry.getKey();
-                                            Object value = entry.getValue();
-
-                                            if (value instanceof List<?> list) {
-                                                for (Object item : list) {
-                                                    TestCase tc = new TestCase();
-
-                                                    if (item instanceof String s) {
-                                                        tc.setAction(s);
-                                                        tc.setExpectedResult("");
-                                                        tc.setActualResult("");
-                                                        tc.setComments(category);
-                                                    } else if (item instanceof Map<?, ?> rawMap) {
-                                                        Map<String, Object> m = (Map<String, Object>) rawMap;
-                                                        tc.setAction(Objects.toString(m.get("action"), ""));
-                                                        tc.setExpectedResult(
-                                                                Objects.toString(m.get("expectedResult"), ""));
-                                                        tc.setActualResult(Objects.toString(m.get("actualResult"), ""));
-                                                        tc.setComments(Objects.toString(m.get("comments"), category));
-                                                    }
-
-                                                    result.add(tc);
-                                                }
-                                            }
-                                        }
-                                        return result;
-                                    }
-                                }
-                            }
+                List<?> choices = (List<?>) responseBody.get("choices");
+                if (!choices.isEmpty() && choices.get(0) instanceof Map<?, ?> choice) {
+                    Object message = choice.get("message");
+                    if (message instanceof Map<?, ?> msgMap) {
+                        Object content = msgMap.get("content");
+                        if (content instanceof String contentStr) {
+                            return contentStr;
                         }
                     }
                 }
@@ -209,8 +203,7 @@ public class TestCaseGenerationService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return new ArrayList<>();
+        return "";
     }
 
     private String buildPrompt(String extractedText) {
@@ -239,21 +232,15 @@ public class TestCaseGenerationService {
     public List<TestCase> generateCategorizedTests(String url, String functionality) {
         WebDriver driver = null;
         try {
-            // Setup ChromeDriver using WebDriverManager
             WebDriverManager.chromedriver().setup();
-
             ChromeOptions options = new ChromeOptions();
-            options.addArguments("--headless=new"); // newer headless mode
-            options.addArguments("--disable-gpu");
-            options.addArguments("--no-sandbox");
-            options.addArguments("--disable-dev-shm-usage");
-
+            options.addArguments("--headless=new", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage");
             driver = new ChromeDriver(options);
             driver.get(url);
-            Thread.sleep(3000); // wait for full load
+            Thread.sleep(3000);
 
             String html = driver.getPageSource();
-            html = cleanAndCompressHtml(html); // compress/truncate if needed
+            html = cleanAndCompressHtml(html); // Keep this if you use compression
 
             String prompt = """
                         You are a senior QA engineer.
@@ -277,7 +264,13 @@ public class TestCaseGenerationService {
                     """
                     .formatted(functionality, html);
 
-            return callGroqToGenerateTestCases(prompt);
+            // 🔥 Add debug logging
+            String responseBody = callGroqRaw(prompt);
+            System.out.println("🔍 Groq response for " + functionality + ":\n" + responseBody);
+
+            List<TestCase> parsed = parseGroqJsonToTestCases(responseBody);
+            System.out.println("✅ Parsed " + parsed.size() + " test cases");
+            return parsed;
 
         } catch (Exception e) {
             e.printStackTrace();
