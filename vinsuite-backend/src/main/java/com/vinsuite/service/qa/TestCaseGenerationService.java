@@ -119,40 +119,67 @@ public class TestCaseGenerationService {
 
     public List<TestCase> parseGroqJsonToTestCases(String content) {
         try {
-            // Find the earliest start of JSON array or object
-            int startBracket = content.indexOf("[");
-            int startBrace = content.indexOf("{");
-            int jsonStart = (startBracket >= 0 && (startBracket < startBrace || startBrace == -1)) ? startBracket
-                    : startBrace;
+            objectMapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_COMMENTS, true);
 
-            if (jsonStart < 0) {
+            // ✅ Step 1: Locate start of JSON (array or object)
+            int bracketStart = content.indexOf('[');
+            int braceStart = content.indexOf('{');
+
+            int jsonStart = -1;
+            if (bracketStart >= 0 && (braceStart == -1 || bracketStart < braceStart)) {
+                jsonStart = bracketStart;
+            } else if (braceStart >= 0) {
+                jsonStart = braceStart;
+            }
+
+            if (jsonStart < 0 || jsonStart >= content.length()) {
                 System.out.println("⚠️ No JSON start found.");
                 System.out.println("Raw content: " + content);
                 return List.of();
             }
 
-            // Extract substring from first JSON token found
+            // ✅ Step 2: Extract the JSON-ish part
             String jsonOnly = content.substring(jsonStart).trim();
 
-            // Fix if content looks like single object instead of array
-            if (!jsonOnly.startsWith("[") && jsonOnly.startsWith("{")) {
-                jsonOnly = "[" + jsonOnly;
-                if (!jsonOnly.endsWith("]")) {
-                    jsonOnly = jsonOnly + "]";
+            // ✅ Step 3: Remove Groq-style artifacts
+            jsonOnly = jsonOnly
+                    .replaceAll("(?m)^\\s*//.*?$", "") // Remove // comments
+                    .replaceAll("(?s)/\\*.*?\\*/", "") // Remove /* */ block comments
+                    .replace("&quot;", "\"")
+                    .replace("&apos;", "'");
+
+            // ✅ Step 4: Handle partially clipped Groq output
+            if (jsonOnly.startsWith("[")) {
+                int lastObjectClose = jsonOnly.lastIndexOf("}");
+                if (lastObjectClose != -1) {
+                    jsonOnly = jsonOnly.substring(0, lastObjectClose + 1).trim();
+                    if (!jsonOnly.endsWith("]")) {
+                        jsonOnly += "]";
+                        System.out.println("⚠️ JSON array was not closed. Appended closing bracket.");
+                    }
+                } else {
+                    System.out.println("⚠️ JSON starts with [ but no object found.");
+                    return List.of();
                 }
-                System.out.println("ℹ️ Adjusted JSON by wrapping in array brackets.");
             }
 
-            System.out.println("📦 JSON Only Extracted:\n" + jsonOnly);
+            // ✅ Step 5: Wrap in array if it's a single object
+            if (!jsonOnly.startsWith("[") && jsonOnly.startsWith("{")) {
+                jsonOnly = "[" + jsonOnly + "]";
+                System.out.println("ℹ️ Wrapped single object in array brackets.");
+            }
 
-            // Attempt to parse as array of TestCase
+            // ✅ Step 6: Debug print final sanitized JSON
+            System.out.println("📦 Sanitized JSON:\n" + jsonOnly);
+
+            // ✅ Step 7: Parse into List<TestCase>
             List<TestCase> parsed = Arrays.asList(objectMapper.readValue(jsonOnly, TestCase[].class));
-            System.out.println("✅ Successfully parsed TestCase[]: " + parsed.size());
+            System.out.println("✅ Parsed " + parsed.size() + " test case(s).");
             return parsed;
 
         } catch (Exception e) {
-            System.out.println("❌ Parsing failed in parseGroqJsonToTestCases.");
-            System.out.println("Raw content was: " + content);
+            System.out.println("❌ JSON parsing failed in parseGroqJsonToTestCases.");
+            System.out.println("Input:\n" + content);
             e.printStackTrace();
         }
 
@@ -163,6 +190,7 @@ public class TestCaseGenerationService {
         try {
             if (prompt.length() > 15000) {
                 prompt = prompt.substring(0, 14950) + "\n\n(Note: prompt truncated due to size limit)";
+                System.out.println("⚠️ Prompt was truncated due to size limits.");
             }
 
             Map<String, Object> payload = new HashMap<>();
@@ -230,44 +258,59 @@ public class TestCaseGenerationService {
             WebDriverManager.chromedriver().setup();
             ChromeOptions options = new ChromeOptions();
             options.addArguments("--headless=new", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage");
+
             driver = new ChromeDriver(options);
             driver.get(url);
-            Thread.sleep(3000);
+            Thread.sleep(3000); // Could be replaced with WebDriverWait for page load completion
 
             String html = driver.getPageSource();
-            html = cleanAndCompressHtml(html); // Keep this if you use compression
+            if (html == null || html.isBlank()) {
+                System.out.println("⚠️ Failed to extract HTML content.");
+                return List.of();
+            }
+
+            html = cleanAndCompressHtml(html);
 
             String prompt = """
-                        You are a senior QA engineer.
+                    You are a senior QA engineer.
 
-                        Functionality: %s
+                    Functionality: %s
 
-                        Based on the HTML provided below, generate Selenium-style test cases categorized as positive, negative, or edge.
+                    Based on the HTML provided below, generate Selenium-style test cases categorized as positive, negative, or edge.
 
-                        HTML:
-                        %s
+                    IMPORTANT:
+                    - Use xpath("..."), id("..."), css("..."), or label("...") format for element locators.
+                    - Always use double quotes inside locators — never single quotes.
+                    - For login or credential fields, use placeholders {{USERNAME}} and {{PASSWORD}} in the actions.
 
-                        Each test case must strictly follow this JSON format:
-                        {
-                          "action": "Use id='elementId' or xpath='xpath' or css='cssSelector' in the action to specify the element",
-                          "expectedResult": "Expected output",
-                          "actualResult": "",
-                          "comments": "positive | negative | edge"
-                        }
+                    HTML:
+                    %s
 
-                        Only return a JSON array of 6 to 9 test cases — no explanations, no extra text.
+                    Each test case must strictly follow this JSON format:
+                    {
+                      "action": "Enter {{USERNAME}} in xpath(\"//input[@id='username']\") and {{PASSWORD}} in xpath(\"//input[@id='password']\") and click on xpath(\"//button[@type='submit']\")",
+                      "expectedResult": "Expected output",
+                      "actualResult": "",
+                      "comments": "positive | negative | edge"
+                    }
+
+                    Return only a JSON array of 6 to 9 test cases. No explanations, markdown, or headings.
                     """
                     .formatted(functionality, html);
 
-            // 🔥 Add debug logging
             String responseBody = callGroqRaw(prompt);
-            System.out.println("🔍 Groq response for " + functionality + ":\n" + responseBody);
+            System.out.println("🔍 Groq response for functionality '" + functionality + "':\n" + responseBody);
 
             List<TestCase> parsed = parseGroqJsonToTestCases(responseBody);
-            System.out.println("✅ Parsed " + parsed.size() + " test cases");
+            System.out.println("✅ Parsed " + parsed.size() + " test case(s) successfully.");
             return parsed;
 
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt(); // recommended way to handle interrupts
+            System.out.println("⛔ Thread was interrupted.");
+            return List.of();
         } catch (Exception e) {
+            System.out.println("❌ Exception in generateCategorizedTests(): " + e.getMessage());
             e.printStackTrace();
             return List.of();
         } finally {
