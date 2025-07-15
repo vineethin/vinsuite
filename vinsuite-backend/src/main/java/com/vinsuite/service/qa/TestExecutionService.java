@@ -4,8 +4,6 @@ import com.vinsuite.config.TestAuraConfig;
 import com.vinsuite.dto.qa.LogEntry;
 import com.vinsuite.model.TestCase;
 import org.openqa.selenium.*;
-import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Service;
 
@@ -123,8 +121,9 @@ public class TestExecutionService {
             System.out.println("🔍 Parsed Steps for test case: " + testCase.getComments());
             for (ActionStep step : steps) {
                 try {
-                    LogEntry log = executor.executeStep(driver, wait, js, step, placeholders, reportDir, baseName,
-                            timestamp, expected, comment);
+                    LogEntry log = executor.executeStep(
+                            driver, wait, js, step, placeholders, reportDir, baseName,
+                            timestamp, expected, comment, testCase.getTestType());
                     allLogs.add(log);
                 } catch (Exception e) {
                     String failShot = baseName + "_fail_" + System.nanoTime() + ".png";

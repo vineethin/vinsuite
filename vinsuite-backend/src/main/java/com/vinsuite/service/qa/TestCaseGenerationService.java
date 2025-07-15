@@ -3,8 +3,6 @@
 package com.vinsuite.service.qa;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.type.TypeReference;
-
 import com.vinsuite.dto.qa.SmartTestCaseRequest;
 import com.vinsuite.model.TestCase;
 
@@ -15,8 +13,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -26,7 +22,6 @@ import org.springframework.web.client.RestTemplate;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -179,6 +174,37 @@ public class TestCaseGenerationService {
 
             // ✅ Step 7: Parse into List<TestCase>
             List<TestCase> parsed = Arrays.asList(objectMapper.readValue(jsonOnly, TestCase[].class));
+            // ✅ Assign test type to each parsed test case
+            for (TestCase tc : parsed) {
+                String action = Optional.ofNullable(tc.getAction()).orElse("").toLowerCase();
+                String comment = Optional.ofNullable(tc.getComments()).orElse("").toLowerCase();
+
+                boolean isNegative = comment.contains("negative") ||
+                        action.contains("invalid") ||
+                        action.contains("incorrect") ||
+                        action.contains("wrong") ||
+                        action.contains("fail") ||
+                        action.contains("empty") ||
+                        action.contains("blank") ||
+                        action.contains("missing");
+
+                boolean isEdge = comment.contains("edge") ||
+                        comment.contains("boundary") ||
+                        action.contains("multiple") ||
+                        action.contains("spaces") ||
+                        comment.contains("corner");
+
+                if (isNegative) {
+                    tc.setTestType("negative");
+                } else if (isEdge) {
+                    tc.setTestType("edge");
+                } else {
+                    tc.setTestType("positive");
+                }
+
+                System.out.println("🔍 Action: " + action + " | Comment: " + comment + " => Type: " + tc.getTestType());
+            }
+
             System.out.println("✅ Parsed " + parsed.size() + " test case(s).");
             return parsed;
 

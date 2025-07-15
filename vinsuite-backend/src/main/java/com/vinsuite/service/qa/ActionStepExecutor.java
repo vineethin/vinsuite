@@ -1,7 +1,6 @@
 package com.vinsuite.service.qa;
 
 import com.vinsuite.dto.qa.LogEntry;
-import com.vinsuite.service.qa.ActionStep;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -10,8 +9,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 public class ActionStepExecutor {
@@ -19,7 +16,7 @@ public class ActionStepExecutor {
     public static LogEntry executeStep(WebDriver driver, WebDriverWait wait, JavascriptExecutor js,
             ActionStep step, Map<String, String> placeholders,
             String reportDir, String baseName,
-            String timestamp, String expected, String comment) throws Exception {
+            String timestamp, String expected, String comment, String testType) throws Exception {
 
         // ✅ Inject placeholder values into text
         String text = step.getTextValue();
@@ -51,9 +48,7 @@ public class ActionStepExecutor {
                 + " '" + resolvedText + "' in " + step.getSelectorType() + "=" + resolvedSelector;
 
         switch (step.getActionType()) {
-            case "click", "check", "select" -> {
-                el.click();
-            }
+            case "click", "check", "select" -> el.click();
 
             case "enter", "type" -> {
                 String input = step.getTextValue();
@@ -68,18 +63,14 @@ public class ActionStepExecutor {
                 wait.until(ExpectedConditions.attributeToBe(el, "value", input));
             }
 
-            case "hover" -> {
-                new Actions(driver).moveToElement(el).perform();
-            }
+            case "hover" -> new Actions(driver).moveToElement(el).perform();
 
             case "scrollto" -> {
                 js.executeScript("arguments[0].scrollIntoView({ behavior: 'smooth', block: 'center' });", el);
                 Thread.sleep(500);
             }
 
-            case "waitfor" -> {
-                wait.until(ExpectedConditions.visibilityOf(el));
-            }
+            case "waitfor" -> wait.until(ExpectedConditions.visibilityOf(el));
 
             case "asserttext" -> {
                 String actual = el.getText().trim();
@@ -107,8 +98,6 @@ public class ActionStepExecutor {
         File snap = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
         Files.copy(snap.toPath(), Paths.get(reportDir, stepShot));
 
-        String category = "positive";
-
         return new LogEntry(
                 timestamp,
                 "PASS",
@@ -116,9 +105,9 @@ public class ActionStepExecutor {
                 stepShot,
                 expected,
                 null,
-                category, // testType
+                testType, // ✅ corrected
                 comment,
-                category);
-
+                testType); // ✅ corrected
     }
+
 }
