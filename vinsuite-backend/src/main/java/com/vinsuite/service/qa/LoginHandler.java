@@ -10,7 +10,7 @@ import java.util.Map;
 public class LoginHandler {
 
     public static List<TestCase> injectLoginStepsIfNeeded(WebDriver driver, List<TestCase> testCases,
-                                                          Map<String, String> placeholders) {
+            Map<String, String> placeholders) {
         if (placeholders == null || testCases == null)
             return testCases;
 
@@ -34,14 +34,17 @@ public class LoginHandler {
             WebElement loginButton = driver.findElement(By.xpath(
                     "//input[@type='submit' or contains(@id,'login') or contains(@name,'login') or contains(@class,'login')]"));
 
-            String usernameXPath = getXPath(usernameInput);
-            String passwordXPath = getXPath(passwordInput);
-            String loginXPath = getXPath(loginButton);
+            String usernameXPath = getXPath(driver, usernameInput);
+            String passwordXPath = getXPath(driver, passwordInput);
+            String loginXPath = getXPath(driver, loginButton);
 
             List<TestCase> loginSteps = new ArrayList<>();
-            loginSteps.add(new TestCase("Enter {{USERNAME}} in xpath(\"" + usernameXPath + "\")", "", "", "Enter username", "pre-login"));
-            loginSteps.add(new TestCase("Enter {{PASSWORD}} in xpath(\"" + passwordXPath + "\")", "", "", "Enter password", "pre-login"));
-            loginSteps.add(new TestCase("Click on xpath(\"" + loginXPath + "\")", "", "", "Click login button", "pre-login"));
+            loginSteps.add(new TestCase("Enter {{USERNAME}} in xpath(\"" + usernameXPath + "\")", "", "",
+                    "Enter username", "pre-login"));
+            loginSteps.add(new TestCase("Enter {{PASSWORD}} in xpath(\"" + passwordXPath + "\")", "", "",
+                    "Enter password", "pre-login"));
+            loginSteps.add(
+                    new TestCase("Click on xpath(\"" + loginXPath + "\")", "", "", "Click login button", "pre-login"));
 
             loginSteps.addAll(testCases);
             return loginSteps;
@@ -62,19 +65,26 @@ public class LoginHandler {
         return false;
     }
 
-    private static String getXPath(WebElement element) {
-        return (String) ((JavascriptExecutor) element).executeScript(
-                "function absoluteXPath(el) {" +
-                        "var comp = [];" +
-                        "while (el && el.nodeType === 1) {" +
-                        "var sib = 0;" +
-                        "var name = el.nodeName.toLowerCase();" +
-                        "for (var i = 0; i < el.parentNode.childNodes.length; i++) {" +
-                        "var node = el.parentNode.childNodes[i];" +
-                        "if (node.nodeType === 1 && node.nodeName.toLowerCase() === name) {" +
-                        "if (node === el) break; sib++; } }" +
-                        "comp.unshift(name + '[' + (sib+1) + ']'); el = el.parentNode; }" +
-                        "return '/' + comp.join('/'); } return absoluteXPath(arguments[0]);",
-                element);
+    private static String getXPath(WebDriver driver, WebElement element) {
+        try {
+            return (String) ((JavascriptExecutor) driver).executeScript(
+                    "function absoluteXPath(el) {" +
+                            "var comp = [];" +
+                            "while (el && el.nodeType === 1) {" +
+                            "var sib = 0;" +
+                            "var name = el.nodeName.toLowerCase();" +
+                            "for (var i = 0; i < el.parentNode.childNodes.length; i++) {" +
+                            "var node = el.parentNode.childNodes[i];" +
+                            "if (node.nodeType === 1 && node.nodeName.toLowerCase() === name) {" +
+                            "if (node === el) break; sib++; } }" +
+                            "comp.unshift(name + '[' + (sib+1) + ']'); el = el.parentNode; }" +
+                            "return '/' + comp.join('/'); } return absoluteXPath(arguments[0]);",
+                    element);
+        } catch (Exception e) {
+            System.out.println("⚠️ Failed to generate XPath via JS. Falling back to @id if available.");
+            String id = element.getAttribute("id");
+            return id != null ? "//*[@id='" + id + "']" : "";
+        }
     }
+
 }
