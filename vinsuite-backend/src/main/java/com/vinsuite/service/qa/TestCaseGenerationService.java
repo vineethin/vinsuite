@@ -142,11 +142,16 @@ public class TestCaseGenerationService {
             String jsonOnly = content.substring(jsonStart).trim();
 
             // ✅ Step 3: Remove Groq-style artifacts
+            // ✅ Step 3: Remove Groq-style artifacts and fix broken locator quotes
             jsonOnly = jsonOnly
                     .replaceAll("(?m)^\\s*//.*?$", "") // Remove // comments
                     .replaceAll("(?s)/\\*.*?\\*/", "") // Remove /* */ block comments
                     .replace("&quot;", "\"")
-                    .replace("&apos;", "'");
+                    .replace("&apos;", "'")
+                    .replaceAll("xpath\\(\\\"(.*?)\\\"\\)", "xpath('$1')") // Fix double-quoted xpath to single-quoted
+                    .replaceAll("id\\(\\\"(.*?)\\\"\\)", "id('$1')")
+                    .replaceAll("css\\(\\\"(.*?)\\\"\\)", "css('$1')")
+                    .replaceAll("label\\(\\\"(.*?)\\\"\\)", "label('$1')");
 
             // ✅ Step 4: Handle partially clipped Groq output
             if (jsonOnly.startsWith("[")) {
@@ -261,7 +266,7 @@ public class TestCaseGenerationService {
 
             driver = new ChromeDriver(options);
             driver.get(url);
-            Thread.sleep(3000); // Could be replaced with WebDriverWait for page load completion
+            Thread.sleep(3000); // Replace with WebDriverWait in production
 
             String html = driver.getPageSource();
             if (html == null || html.isBlank()) {
@@ -276,37 +281,44 @@ public class TestCaseGenerationService {
 
                     Functionality: %s
 
-                    Based on the HTML provided below, generate Selenium-style test cases categorized as positive, negative, or edge.
+                    Based on the HTML below, generate Selenium-style test cases categorized as positive, negative, or edge.
 
-                    IMPORTANT:
-                    - Use xpath("..."), id("..."), css("..."), or label("...") format for element locators.
-                    - Always use double quotes inside locators — never single quotes.
-                    - For login or credential fields, use placeholders {{USERNAME}} and {{PASSWORD}} in the actions.
+                    🛠️ Rules:
+                    - Use {{USERNAME}} and {{PASSWORD}} as placeholders for login input values.
+                    - Derive locators from the actual HTML provided.
+                    - Use only these locator formats: xpath(\"...\"), id(\"...\"), css(\"...\"), or label(\"...\").
+                    - Inside XPath and other locators, always use double quotes.
+                    - DO NOT include hardcoded values like 'standard_user' or 'secret_sauce'.
+
+                    🔒 Output format (return only the JSON array — no explanation, no headings):
+                    [
+                      {
+                        "action": "Enter {{USERNAME}} in xpath(\"//input[@id='user-name']\") and {{PASSWORD}} in xpath(\"//input[@id='password']\") and click on xpath(\"//input[@id='login-button']\")",
+                        "expectedResult": "Login is successful",
+                        "actualResult": "",
+                        "comments": "positive"
+                      }
+                    ]
 
                     HTML:
                     %s
-
-                    Each test case must strictly follow this JSON format:
-                    {
-                      "action": "Enter {{USERNAME}} in xpath(\"//input[@id='username']\") and {{PASSWORD}} in xpath(\"//input[@id='password']\") and click on xpath(\"//button[@type='submit']\")",
-                      "expectedResult": "Expected output",
-                      "actualResult": "",
-                      "comments": "positive | negative | edge"
-                    }
-
-                    Return only a JSON array of 6 to 9 test cases. No explanations, markdown, or headings.
                     """
                     .formatted(functionality, html);
 
             String responseBody = callGroqRaw(prompt);
+
             System.out.println("🔍 Groq response for functionality '" + functionality + "':\n" + responseBody);
 
-            List<TestCase> parsed = parseGroqJsonToTestCases(responseBody);
+            // Final sanitization fix for Groq returning wrong quotes
+            String sanitizedResponse = responseBody
+                    .replaceAll("\\\\'", "'");
+
+            List<TestCase> parsed = parseGroqJsonToTestCases(sanitizedResponse);
             System.out.println("✅ Parsed " + parsed.size() + " test case(s) successfully.");
             return parsed;
 
         } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt(); // recommended way to handle interrupts
+            Thread.currentThread().interrupt();
             System.out.println("⛔ Thread was interrupted.");
             return List.of();
         } catch (Exception e) {
