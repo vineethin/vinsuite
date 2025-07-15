@@ -152,11 +152,15 @@ export default function useTestAuraLogic() {
     setReportUrl(null);
 
     try {
+      const placeholders = {
+        USERNAME: username,
+        PASSWORD: password,
+      };
+
       console.log("▶️ Running tests with:", {
         url,
         tests: selectedTests,
-        username,
-        password,
+        placeholders,
       });
 
       const res = await fetch(`${API_BASE}/testaura/run-smart`, {
@@ -167,6 +171,8 @@ export default function useTestAuraLogic() {
           tests: selectedTests,
           username,
           password,
+          category: null,
+          placeholders,
         }),
       });
 
@@ -178,11 +184,10 @@ export default function useTestAuraLogic() {
         toast.success(data.message || "Tests executed.");
 
         if (data.screenshot) {
-          setScreenshot(`data:image/png;base64,${data.screenshot}`);
+          setScreenshot(`${API_BASE}/testaura/report/screenshots/${data.screenshot}`);
         }
 
         if (data.reportUrl) {
-          // Ensure proper formatting, avoid duplicate slashes
           const cleaned = data.reportUrl.replace(/^\/+/, "");
           setReportUrl(`${API_BASE}/${cleaned}`);
         }
@@ -196,6 +201,7 @@ export default function useTestAuraLogic() {
       setIsRunning(false);
     }
   };
+
 
   const downloadAsTxt = () => {
     if (!suggestions || Object.keys(suggestions).length === 0) {

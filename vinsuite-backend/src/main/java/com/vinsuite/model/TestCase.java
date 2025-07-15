@@ -15,6 +15,9 @@ public class TestCase {
     private String actualResult;
     private String comments;
 
+    @Column(name = "test_type")
+    private String testType;
+
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;
@@ -23,24 +26,25 @@ public class TestCase {
     public TestCase() {}
 
     // Full constructor (used when saving to DB with project)
-    public TestCase(String action, String expectedResult, String actualResult, String comments, Project project) {
+    public TestCase(String action, String expectedResult, String actualResult, String comments, String testType, Project project) {
         this.action = action;
         this.expectedResult = expectedResult;
         this.actualResult = actualResult;
         this.comments = comments;
+        this.testType = testType;
         this.project = project;
     }
 
     // Constructor for AI-generated test cases (no project)
-    public TestCase(String action, String expectedResult, String actualResult, String comments) {
+    public TestCase(String action, String expectedResult, String actualResult, String comments, String testType) {
         this.action = action;
         this.expectedResult = expectedResult;
         this.actualResult = actualResult;
         this.comments = comments;
+        this.testType = testType;
     }
 
     // Getters and Setters
-
     public Long getId() {
         return id;
     }
@@ -79,6 +83,14 @@ public class TestCase {
 
     public void setComments(String comments) {
         this.comments = comments;
+    }
+
+    public String getTestType() {
+        return testType;
+    }
+
+    public void setTestType(String testType) {
+        this.testType = testType;
     }
 
     public Project getProject() {
